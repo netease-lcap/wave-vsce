@@ -10,7 +10,7 @@ test.describe('Basic Message Flow', () => {
 
         // Verify initial state - should have welcome message
         await ui.verifyMessageCount(1);
-        await ui.verifyMessageContent(0, "Hello! I'm your AI assistant");
+        await ui.verifyMessageContent(0, "您好！我是您的 AI 助手");
 
         // Clear message log
         await injector.clearMessageLog();

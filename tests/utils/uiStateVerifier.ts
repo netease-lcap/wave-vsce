@@ -186,7 +186,7 @@ export class UIStateVerifier {
     async verifyChatCleared() {
         // Should have only the initial welcome message
         await this.verifyMessageCount(1);
-        await this.verifyMessageContent(0, "Hello! I'm your AI assistant");
+        await this.verifyMessageContent(0, "您好！我是您的 AI 助手");
     }
 
     /**

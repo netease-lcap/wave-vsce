@@ -1,7 +1,7 @@
 {
   "name": "wave-vscode-chat",
-  "displayName": "Wave AI Chat",
-  "description": "AI-powered chat interface for VS Code using Wave Agent SDK",
+  "displayName": "Wave AI 聊天",
+  "description": "基于 Wave Agent SDK 的 VS Code AI 聊天界面",
   "version": "0.0.1",
   "publisher": "wave-ai",
   "repository": {
@@ -22,7 +22,7 @@
     "commands": [
       {
         "command": "wave-chat.openChat",
-        "title": "Open AI Chat",
+        "title": "打开 AI 聊天",
         "category": "Wave"
       }
     ],

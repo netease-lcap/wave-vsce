@@ -36,7 +36,7 @@ window.addEventListener('message', event => {
 });
 
 function startStreaming() {
-    console.log('Starting streaming response');
+    console.log('开始流式响应');
     isStreaming = true;
     
     // Show abort button and disable send/input
@@ -96,16 +96,16 @@ function handleMessageAborted(partialContent) {
 }
 
 function ensureUIReset() {
-    console.log('Ensuring UI reset - current streaming state:', isStreaming);
+    console.log('确保 UI 重置 - 当前流式状态:', isStreaming);
     
     // Only reset if still in streaming mode
     if (isStreaming) {
-        console.log('UI still in streaming mode - resetting button states');
+        console.log('UI 仍处于流式模式 - 重置按钮状态');
         isStreaming = false;
         updateButtonVisibility();
         setSendEnabled(true);
     } else {
-        console.log('UI already reset - no action needed');
+        console.log('UI 已经重置 - 无需操作');
     }
 }
 
@@ -129,7 +129,7 @@ function updateButtonVisibility() {
 }
 
 function updateMessagesDisplay(messages) {
-    console.log('Final messages update:', messages.length);
+    console.log('最终消息更新:', messages.length);
     
     // Remove streaming message if it exists
     if (streamingMessage) {
@@ -140,7 +140,7 @@ function updateMessagesDisplay(messages) {
     
     const container = document.getElementById('messagesContainer');
     
-    // Clear all messages except welcome message
+    // 清除除欢迎消息外的所有消息
     while (container.children.length > 1) {
         container.removeChild(container.lastChild);
     }
@@ -168,7 +168,7 @@ function addMessageToDisplay(message) {
         // Check if this is an error message
         if (message.isError) {
             messageDiv.className = 'message error';
-            messageDiv.innerHTML = `<div class="message-content">Error: ${escapeHtml(message.content)}</div>`;
+            messageDiv.innerHTML = `<div class="message-content">错误: ${escapeHtml(message.content)}</div>`;
         } else {
             messageDiv.className = 'message assistant';
             messageDiv.innerHTML = `<div class="message-content">${escapeHtml(message.content)}</div>`;
@@ -192,14 +192,14 @@ function addMessageToDisplay(message) {
 }
 
 function updateToolStatus(params) {
-    console.log('Tool update:', params);
+    console.log('工具更新:', params);
 }
 
 function showError(error) {
     const container = document.getElementById('messagesContainer');
     const errorDiv = document.createElement('div');
     errorDiv.className = 'message error';
-    errorDiv.innerHTML = `<div class="message-content">Error: ${escapeHtml(error)}</div>`;
+    errorDiv.innerHTML = `<div class="message-content">错误: ${escapeHtml(error)}</div>`;
     container.appendChild(errorDiv);
     scrollToBottom();
     isStreaming = false;
@@ -221,7 +221,7 @@ function clearMessages() {
     updateButtonVisibility();
     setSendEnabled(true);
     
-    // Clear input field as well
+    // 同时清除输入框
     const input = document.getElementById('messageInput');
     if (input) {
         input.value = '';
@@ -235,7 +235,7 @@ function sendMessage() {
     
     if (!message || isStreaming) return;
     
-    console.log('Sending message:', message);
+    console.log('发送消息:', message);
     
     // Add user message immediately
     const container = document.getElementById('messagesContainer');
@@ -244,7 +244,7 @@ function sendMessage() {
     userMessageDiv.innerHTML = `<div class="message-content">${escapeHtml(message)}</div>`;
     container.appendChild(userMessageDiv);
     
-    // Clear input and disable send
+    // 清除输入框并禁用发送
     input.value = '';
     input.style.height = 'auto';
     setSendEnabled(false);
@@ -261,7 +261,7 @@ function sendMessage() {
 function clearChat() {
     if (isStreaming) return; // Don't allow clearing during streaming
     
-    console.log('Clear chat requested');
+    console.log('清除聊天请求');
     vscode.postMessage({
         command: 'clearChat'
     });
@@ -270,7 +270,7 @@ function clearChat() {
 function getWorkspaceInfo() {
     if (isStreaming) return;
     
-    console.log('Get workspace info requested');
+    console.log('获取工作区信息请求');
     setSendEnabled(false);
     vscode.postMessage({
         command: 'getWorkspaceInfo'
