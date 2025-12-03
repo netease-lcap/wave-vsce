@@ -15,11 +15,38 @@ export class ChatProvider {
     constructor(context: vscode.ExtensionContext) {
         this.context = context;
         console.log('ChatProvider created');
+        
+        // Listen for workspace folder changes (for logging/awareness only)
+        // Note: Agent workdir remains unchanged for secondary folder changes due to single workdir limitation
+        const workspaceChangeListener = vscode.workspace.onDidChangeWorkspaceFolders((event) => {
+            console.log('Workspace folders changed:', {
+                added: event.added.map(f => f.uri.fsPath),
+                removed: event.removed.map(f => f.uri.fsPath)
+            });
+            
+            if (event.added.length > 0 || event.removed.length > 0) {
+                const currentFirst = vscode.workspace.workspaceFolders?.[0];
+                console.log('Current first workspace folder:', currentFirst?.uri.fsPath || 'none');
+                console.log('Note: Agent working directory remains unchanged (single workdir limitation)');
+            }
+        });
+        
+        this.context.subscriptions.push(workspaceChangeListener);
     }
 
     private async initializeAgent() {
         try {
             console.log('Initializing Agent with proper streaming handling...');
+            
+            // Detect current workspace folder for agent working directory
+            const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+            const workdir = workspaceFolder?.uri.fsPath;
+            
+            if (workdir) {
+                console.log(`Setting agent working directory to: ${workdir}`);
+            } else {
+                console.log('No workspace folder detected, using default working directory');
+            }
             
             const callbacks: MessageManagerCallbacks = {
                 onMessagesChange: (messages: Message[]) => {
@@ -66,7 +93,8 @@ export class ChatProvider {
             };
 
             this.agent = await Agent.create({
-                callbacks
+                callbacks,
+                workdir
             });
             
             console.log('Agent initialized successfully');
@@ -290,5 +318,31 @@ export class ChatProvider {
         return htmlTemplate
             .replace('{{SCRIPT_URI}}', scriptUri.toString())
             .replace('{{STYLE_URI}}', styleUri.toString());
+    }
+
+    /**
+     * Clean up resources when extension deactivates
+     */
+    public async destroy() {
+        console.log('ChatProvider destroying resources...');
+        
+        // Destroy the agent if it exists
+        if (this.agent) {
+            try {
+                await this.agent.destroy();
+                console.log('Agent destroyed successfully');
+            } catch (error) {
+                console.error('Error destroying agent:', error);
+            }
+            this.agent = undefined;
+        }
+        
+        // Close the webview panel if it exists
+        if (this.panel) {
+            this.panel.dispose();
+            this.panel = undefined;
+        }
+        
+        console.log('ChatProvider resources cleaned up');
     }
 }

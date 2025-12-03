@@ -13,5 +13,5 @@
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true
   },
-  "exclude": ["node_modules", ".vscode-test"]
+  "exclude": ["node_modules", ".vscode-test", "tests", "playwright.config.ts"]
 }
