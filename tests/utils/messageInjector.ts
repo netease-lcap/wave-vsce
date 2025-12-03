@@ -38,7 +38,7 @@ export class MessageInjector {
             const tool_calls = toolBlocks.map(tool => ({
                 function: {
                     name: tool.name || 'unknown',
-                    arguments: JSON.stringify(tool.parameters || {})
+                    arguments: tool.parameters || {}
                 }
             }));
 

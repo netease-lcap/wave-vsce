@@ -112,6 +112,15 @@ body {
     border-left: 3px solid var(--vscode-button-background);
 }
 
+.tool-block pre {
+    margin: 0;
+    padding: 4px 0;
+    white-space: pre;
+    overflow-x: auto;
+    font-family: var(--vscode-editor-font-family);
+    font-size: 12px;
+}
+
 .tool-header {
     font-weight: bold;
     color: var(--vscode-button-background);

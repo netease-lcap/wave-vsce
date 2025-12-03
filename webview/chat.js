@@ -180,7 +180,7 @@ function addMessageToDisplay(message) {
                     toolDiv.className = 'tool-block';
                     toolDiv.innerHTML = `
                         <div class="tool-header">🛠️ ${toolCall.function.name}</div>
-                        <pre>${escapeHtml(JSON.stringify(JSON.parse(toolCall.function.arguments), null, 2))}</pre>
+                        <pre>${escapeHtml(toolCall.function.arguments)}</pre>
                     `;
                     messageDiv.appendChild(toolDiv);
                 });
