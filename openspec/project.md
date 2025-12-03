@@ -7,7 +7,7 @@ VS Code extension providing a chat interface to interact with AI agents for proj
 - TypeScript
 - VS Code Extension API
 - HTML/CSS/JavaScript for webview
-- wave-agent-sdk (local development via npm link)
+- wave-agent-sdk (installed via npm)
 
 ## Project Conventions
 
@@ -35,8 +35,8 @@ VS Code extension development with AI agent integration. Users interact via chat
 ## Important Constraints
 - Must work within VS Code extension security model
 - Webview content security policies apply
-- Agent SDK must be linked during development
+- Uses published wave-agent-sdk package
 
 ## External Dependencies
-- wave-agent-sdk: /home/liuyiqi/personal-projects/wave-agent/packages/agent-sdk
+- wave-agent-sdk: Published npm package (^0.0.8)
 - VS Code Extension API

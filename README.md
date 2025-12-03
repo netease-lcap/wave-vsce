@@ -13,10 +13,9 @@ A VS Code extension that provides an integrated chat interface for AI assistance
 ## Installation & Development
 
 1. Clone this repository
-2. Link the Wave Agent SDK: `npm link wave-agent-sdk`
-3. Install dependencies: `npm install`
-4. Compile: `npm run compile`
-5. Press F5 to launch the extension in a new VS Code window
+2. Install dependencies: `npm install`
+3. Compile: `npm run compile`
+4. Press F5 to launch the extension in a new VS Code window
 
 ## Usage
 
@@ -33,11 +32,11 @@ A VS Code extension that provides an integrated chat interface for AI assistance
 ## Requirements
 
 - VS Code 1.74.0 or higher
-- Wave Agent SDK (linked during development)
+- Wave Agent SDK (automatically installed via npm)
 
 ## Development
 
-The extension uses the Wave Agent SDK to communicate with AI agents. During development, make sure to run `npm link` in the agent SDK directory and then `npm link wave-agent-sdk` in this project.
+The extension uses the Wave Agent SDK to communicate with AI agents. The SDK is installed as a regular npm dependency from the published package.
 
 ## License
 
