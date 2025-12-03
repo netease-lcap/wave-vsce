@@ -1,0 +1,55 @@
+{
+  "name": "wave-vscode-chat",
+  "displayName": "Wave AI Chat",
+  "description": "AI-powered chat interface for VS Code using Wave Agent SDK",
+  "version": "0.0.1",
+  "publisher": "wave-ai",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wave-ai/vscode-extension"
+  },
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "*"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "wave-chat.openChat",
+        "title": "Open AI Chat",
+        "category": "Wave"
+      },
+      {
+        "command": "wave-chat.test",
+        "title": "Test Wave Extension",
+        "category": "Wave"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "wave-chat.openChat",
+        "key": "ctrl+shift+w",
+        "mac": "cmd+shift+w"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "@types/node": "18.x",
+    "@types/vscode": "^1.74.0",
+    "typescript": "^4.9.4"
+  },
+  "dependencies": {
+    "wave-agent-sdk": "^0.0.8"
+  }
+}

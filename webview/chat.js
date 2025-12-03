@@ -1,0 +1,210 @@
+const vscode = acquireVsCodeApi();
+let isStreaming = false;
+let streamingMessage = null;
+
+// Handle messages from the extension
+window.addEventListener('message', event => {
+    const message = event.data;
+    console.log('Webview received:', message.command);
+    
+    switch (message.command) {
+        case 'updateMessages':
+            updateMessagesDisplay(message.messages);
+            break;
+        case 'startStreaming':
+            startStreaming();
+            break;
+        case 'updateStreaming':
+            updateStreamingContent(message.accumulated);
+            break;
+        case 'updateTool':
+            updateToolStatus(message.params);
+            break;
+        case 'showError':
+            showError(message.error);
+            break;
+        case 'clearMessages':
+            clearMessages();
+            break;
+    }
+});
+
+function startStreaming() {
+    console.log('Starting streaming response');
+    isStreaming = true;
+    
+    const container = document.getElementById('messagesContainer');
+    streamingMessage = document.createElement('div');
+    streamingMessage.className = 'message assistant streaming';
+    streamingMessage.innerHTML = '<div class="message-content">...</div>';
+    container.appendChild(streamingMessage);
+    
+    scrollToBottom();
+}
+
+function updateStreamingContent(accumulated) {
+    if (isStreaming && streamingMessage && accumulated) {
+        const contentDiv = streamingMessage.querySelector('.message-content');
+        if (contentDiv) {
+            contentDiv.textContent = accumulated;
+        }
+        scrollToBottom();
+    }
+}
+
+function updateMessagesDisplay(messages) {
+    console.log('Final messages update:', messages.length);
+    
+    // Remove streaming message if it exists
+    if (streamingMessage) {
+        streamingMessage.remove();
+        streamingMessage = null;
+    }
+    isStreaming = false;
+    
+    const container = document.getElementById('messagesContainer');
+    
+    // Clear all messages except welcome message
+    while (container.children.length > 1) {
+        container.removeChild(container.lastChild);
+    }
+    
+    // Add all messages from the conversation
+    messages.forEach(message => {
+        if (message.content && message.content.trim()) {
+            addMessageToDisplay(message);
+        }
+    });
+    
+    scrollToBottom();
+    setSendEnabled(true);
+}
+
+function addMessageToDisplay(message) {
+    const container = document.getElementById('messagesContainer');
+    const messageDiv = document.createElement('div');
+    
+    if (message.role === 'user') {
+        messageDiv.className = 'message user';
+        messageDiv.innerHTML = `<div class="message-content">${escapeHtml(message.content)}</div>`;
+    } else if (message.role === 'assistant') {
+        messageDiv.className = 'message assistant';
+        messageDiv.innerHTML = `<div class="message-content">${escapeHtml(message.content)}</div>`;
+        
+        // Add tool calls if any
+        if (message.tool_calls) {
+            message.tool_calls.forEach(toolCall => {
+                const toolDiv = document.createElement('div');
+                toolDiv.className = 'tool-block';
+                toolDiv.innerHTML = `
+                    <div class="tool-header">🛠️ ${toolCall.function.name}</div>
+                    <pre>${escapeHtml(JSON.stringify(JSON.parse(toolCall.function.arguments), null, 2))}</pre>
+                `;
+                messageDiv.appendChild(toolDiv);
+            });
+        }
+    }
+    
+    container.appendChild(messageDiv);
+}
+
+function updateToolStatus(params) {
+    console.log('Tool update:', params);
+}
+
+function showError(error) {
+    const container = document.getElementById('messagesContainer');
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'message error';
+    errorDiv.innerHTML = `<div class="message-content">Error: ${escapeHtml(error)}</div>`;
+    container.appendChild(errorDiv);
+    scrollToBottom();
+    isStreaming = false;
+    setSendEnabled(true);
+}
+
+function clearMessages() {
+    const container = document.getElementById('messagesContainer');
+    while (container.children.length > 1) {
+        container.removeChild(container.lastChild);
+    }
+}
+
+function sendMessage() {
+    const input = document.getElementById('messageInput');
+    const message = input.value.trim();
+    
+    if (!message || isStreaming) return;
+    
+    console.log('Sending message:', message);
+    
+    // Add user message immediately
+    const container = document.getElementById('messagesContainer');
+    const userMessageDiv = document.createElement('div');
+    userMessageDiv.className = 'message user';
+    userMessageDiv.innerHTML = `<div class="message-content">${escapeHtml(message)}</div>`;
+    container.appendChild(userMessageDiv);
+    
+    // Clear input and disable send
+    input.value = '';
+    input.style.height = 'auto';
+    setSendEnabled(false);
+    
+    // Send to extension
+    vscode.postMessage({
+        command: 'sendMessage',
+        text: message
+    });
+    
+    scrollToBottom();
+}
+
+function clearChat() {
+    console.log('Clear chat requested');
+    vscode.postMessage({
+        command: 'clearChat'
+    });
+}
+
+function getWorkspaceInfo() {
+    if (isStreaming) return;
+    
+    console.log('Get workspace info requested');
+    setSendEnabled(false);
+    vscode.postMessage({
+        command: 'getWorkspaceInfo'
+    });
+}
+
+function setSendEnabled(enabled) {
+    const sendButton = document.getElementById('sendButton');
+    const messageInput = document.getElementById('messageInput');
+    
+    sendButton.disabled = !enabled;
+    messageInput.disabled = !enabled;
+}
+
+function scrollToBottom() {
+    const container = document.getElementById('messagesContainer');
+    container.scrollTop = container.scrollHeight;
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// Handle Enter key in textarea
+document.getElementById('messageInput').addEventListener('keydown', function(event) {
+    if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        sendMessage();
+    }
+});
+
+// Auto-resize textarea
+document.getElementById('messageInput').addEventListener('input', function() {
+    this.style.height = 'auto';
+    this.style.height = this.scrollHeight + 'px';
+});

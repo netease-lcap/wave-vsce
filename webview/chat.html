@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wave AI Chat</title>
+    <link rel="stylesheet" href="{{STYLE_URI}}">
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <div class="chat-title">Wave AI Chat</div>
+            <div class="header-buttons">
+                <button class="header-button" onclick="getWorkspaceInfo()">Analyze Project</button>
+                <button class="header-button" onclick="clearChat()">Clear Chat</button>
+            </div>
+        </div>
+        
+        <div class="messages-container" id="messagesContainer">
+            <div class="message assistant">
+                <div class="message-content">Hello! I'm your AI assistant. I can help you with your current project, write code, and modify files. How can I assist you today?</div>
+            </div>
+        </div>
+        
+        <div class="input-container">
+            <div class="input-row">
+                <textarea 
+                    class="message-input" 
+                    id="messageInput" 
+                    placeholder="Type your message here..."
+                    rows="1"
+                ></textarea>
+                <button class="send-button" id="sendButton" onclick="sendMessage()">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{SCRIPT_URI}}"></script>
+</body>
+</html>
