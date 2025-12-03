@@ -26,12 +26,18 @@ window.addEventListener('message', event => {
         case 'clearMessages':
             clearMessages();
             break;
+        case 'messageAborted':
+            handleMessageAborted(message.partialContent);
+            break;
     }
 });
 
 function startStreaming() {
     console.log('Starting streaming response');
     isStreaming = true;
+    
+    // Show abort button, hide send button
+    updateButtonVisibility();
     
     const container = document.getElementById('messagesContainer');
     streamingMessage = document.createElement('div');
@@ -52,6 +58,52 @@ function updateStreamingContent(accumulated) {
     }
 }
 
+function abortMessage() {
+    if (!isStreaming) return;
+    
+    // Send abort command to extension
+    vscode.postMessage({
+        command: 'abortMessage'
+    });
+}
+
+function handleMessageAborted(partialContent) {
+    // Remove streaming message if it exists
+    if (streamingMessage) {
+        streamingMessage.remove();
+        streamingMessage = null;
+    }
+    
+    // Always add aborted message, even if content is empty
+    const container = document.getElementById('messagesContainer');
+    const abortedMessage = document.createElement('div');
+    abortedMessage.className = 'message assistant aborted';
+    
+    const contentText = partialContent && partialContent.trim() ? partialContent : '...';
+    abortedMessage.innerHTML = `<div class="message-content">${escapeHtml(contentText)}</div>`;
+    
+    container.appendChild(abortedMessage);
+    scrollToBottom();
+    
+    // Reset streaming state
+    isStreaming = false;
+    updateButtonVisibility();
+    setSendEnabled(true);
+}
+
+function updateButtonVisibility() {
+    const abortButton = document.getElementById('abortButton');
+    const sendButton = document.getElementById('sendButton');
+    
+    if (isStreaming) {
+        abortButton.style.display = 'block';
+        sendButton.disabled = true;
+    } else {
+        abortButton.style.display = 'none';
+        sendButton.disabled = false;
+    }
+}
+
 function updateMessagesDisplay(messages) {
     console.log('Final messages update:', messages.length);
     
@@ -61,6 +113,7 @@ function updateMessagesDisplay(messages) {
         streamingMessage = null;
     }
     isStreaming = false;
+    updateButtonVisibility();
     
     const container = document.getElementById('messagesContainer');
     
@@ -120,6 +173,7 @@ function showError(error) {
     container.appendChild(errorDiv);
     scrollToBottom();
     isStreaming = false;
+    updateButtonVisibility();
     setSendEnabled(true);
 }
 

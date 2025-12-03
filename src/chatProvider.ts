@@ -9,6 +9,8 @@ export class ChatProvider {
     private agent: Agent | undefined;
     private context: vscode.ExtensionContext;
     private isStreaming = false;
+    private accumulatedContent = '';
+    private isAborted = false;
 
     constructor(context: vscode.ExtensionContext) {
         this.context = context;
@@ -21,20 +23,24 @@ export class ChatProvider {
             
             const callbacks: MessageManagerCallbacks = {
                 onMessagesChange: (messages: Message[]) => {
-                    console.log('onMessagesChange - messages:', messages.length, 'streaming:', this.isStreaming);
-                    // Only update the full UI when not actively streaming
-                    if (!this.isStreaming) {
+                    // Only update the full UI when not actively streaming and not just aborted
+                    if (!this.isStreaming && !this.isAborted) {
                         this.updateChatMessages(messages);
+                    } else if (this.isAborted) {
+                        this.isAborted = false; // Reset flag after skipping one update
                     }
                 },
                 onAssistantContentUpdated: (chunk: string, accumulated: string) => {
                     console.log('Streaming content - chunk:', chunk.length, 'total:', accumulated.length);
                     this.isStreaming = true;
+                    this.accumulatedContent = accumulated;
                     this.updateStreamingContent(chunk, accumulated);
                 },
                 onAssistantMessageAdded: () => {
                     console.log('Assistant message started - begin streaming');
                     this.isStreaming = true;
+                    this.accumulatedContent = '';
+                    this.isAborted = false; // Reset abort flag for new message
                     if (this.panel) {
                         this.panel.webview.postMessage({
                             command: 'startStreaming'
@@ -48,11 +54,13 @@ export class ChatProvider {
                     // When tool execution ends, streaming is complete
                     if (params.stage === 'end') {
                         this.isStreaming = false;
+                        this.accumulatedContent = '';
                     }
                 },
                 onErrorBlockAdded: (error: string) => {
                     console.log('Error:', error);
                     this.isStreaming = false;
+                    this.accumulatedContent = '';
                     this.showError(error);
                 }
             };
@@ -124,6 +132,9 @@ export class ChatProvider {
             case 'getWorkspaceInfo':
                 await this.sendWorkspaceInfo();
                 break;
+            case 'abortMessage':
+                await this.abortMessage();
+                break;
         }
     }
 
@@ -136,10 +147,14 @@ export class ChatProvider {
         try {
             console.log('Sending message to agent:', text);
             this.isStreaming = false; // Reset streaming state
+            this.accumulatedContent = ''; // Clear accumulated content
+            this.isAborted = false; // Reset abort flag
             await this.agent.sendMessage(text);
         } catch (error) {
             console.error('Error sending message to agent:', error);
             this.isStreaming = false;
+            this.accumulatedContent = '';
+            this.isAborted = false;
             vscode.window.showErrorMessage('Failed to send message: ' + error);
         }
     }
@@ -153,6 +168,41 @@ export class ChatProvider {
 
         const workspaceInfo = `Current workspace: ${workspaceFolder.name} at ${workspaceFolder.uri.fsPath}`;
         await this.sendMessageToAgent(`Please analyze the current project. ${workspaceInfo}`);
+    }
+
+    private async abortMessage() {
+        if (!this.agent || !this.isStreaming) {
+            console.log('No message to abort or agent not initialized');
+            return;
+        }
+
+        try {
+            console.log('Aborting message with partial content:', this.accumulatedContent.slice(0, 100) + '...');
+            
+            // Set abort flag to prevent onMessagesChange from overwriting our abort display
+            this.isAborted = true;
+            
+            // Call the agent's abort method
+            this.agent.abortMessage();
+            
+            // Send the partial content to the webview with abort indicator
+            if (this.panel) {
+                this.panel.webview.postMessage({
+                    command: 'messageAborted',
+                    partialContent: this.accumulatedContent
+                });
+            }
+            
+            // Reset streaming state
+            this.isStreaming = false;
+            this.accumulatedContent = '';
+            
+            console.log('Message aborted successfully');
+        } catch (error) {
+            console.error('Error aborting message:', error);
+            this.isAborted = false; // Reset flag on error
+            vscode.window.showErrorMessage('Failed to abort message: ' + error);
+        }
     }
 
     private async clearChat() {
@@ -176,6 +226,7 @@ export class ChatProvider {
             });
         }
         this.isStreaming = false; // Ensure streaming state is reset
+        this.accumulatedContent = ''; // Clear accumulated content
     }
 
     private convertMessageForDisplay(message: Message) {

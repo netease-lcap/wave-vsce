@@ -156,6 +156,37 @@ body {
     cursor: not-allowed;
 }
 
+.abort-button {
+    background-color: var(--vscode-button-secondaryBackground);
+    color: var(--vscode-button-secondaryForeground);
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.abort-button:hover {
+    background-color: var(--vscode-button-secondaryHoverBackground);
+}
+
+.abort-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.message.assistant.aborted {
+    opacity: 0.8;
+    border: 1px solid var(--vscode-inputValidation-warningBorder);
+}
+
+.message.assistant.aborted .message-content::after {
+    content: " [Aborted]";
+    color: var(--vscode-inputValidation-warningForeground);
+    font-style: italic;
+    font-size: 0.9em;
+}
+
 @keyframes blink {
     0%, 50% { opacity: 1; }
     51%, 100% { opacity: 0; }
