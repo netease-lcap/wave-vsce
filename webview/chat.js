@@ -29,6 +29,9 @@ window.addEventListener('message', event => {
         case 'messageAborted':
             handleMessageAborted(message.partialContent);
             break;
+        case 'ensureUIReset':
+            ensureUIReset();
+            break;
     }
 });
 
@@ -92,6 +95,20 @@ function handleMessageAborted(partialContent) {
     setSendEnabled(true);
 }
 
+function ensureUIReset() {
+    console.log('Ensuring UI reset - current streaming state:', isStreaming);
+    
+    // Only reset if still in streaming mode
+    if (isStreaming) {
+        console.log('UI still in streaming mode - resetting button states');
+        isStreaming = false;
+        updateButtonVisibility();
+        setSendEnabled(true);
+    } else {
+        console.log('UI already reset - no action needed');
+    }
+}
+
 function updateButtonVisibility() {
     const abortButton = document.getElementById('abortButton');
     const sendButton = document.getElementById('sendButton');
@@ -120,7 +137,6 @@ function updateMessagesDisplay(messages) {
         streamingMessage = null;
     }
     isStreaming = false;
-    updateButtonVisibility();
     
     const container = document.getElementById('messagesContainer');
     
@@ -138,6 +154,7 @@ function updateMessagesDisplay(messages) {
     
     scrollToBottom();
     setSendEnabled(true);
+    updateButtonVisibility(); // This ensures all buttons are re-enabled
 }
 
 function addMessageToDisplay(message) {

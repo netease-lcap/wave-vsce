@@ -177,12 +177,35 @@ export class ChatProvider {
             this.isStreaming = false; // Reset streaming state
             this.accumulatedContent = ''; // Clear accumulated content
             this.isAborted = false; // Reset abort flag
+            
             await this.agent.sendMessage(text);
+            
+            // After agent.sendMessage() completes, immediately reset streaming state
+            console.log('Agent sendMessage completed - resetting streaming state');
+            this.isStreaming = false;
+            this.accumulatedContent = '';
+            
+            // Explicitly tell webview to reset UI state if it hasn't been reset already
+            if (this.panel) {
+                this.panel.webview.postMessage({
+                    command: 'ensureUIReset'
+                });
+            }
+            
         } catch (error) {
             console.error('Error sending message to agent:', error);
             this.isStreaming = false;
             this.accumulatedContent = '';
             this.isAborted = false;
+            
+            // Reset UI state in webview when error occurs
+            if (this.panel) {
+                this.panel.webview.postMessage({
+                    command: 'showError',
+                    error: `Failed to send message: ${error}`
+                });
+            }
+            
             vscode.window.showErrorMessage('Failed to send message: ' + error);
         }
     }
