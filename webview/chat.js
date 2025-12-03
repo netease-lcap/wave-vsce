@@ -46,16 +46,16 @@ function startStreaming() {
     const container = document.getElementById('messagesContainer');
     streamingMessage = document.createElement('div');
     streamingMessage.className = 'message assistant streaming';
-    streamingMessage.innerHTML = '<div class="message-content">...</div>';
+    streamingMessage.innerHTML = '<div class="message-content">正在思考...</div>';
     container.appendChild(streamingMessage);
     
     scrollToBottom();
 }
 
 function updateStreamingContent(accumulated) {
-    if (isStreaming && streamingMessage && accumulated) {
+    if (isStreaming && streamingMessage) {
         const contentDiv = streamingMessage.querySelector('.message-content');
-        if (contentDiv) {
+        if (contentDiv && accumulated) {
             contentDiv.textContent = accumulated;
         }
         scrollToBottom();
@@ -193,6 +193,34 @@ function addMessageToDisplay(message) {
 
 function updateToolStatus(params) {
     console.log('工具更新:', params);
+    
+    // 在流式消息中显示工具状态
+    if (isStreaming && streamingMessage) {
+        const messageDiv = streamingMessage;
+        let toolDiv = messageDiv.querySelector(`[data-tool-id="${params.id}"]`);
+        
+        // 如果工具块不存在，创建一个
+        if (!toolDiv && params.stage !== 'end') {
+            toolDiv = document.createElement('div');
+            toolDiv.className = 'tool-block streaming';
+            toolDiv.setAttribute('data-tool-id', params.id);
+            messageDiv.appendChild(toolDiv);
+        }
+        
+        if (toolDiv) {
+            updateToolDisplay(toolDiv, params);
+        }
+        
+        // 如果工具执行结束，更新消息内容显示
+        if (params.stage === 'end') {
+            const contentDiv = messageDiv.querySelector('.message-content');
+            if (contentDiv && contentDiv.textContent === '正在思考...') {
+                contentDiv.textContent = ''; // 清空占位文本，让工具结果显示
+            }
+        }
+        
+        scrollToBottom();
+    }
 }
 
 function showError(error) {
@@ -288,6 +316,50 @@ function setSendEnabled(enabled) {
 function scrollToBottom() {
     const container = document.getElementById('messagesContainer');
     container.scrollTop = container.scrollHeight;
+}
+
+function updateToolDisplay(toolDiv, params) {
+    const { stage, name, parameters, description } = params;
+    
+    // 更新工具块的样式类
+    toolDiv.className = `tool-block ${stage}`;
+    
+    let statusIcon = '🔄'; // 默认旋转图标
+    let statusText = '准备中';
+    
+    switch (stage) {
+        case 'start':
+            statusIcon = '🚀';
+            statusText = '开始执行';
+            break;
+        case 'streaming':
+            statusIcon = '🔄';
+            statusText = '正在执行';
+            break;
+        case 'running':
+            statusIcon = '⏳';
+            statusText = '正在运行';
+            break;
+        case 'end':
+            statusIcon = '✅';
+            statusText = '完成';
+            break;
+    }
+    
+    const toolName = name || '未知工具';
+    const toolArgs = typeof parameters === 'string' ? parameters : 
+                     typeof parameters === 'object' ? JSON.stringify(parameters, null, 2) : 
+                     parameters || '';
+    
+    toolDiv.innerHTML = `
+        <div class="tool-header">
+            <span class="tool-status-icon">${statusIcon}</span>
+            <span class="tool-name">🛠️ ${toolName}</span>
+            <span class="tool-status-text">${statusText}</span>
+        </div>
+        ${toolArgs ? `<pre>${escapeHtml(toolArgs)}</pre>` : ''}
+        ${description ? `<div class="tool-description">${escapeHtml(description)}</div>` : ''}
+    `;
 }
 
 function escapeHtml(text) {

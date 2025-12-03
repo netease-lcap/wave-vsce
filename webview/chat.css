@@ -121,10 +121,61 @@ body {
     font-size: 12px;
 }
 
+/* 工具状态样式 */
+.tool-block.start {
+    border-left-color: var(--vscode-button-background);
+    opacity: 0.9;
+}
+
+.tool-block.streaming {
+    border-left-color: var(--vscode-progressBar-background);
+    animation: pulse 1.5s infinite;
+}
+
+.tool-block.running {
+    border-left-color: var(--vscode-charts-orange);
+    animation: pulse 2s infinite;
+}
+
+.tool-block.end {
+    border-left-color: var(--vscode-charts-green);
+    opacity: 1;
+}
+
+@keyframes pulse {
+    0% { opacity: 0.7; }
+    50% { opacity: 1; }
+    100% { opacity: 0.7; }
+}
+
 .tool-header {
     font-weight: bold;
     color: var(--vscode-button-background);
     margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.tool-status-icon {
+    font-size: 14px;
+}
+
+.tool-name {
+    flex: 1;
+}
+
+.tool-status-text {
+    font-size: 11px;
+    color: var(--vscode-descriptionForeground);
+    font-weight: normal;
+}
+
+.tool-description {
+    font-size: 11px;
+    color: var(--vscode-descriptionForeground);
+    font-style: italic;
+    margin-top: 4px;
 }
 
 .input-container {
