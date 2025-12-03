@@ -49,6 +49,16 @@ body {
     background-color: var(--vscode-button-secondaryHoverBackground);
 }
 
+.header-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background-color: var(--vscode-button-secondaryBackground);
+}
+
+.header-button:disabled:hover {
+    background-color: var(--vscode-button-secondaryBackground);
+}
+
 .messages-container {
     flex: 1;
     overflow-y: auto;

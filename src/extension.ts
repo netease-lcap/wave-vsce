@@ -4,11 +4,6 @@ import { ChatProvider } from './chatProvider';
 export function activate(context: vscode.ExtensionContext) {
     console.log('Wave AI Chat extension is now active!');
 
-    // Register a simple test command
-    const testCommand = vscode.commands.registerCommand('wave-chat.test', () => {
-        vscode.window.showInformationMessage('Wave Chat Extension is working!');
-    });
-
     // Register the main chat command
     const openChatCommand = vscode.commands.registerCommand('wave-chat.openChat', async () => {
         try {
@@ -21,7 +16,7 @@ export function activate(context: vscode.ExtensionContext) {
         }
     });
 
-    context.subscriptions.push(testCommand, openChatCommand);
+    context.subscriptions.push(openChatCommand);
     
     console.log('Wave Chat commands registered successfully');
     vscode.window.showInformationMessage('Wave AI Chat Extension activated!');

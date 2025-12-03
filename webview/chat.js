@@ -36,8 +36,9 @@ function startStreaming() {
     console.log('Starting streaming response');
     isStreaming = true;
     
-    // Show abort button, hide send button
+    // Show abort button and disable send/input
     updateButtonVisibility();
+    setSendEnabled(false);
     
     const container = document.getElementById('messagesContainer');
     streamingMessage = document.createElement('div');
@@ -94,13 +95,19 @@ function handleMessageAborted(partialContent) {
 function updateButtonVisibility() {
     const abortButton = document.getElementById('abortButton');
     const sendButton = document.getElementById('sendButton');
+    const clearButton = document.querySelector('[onclick="clearChat()"]');
+    const analyzeButton = document.querySelector('[onclick="getWorkspaceInfo()"]');
     
     if (isStreaming) {
         abortButton.style.display = 'block';
         sendButton.disabled = true;
+        if (clearButton) clearButton.disabled = true;
+        if (analyzeButton) analyzeButton.disabled = true;
     } else {
         abortButton.style.display = 'none';
         sendButton.disabled = false;
+        if (clearButton) clearButton.disabled = false;
+        if (analyzeButton) analyzeButton.disabled = false;
     }
 }
 
@@ -141,20 +148,26 @@ function addMessageToDisplay(message) {
         messageDiv.className = 'message user';
         messageDiv.innerHTML = `<div class="message-content">${escapeHtml(message.content)}</div>`;
     } else if (message.role === 'assistant') {
-        messageDiv.className = 'message assistant';
-        messageDiv.innerHTML = `<div class="message-content">${escapeHtml(message.content)}</div>`;
-        
-        // Add tool calls if any
-        if (message.tool_calls) {
-            message.tool_calls.forEach(toolCall => {
-                const toolDiv = document.createElement('div');
-                toolDiv.className = 'tool-block';
-                toolDiv.innerHTML = `
-                    <div class="tool-header">🛠️ ${toolCall.function.name}</div>
-                    <pre>${escapeHtml(JSON.stringify(JSON.parse(toolCall.function.arguments), null, 2))}</pre>
-                `;
-                messageDiv.appendChild(toolDiv);
-            });
+        // Check if this is an error message
+        if (message.isError) {
+            messageDiv.className = 'message error';
+            messageDiv.innerHTML = `<div class="message-content">Error: ${escapeHtml(message.content)}</div>`;
+        } else {
+            messageDiv.className = 'message assistant';
+            messageDiv.innerHTML = `<div class="message-content">${escapeHtml(message.content)}</div>`;
+            
+            // Add tool calls if any
+            if (message.tool_calls) {
+                message.tool_calls.forEach(toolCall => {
+                    const toolDiv = document.createElement('div');
+                    toolDiv.className = 'tool-block';
+                    toolDiv.innerHTML = `
+                        <div class="tool-header">🛠️ ${toolCall.function.name}</div>
+                        <pre>${escapeHtml(JSON.stringify(JSON.parse(toolCall.function.arguments), null, 2))}</pre>
+                    `;
+                    messageDiv.appendChild(toolDiv);
+                });
+            }
         }
     }
     
@@ -181,6 +194,21 @@ function clearMessages() {
     const container = document.getElementById('messagesContainer');
     while (container.children.length > 1) {
         container.removeChild(container.lastChild);
+    }
+    
+    // Reset streaming state when messages are cleared
+    if (streamingMessage) {
+        streamingMessage = null;
+    }
+    isStreaming = false;
+    updateButtonVisibility();
+    setSendEnabled(true);
+    
+    // Clear input field as well
+    const input = document.getElementById('messageInput');
+    if (input) {
+        input.value = '';
+        input.style.height = 'auto';
     }
 }
 
@@ -214,6 +242,8 @@ function sendMessage() {
 }
 
 function clearChat() {
+    if (isStreaming) return; // Don't allow clearing during streaming
+    
     console.log('Clear chat requested');
     vscode.postMessage({
         command: 'clearChat'

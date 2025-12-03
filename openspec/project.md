@@ -22,8 +22,14 @@ VS Code extension providing a chat interface to interact with AI agents for proj
 - Agent SDK integration with callback pattern
 
 ### Testing Strategy
-- Manual testing during development
-- VS Code extension testing framework for automated tests
+- **Extension Testing**: VS Code extension testing framework for extension-level functionality
+- **Webview Testing**: Playwright tests for chat interface UI and interactions
+  - Major smoke tests covering core functionality
+  - Mock agent data structures for consistent test scenarios
+  - Isolated webview testing with simulated VS Code API
+  - Coverage includes: message flow, streaming, error handling, button states, clear functionality
+- **Test Data**: Mock data generators for different message types (Text, Tool, Error blocks)
+- **CI Integration**: Automated tests run on GitHub Actions
 
 ### Git Workflow
 - Feature branch workflow

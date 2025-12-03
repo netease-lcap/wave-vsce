@@ -24,11 +24,6 @@
         "command": "wave-chat.openChat",
         "title": "Open AI Chat",
         "category": "Wave"
-      },
-      {
-        "command": "wave-chat.test",
-        "title": "Test Wave Extension",
-        "category": "Wave"
       }
     ],
     "keybindings": [
@@ -42,12 +37,16 @@
   "scripts": {
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
-    "watch": "tsc -watch -p ./"
+    "watch": "tsc -watch -p ./",
+    "test": "npm run test:playwright",
+    "test:playwright": "playwright test",
+    "test:playwright:ui": "playwright test --ui"
   },
   "devDependencies": {
     "@types/node": "18.x",
     "@types/vscode": "^1.74.0",
-    "typescript": "^4.9.4"
+    "typescript": "^4.9.4",
+    "@playwright/test": "^1.40.0"
   },
   "dependencies": {
     "wave-agent-sdk": "^0.0.8"
