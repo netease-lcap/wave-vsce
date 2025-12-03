@@ -57,12 +57,12 @@ The system SHALL enable AI to understand and modify the current VS Code workspac
 - **THEN** AI can analyze and describe the project structure and purpose
 
 ### Requirement: Development Setup
-The system SHALL support development workflow with npm link integration.
+The system SHALL support development workflow with published npm package integration.
 
-#### Scenario: Local SDK usage
+#### Scenario: Published SDK usage
 - **WHEN** developing the extension
-- **THEN** the extension uses wave-agent-sdk via npm link for local development
+- **THEN** the extension uses wave-agent-sdk via published npm package
 
 #### Scenario: SDK updates
-- **WHEN** agent-sdk is updated locally
-- **THEN** the extension can use the latest changes without republishing
+- **WHEN** agent-sdk is updated and published
+- **THEN** the extension can update to the latest version via npm update

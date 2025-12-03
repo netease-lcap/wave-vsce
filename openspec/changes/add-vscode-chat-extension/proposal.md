@@ -14,4 +14,4 @@ Developers need a seamless way to interact with AI agents directly within their 
 ## Impact
 - Affected specs: vscode-chat (new capability)
 - Affected code: New VS Code extension project structure
-- Dependencies: wave-agent-sdk (via npm link during development)
+- Dependencies: wave-agent-sdk (published npm package)

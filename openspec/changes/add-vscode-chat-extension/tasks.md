@@ -1,7 +1,7 @@
 ## 1. Project Setup
 - [x] 1.1 Initialize VS Code extension project structure with package.json
 - [x] 1.2 Configure TypeScript and build system
-- [x] 1.3 Set up npm link to wave-agent-sdk for development
+- [x] 1.3 Install wave-agent-sdk from published npm package
 - [x] 1.4 Create extension manifest (package.json) with required VS Code API permissions
 
 ## 2. Core Extension Implementation
