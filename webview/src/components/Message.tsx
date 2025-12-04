@@ -1,10 +1,35 @@
 import React from 'react';
+import { marked } from 'marked';
+import DOMPurify from 'dompurify';
 import type { MessageProps, TextBlock, ErrorBlock, ToolBlock } from '../types';
+
+// Configure marked for VS Code webview context
+marked.setOptions({
+  breaks: true, // Convert line breaks to <br>
+  gfm: true // GitHub Flavored Markdown
+});
 
 const escapeHtml = (text: string): string => {
   const div = document.createElement('div');
   div.textContent = text;
   return div.innerHTML;
+};
+
+// Render markdown content with sanitization
+const renderMarkdown = (content: string): string => {
+  if (!content || content.trim() === '') {
+    return '';
+  }
+  
+  // Parse markdown to HTML
+  const html = marked.parse(content);
+  
+  // Sanitize HTML to prevent XSS while preserving formatting
+  return DOMPurify.sanitize(html, {
+    ALLOWED_TAGS: ['p', 'br', 'strong', 'b', 'em', 'i', 'code', 'pre', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'a', 'blockquote'],
+    ALLOWED_ATTR: ['href', 'title'],
+    ALLOW_DATA_ATTR: false
+  });
 };
 
 export const Message: React.FC<MessageProps> = ({ message, isStreaming = false }) => {
@@ -34,19 +59,36 @@ export const Message: React.FC<MessageProps> = ({ message, isStreaming = false }
       return isStreaming ? '正在思考...' : '';
     }
 
-    // Extract text content from blocks
-    const textContent = message.blocks.map(block => {
+    // Process blocks differently based on type
+    const contentParts: string[] = [];
+    
+    message.blocks.forEach(block => {
       if (block.type === 'text') {
         const textBlock = block as TextBlock;
-        return textBlock.content || '';
+        const content = textBlock.content || '';
+        if (content) {
+          // Apply markdown rendering to text blocks
+          contentParts.push(renderMarkdown(content));
+        }
+      } else if (block.type === 'memory') {
+        // Apply markdown rendering to memory blocks for better readability
+        const memoryBlock = block as any; // Memory block type not imported
+        const content = memoryBlock.content || '';
+        if (content) {
+          contentParts.push(renderMarkdown(content));
+        }
       } else if (block.type === 'error') {
         const errorBlock = block as ErrorBlock;
-        return `错误: ${errorBlock.content || ''}`;
+        const content = errorBlock.content || '';
+        if (content) {
+          // Keep error content as plain text for clarity
+          contentParts.push(escapeHtml(`错误: ${content}`));
+        }
       }
-      return '';
-    }).filter(content => content.length > 0).join('');
+      // Other block types (compress, etc.) are ignored in main content
+    });
 
-    return textContent || (isStreaming ? '正在思考...' : '');
+    return contentParts.join('') || (isStreaming ? '正在思考...' : '');
   };
 
   const toolBlocks = message.blocks?.filter(block => block.type === 'tool') || [];
@@ -54,9 +96,9 @@ export const Message: React.FC<MessageProps> = ({ message, isStreaming = false }
   return (
     <div className={getMessageClassName()}>
       <div 
-        className="message-content"
+        className="message-content markdown-content"
         dangerouslySetInnerHTML={{ 
-          __html: escapeHtml(renderContent()) 
+          __html: renderContent() 
         }}
       />
       

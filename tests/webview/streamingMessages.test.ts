@@ -67,10 +67,10 @@ test.describe('Streaming Messages', () => {
         // End streaming
         await injector.endStreaming();
 
-        // Verify final content includes all parts
+        // Verify final content includes all parts (markdown is now rendered as HTML)
         await ui.verifyLatestMessageContent('Looking at your code');
-        await ui.verifyLatestMessageContent('1. Add error handling');
-        await ui.verifyLatestMessageContent('3. Return meaningful errors');
+        await ui.verifyLatestMessageContent('Add error handling'); // No longer "1. " prefix due to HTML list rendering
+        await ui.verifyLatestMessageContent('Return meaningful errors');
     });
 
     test('should handle empty streaming updates gracefully', async ({ webviewPage }) => {

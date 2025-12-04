@@ -61,6 +61,10 @@
     "webpack-cli": "^6.0.1"
   },
   "dependencies": {
+    "@types/dompurify": "^3.0.5",
+    "@types/marked": "^5.0.2",
+    "dompurify": "^3.3.0",
+    "marked": "^9.1.6",
     "wave-agent-sdk": "^0.0.8"
   }
 }
