@@ -66,7 +66,7 @@ export const Message: React.FC<MessageProps> = ({ message, isStreaming = false }
         return (
           <div key={index} className="tool-block">
             <div className="tool-header">🛠️ {toolBlock.name || 'Tool'}</div>
-            <pre>{escapeHtml(JSON.stringify(toolBlock.parameters) || '')}</pre>
+            <pre>{escapeHtml(toolBlock.parameters || '')}</pre>
           </div>
         );
       })}
