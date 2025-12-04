@@ -1,15 +1,30 @@
 import React from 'react';
+import { SessionSelector } from './SessionSelector';
 import type { ChatHeaderProps } from '../types';
 
 export const ChatHeader: React.FC<ChatHeaderProps> = ({
   onClearChat,
   onAnalyzeWorkspace,
   onAbortMessage,
-  isStreaming
+  isStreaming,
+  sessions,
+  currentSession,
+  onSessionSelect,
+  sessionsLoading,
+  sessionsError
 }) => {
   return (
     <div className="chat-header" data-testid="chat-header">
-      <div className="chat-title">Wave AI 聊天</div>
+      <div className="header-left">
+        <SessionSelector
+          sessions={sessions}
+          currentSession={currentSession}
+          onSessionSelect={onSessionSelect}
+          loading={sessionsLoading}
+          error={sessionsError}
+          disabled={isStreaming}
+        />
+      </div>
       <div className="header-buttons">
         <button
           className="header-button"

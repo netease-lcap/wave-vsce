@@ -5,11 +5,12 @@
  * providing type safety and better development experience.
  */
 
-// Import message structures from wave-agent-sdk
+// Import message structures and session types from wave-agent-sdk
 import type { Message, MessageBlock, TextBlock, ErrorBlock, ToolBlock } from 'wave-agent-sdk';
+import type { SessionMetadata, SessionData } from 'wave-agent-sdk';
 
 // Export the agent-sdk types for use in components
-export type { Message, MessageBlock, TextBlock, ErrorBlock, ToolBlock };
+export type { Message, MessageBlock, TextBlock, ErrorBlock, ToolBlock, SessionMetadata, SessionData };
 
 // VS Code webview message types
 
@@ -52,6 +53,21 @@ export interface ChatHeaderProps {
   onAnalyzeWorkspace: () => void;
   onAbortMessage: () => void;
   isStreaming: boolean;
+  sessions: SessionMetadata[];
+  currentSession?: SessionMetadata;
+  onSessionSelect: (sessionId: string) => void;
+  sessionsLoading: boolean;
+  sessionsError?: string;
+}
+
+// Session selector component props
+export interface SessionSelectorProps {
+  sessions: SessionMetadata[];
+  currentSession?: SessionMetadata;
+  onSessionSelect: (sessionId: string) => void;
+  loading: boolean;
+  error?: string;
+  disabled: boolean;
 }
 
 // Chat state management
@@ -60,6 +76,10 @@ export interface ChatState {
   isStreaming: boolean;
   inputDisabled: boolean;
   shouldClearInput: boolean;
+  sessions: SessionMetadata[];
+  currentSession?: SessionMetadata;
+  sessionsLoading: boolean;
+  sessionsError?: string;
 }
 
 export type ChatAction = 
@@ -68,4 +88,8 @@ export type ChatAction =
   | { type: 'END_STREAMING' }
   | { type: 'SET_INPUT_DISABLED'; payload: boolean }
   | { type: 'CLEAR_MESSAGES' }
-  | { type: 'INPUT_CLEARED' };
+  | { type: 'INPUT_CLEARED' }
+  | { type: 'SET_SESSIONS'; payload: SessionMetadata[] }
+  | { type: 'SET_CURRENT_SESSION'; payload: SessionMetadata | undefined }
+  | { type: 'SET_SESSIONS_LOADING'; payload: boolean }
+  | { type: 'SET_SESSIONS_ERROR'; payload: string | undefined };

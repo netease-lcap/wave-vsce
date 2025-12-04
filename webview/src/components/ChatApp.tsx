@@ -14,7 +14,11 @@ const initialState: ChatState = {
   messages: [],
   isStreaming: false,
   inputDisabled: false,
-  shouldClearInput: false
+  shouldClearInput: false,
+  sessions: [],
+  currentSession: undefined,
+  sessionsLoading: false,
+  sessionsError: undefined
 };
 
 function chatReducer(state: ChatState, action: ChatAction): ChatState {
@@ -52,12 +56,37 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
     case 'CLEAR_MESSAGES':
       return {
         ...initialState,
+        sessions: state.sessions, // Preserve sessions when clearing messages
+        currentSession: state.currentSession,
         shouldClearInput: true
       };
     case 'INPUT_CLEARED':
       return {
         ...state,
         shouldClearInput: false
+      };
+    case 'SET_SESSIONS':
+      return {
+        ...state,
+        sessions: action.payload,
+        sessionsLoading: false,
+        sessionsError: undefined
+      };
+    case 'SET_CURRENT_SESSION':
+      return {
+        ...state,
+        currentSession: action.payload
+      };
+    case 'SET_SESSIONS_LOADING':
+      return {
+        ...state,
+        sessionsLoading: action.payload
+      };
+    case 'SET_SESSIONS_ERROR':
+      return {
+        ...state,
+        sessionsError: action.payload,
+        sessionsLoading: false
       };
     default:
       return state;
@@ -88,6 +117,15 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
           break;
         case 'ensureUIReset':
           dispatch({ type: 'END_STREAMING' });
+          break;
+        case 'updateSessions':
+          dispatch({ type: 'SET_SESSIONS', payload: message.sessions });
+          break;
+        case 'updateCurrentSession':
+          dispatch({ type: 'SET_CURRENT_SESSION', payload: message.session });
+          break;
+        case 'sessionsError':
+          dispatch({ type: 'SET_SESSIONS_ERROR', payload: message.error });
           break;
       }
     };
@@ -147,6 +185,23 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
     ? state.messages.length - 1 
     : undefined;
 
+  // Load sessions on component mount
+  useEffect(() => {
+    dispatch({ type: 'SET_SESSIONS_LOADING', payload: true });
+    vscode.postMessage({
+      command: 'listSessions'
+    });
+  }, [vscode]);
+
+  const handleSessionSelect = useCallback((sessionId: string) => {
+    if (state.isStreaming) return;
+    
+    vscode.postMessage({
+      command: 'restoreSession',
+      sessionId
+    });
+  }, [state.isStreaming, vscode]);
+
   const handleInputCleared = useCallback(() => {
     dispatch({ type: 'INPUT_CLEARED' });
   }, []);
@@ -158,6 +213,11 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
         onAnalyzeWorkspace={handleAnalyzeWorkspace}
         onAbortMessage={handleAbortMessage}
         isStreaming={state.isStreaming}
+        sessions={state.sessions}
+        currentSession={state.currentSession}
+        onSessionSelect={handleSessionSelect}
+        sessionsLoading={state.sessionsLoading}
+        sessionsError={state.sessionsError}
       />
       
       <MessageList 

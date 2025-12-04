@@ -13,7 +13,7 @@ const welcomeMessage = {
 export const MessageList: React.FC<MessageListProps> = ({ messages, streamingMessageIndex }) => {
   return (
     <div id="messagesContainer" className="messages-container" data-testid="messages-container">
-      {/* Welcome message */}
+      {/* Welcome message - always show */}
       <Message
         message={welcomeMessage}
         isStreaming={false}

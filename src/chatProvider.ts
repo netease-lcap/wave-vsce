@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { Agent, Message, TextBlock, ToolBlock, ErrorBlock } from 'wave-agent-sdk';
+import { Agent, Message, TextBlock, ToolBlock, ErrorBlock, listSessions, SessionMetadata } from 'wave-agent-sdk';
 import type { MessageManagerCallbacks } from 'wave-agent-sdk/dist/managers/messageManager';
 import type { AgentToolBlockUpdateParams } from 'wave-agent-sdk/dist/utils/messageOperations';
 
@@ -31,7 +31,7 @@ export class ChatProvider {
         this.context.subscriptions.push(workspaceChangeListener);
     }
 
-    private async initializeAgent() {
+    private async initializeAgent(restoreSessionId?: string) {
         try {
             console.log('正在初始化智能体，使用简化的流式处理...');
             
@@ -55,13 +55,37 @@ export class ChatProvider {
 
             this.agent = await Agent.create({
                 callbacks,
-                workdir
+                workdir,
+                restoreSessionId
             });
             
             console.log('智能体初始化成功');
+            
+            // Update current session info in webview
+            if (this.panel && this.agent) {
+                this.panel.webview.postMessage({
+                    command: 'updateCurrentSession',
+                    session: {
+                        id: this.agent.sessionId,
+                        sessionType: 'main',
+                        workdir: this.agent.workingDirectory,
+                        startedAt: new Date(),
+                        lastActiveAt: new Date(),
+                        latestTotalTokens: this.agent.latestTotalTokens
+                    } as SessionMetadata
+                });
+            }
         } catch (error) {
             console.error('初始化智能体失败:', error);
             vscode.window.showErrorMessage('初始化 AI 智能体失败: ' + error);
+            
+            // Send error to webview
+            if (this.panel) {
+                this.panel.webview.postMessage({
+                    command: 'sessionsError',
+                    error: '初始化智能体失败: ' + error
+                });
+            }
         }
     }
 
@@ -124,6 +148,12 @@ export class ChatProvider {
             case 'abortMessage':
                 await this.abortMessage();
                 break;
+            case 'listSessions':
+                await this.listSessions();
+                break;
+            case 'restoreSession':
+                await this.restoreSession(message.sessionId);
+                break;
         }
     }
 
@@ -176,6 +206,61 @@ export class ChatProvider {
             if (this.panel) {
                 this.panel.webview.postMessage({
                     command: 'clearMessages'
+                });
+            }
+        }
+    }
+
+    private async listSessions() {
+        try {
+            const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+            const workdir = workspaceFolder?.uri.fsPath || process.cwd();
+            
+            console.log('获取会话列表，工作目录:', workdir);
+            const sessions = await listSessions(workdir);
+            
+            if (this.panel) {
+                this.panel.webview.postMessage({
+                    command: 'updateSessions',
+                    sessions: sessions
+                });
+            }
+        } catch (error) {
+            console.error('获取会话列表失败:', error);
+            if (this.panel) {
+                this.panel.webview.postMessage({
+                    command: 'sessionsError',
+                    error: '获取会话列表失败: ' + error
+                });
+            }
+        }
+    }
+
+    private async restoreSession(sessionId: string) {
+        if (!sessionId) {
+            return;
+        }
+
+        try {
+            console.log('恢复会话:', sessionId);
+            
+            // Destroy current agent
+            if (this.agent) {
+                await this.agent.destroy();
+                this.agent = undefined;
+            }
+            
+            // Create new agent with restored session
+            await this.initializeAgent(sessionId);
+            
+        } catch (error) {
+            console.error('恢复会话失败:', error);
+            vscode.window.showErrorMessage('恢复会话失败: ' + error);
+            
+            if (this.panel) {
+                this.panel.webview.postMessage({
+                    command: 'sessionsError',
+                    error: '恢复会话失败: ' + error
                 });
             }
         }
