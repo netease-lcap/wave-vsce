@@ -29,7 +29,6 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(openChatCommand);
     
     console.log('Wave 聊天命令注册成功');
-    vscode.window.showInformationMessage('Wave AI 聊天扩展已激活！');
 }
 
 export async function deactivate() {
