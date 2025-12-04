@@ -12,8 +12,14 @@ export function activate(context: vscode.ExtensionContext) {
     // Register the main chat command
     const openChatCommand = vscode.commands.registerCommand('wave-chat.openChat', async () => {
         try {
-            vscode.window.showInformationMessage('正在打开 Wave AI 聊天...');
-            await chatProvider!.createOrShowChatPanel();
+            // Show progress indicator while opening chat
+            await vscode.window.withProgress({
+                location: vscode.ProgressLocation.Notification,
+                title: "正在打开 Wave AI 聊天...",
+                cancellable: false
+            }, async (progress) => {
+                await chatProvider!.createOrShowChatPanel();
+            });
         } catch (error) {
             console.error('打开聊天时出错:', error);
             vscode.window.showErrorMessage('打开聊天失败: ' + error);
