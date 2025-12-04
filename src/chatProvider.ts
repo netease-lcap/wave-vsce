@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { Agent, Message, TextBlock, ToolBlock } from 'wave-agent-sdk';
+import { Agent, Message, TextBlock, ToolBlock, ErrorBlock } from 'wave-agent-sdk';
 import type { MessageManagerCallbacks } from 'wave-agent-sdk/dist/managers/messageManager';
 import type { AgentToolBlockUpdateParams } from 'wave-agent-sdk/dist/utils/messageOperations';
 
@@ -8,9 +8,6 @@ export class ChatProvider {
     private panel: vscode.WebviewPanel | undefined;
     private agent: Agent | undefined;
     private context: vscode.ExtensionContext;
-    private isStreaming = false;
-    private accumulatedContent = '';
-    private isAborted = false;
 
     constructor(context: vscode.ExtensionContext) {
         this.context = context;
@@ -36,7 +33,7 @@ export class ChatProvider {
 
     private async initializeAgent() {
         try {
-            console.log('正在初始化智能体，带有正确的流式处理...');
+            console.log('正在初始化智能体，使用简化的流式处理...');
             
             // Detect current workspace folder for agent working directory
             const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
@@ -48,47 +45,11 @@ export class ChatProvider {
                 console.log('未检测到工作区文件夹，使用默认工作目录');
             }
             
+            // Only use onMessagesChange as it contains all data including errors
             const callbacks: MessageManagerCallbacks = {
                 onMessagesChange: (messages: Message[]) => {
-                    // Only update the full UI when not actively streaming and not just aborted
-                    if (!this.isStreaming && !this.isAborted) {
-                        this.updateChatMessages(messages);
-                    } else if (this.isAborted) {
-                        this.isAborted = false; // Reset flag after skipping one update
-                    }
-                },
-                onAssistantContentUpdated: (chunk: string, accumulated: string) => {
-                    console.log('流式内容 - 块:', chunk.length, '总计:', accumulated.length);
-                    this.isStreaming = true;
-                    this.accumulatedContent = accumulated;
-                    this.updateStreamingContent(chunk, accumulated);
-                },
-                onAssistantMessageAdded: () => {
-                    console.log('助手消息开始 - 开始流式传输');
-                    this.isStreaming = true;
-                    this.accumulatedContent = '';
-                    this.isAborted = false; // Reset abort flag for new message
-                    if (this.panel) {
-                        this.panel.webview.postMessage({
-                            command: 'startStreaming'
-                        });
-                    }
-                },
-                onToolBlockUpdated: (params: AgentToolBlockUpdateParams) => {
-                    console.log('工具块已更新:', params);
-                    this.updateToolStatus(params);
-                    
-                    // When tool execution ends, streaming is complete
-                    if (params.stage === 'end') {
-                        this.isStreaming = false;
-                        this.accumulatedContent = '';
-                    }
-                },
-                onErrorBlockAdded: (error: string) => {
-                    console.log('错误:', error);
-                    this.isStreaming = false;
-                    this.accumulatedContent = '';
-                    this.showError(error);
+                    console.log('消息更新:', messages.length, '条消息');
+                    this.updateChatMessages(messages);
                 }
             };
 
@@ -174,38 +135,10 @@ export class ChatProvider {
 
         try {
             console.log('发送消息给智能体:', text);
-            this.isStreaming = false; // Reset streaming state
-            this.accumulatedContent = ''; // Clear accumulated content
-            this.isAborted = false; // Reset abort flag
-            
             await this.agent.sendMessage(text);
-            
-            // After agent.sendMessage() completes, immediately reset streaming state
-            console.log('智能体 sendMessage 完成 - 重置流式状态');
-            this.isStreaming = false;
-            this.accumulatedContent = '';
-            
-            // Explicitly tell webview to reset UI state if it hasn't been reset already
-            if (this.panel) {
-                this.panel.webview.postMessage({
-                    command: 'ensureUIReset'
-                });
-            }
-            
+            console.log('智能体 sendMessage 完成');
         } catch (error) {
             console.error('发送消息给智能体时出错:', error);
-            this.isStreaming = false;
-            this.accumulatedContent = '';
-            this.isAborted = false;
-            
-            // Reset UI state in webview when error occurs
-            if (this.panel) {
-                this.panel.webview.postMessage({
-                    command: 'showError',
-                    error: `发送消息失败: ${error}`
-                });
-            }
-            
             vscode.window.showErrorMessage('发送消息失败: ' + error);
         }
     }
@@ -222,36 +155,17 @@ export class ChatProvider {
     }
 
     private async abortMessage() {
-        if (!this.agent || !this.isStreaming) {
-            console.log('没有消息需要中止或智能体未初始化');
+        if (!this.agent) {
+            console.log('智能体未初始化，无法中止消息');
             return;
         }
 
         try {
-            console.log('正在中止消息，部分内容:', this.accumulatedContent.slice(0, 100) + '...');
-            
-            // Set abort flag to prevent onMessagesChange from overwriting our abort display
-            this.isAborted = true;
-            
-            // Call the agent's abort method
+            console.log('正在中止消息...');
             this.agent.abortMessage();
-            
-            // Send the partial content to the webview with abort indicator
-            if (this.panel) {
-                this.panel.webview.postMessage({
-                    command: 'messageAborted',
-                    partialContent: this.accumulatedContent
-                });
-            }
-            
-            // Reset streaming state
-            this.isStreaming = false;
-            this.accumulatedContent = '';
-            
             console.log('消息中止成功');
         } catch (error) {
             console.error('中止消息时出错:', error);
-            this.isAborted = false; // Reset flag on error
             vscode.window.showErrorMessage('中止消息失败: ' + error);
         }
     }
@@ -268,79 +182,35 @@ export class ChatProvider {
     }
 
     private updateChatMessages(messages: Message[]) {
-        console.log('更新最终聊天消息:', messages.length);
+        console.log('更新聊天消息:', messages.length);
         if (this.panel) {
-            const displayMessages = messages.map(msg => this.convertMessageForDisplay(msg));
             this.panel.webview.postMessage({
                 command: 'updateMessages',
-                messages: displayMessages
-            });
-        }
-        this.isStreaming = false; // Ensure streaming state is reset
-        this.accumulatedContent = ''; // Clear accumulated content
-    }
-
-    private convertMessageForDisplay(message: Message) {
-        const textBlocks = message.blocks?.filter(block => block.type === 'text') as TextBlock[] || [];
-        const content = textBlocks.map(block => block.content).join('\n') || '';
-        
-        const toolBlocks = message.blocks?.filter(block => block.type === 'tool') as ToolBlock[] || [];
-        const tool_calls = toolBlocks.map(tool => ({
-            function: {
-                name: tool.name || 'unknown',
-                arguments: tool.parameters || ''
-            }
-        }));
-
-        return {
-            role: message.role,
-            content: content,
-            tool_calls: tool_calls.length > 0 ? tool_calls : undefined
-        };
-    }
-
-    private updateStreamingContent(chunk: string, accumulated: string) {
-        if (this.panel && accumulated) {
-            this.panel.webview.postMessage({
-                command: 'updateStreaming',
-                accumulated: accumulated
+                messages: messages // Pass Message objects directly
             });
         }
     }
 
-    private updateToolStatus(params: any) {
-        if (this.panel) {
-            this.panel.webview.postMessage({
-                command: 'updateTool',
-                params: params
-            });
-        }
-    }
 
-    private showError(error: string) {
-        if (this.panel) {
-            this.panel.webview.postMessage({
-                command: 'showError',
-                error: error
-            });
-        }
-    }
 
     private getWebviewContent(): string {
         const scriptUri = this.panel!.webview.asWebviewUri(
-            vscode.Uri.joinPath(this.context.extensionUri, 'webview', 'chat.js')
-        );
-        const styleUri = this.panel!.webview.asWebviewUri(
-            vscode.Uri.joinPath(this.context.extensionUri, 'webview', 'chat.css')
+            vscode.Uri.joinPath(this.context.extensionUri, 'webview', 'dist', 'chat.js')
         );
 
-        // Read HTML template and replace placeholders
-        const htmlPath = vscode.Uri.joinPath(this.context.extensionUri, 'webview', 'chat.html');
-        const htmlTemplate = require('fs').readFileSync(htmlPath.fsPath, 'utf8');
-        
-        return htmlTemplate
-            .replace('{{SCRIPT_URI}}', scriptUri.toString())
-            .replace('{{STYLE_URI}}', styleUri.toString());
+        return `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${this.panel!.webview.cspSource} 'unsafe-inline'; script-src ${this.panel!.webview.cspSource};">
+    <title>Wave AI Chat</title>
+</head>
+<body>
+    <div id="root"></div>
+    <script src="${scriptUri}"></script>
+</body>
+</html>`;
     }
 
     /**

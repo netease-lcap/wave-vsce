@@ -39,6 +39,9 @@ test.describe('Streaming Button States', () => {
             role: "assistant",
             blocks: [{ type: "text", content: "Streaming completed" }]
         }]);
+        
+        // End streaming (simulates agent.sendMessage() completion)
+        await injector.endStreaming();
 
         // Verify buttons are re-enabled
         await ui.verifyClearChatButtonEnabled(true);
@@ -60,7 +63,14 @@ test.describe('Streaming Button States', () => {
 
         // Start streaming
         await injector.startStreaming();
-        await injector.updateStreaming("I'm currently streaming...");
+        
+        await injector.updateMessages([{
+            role: "assistant", 
+            blocks: [{ type: "text", content: "This is a test message" }]
+        }, {
+            role: "assistant",
+            blocks: [{ type: "text", content: "I'm currently streaming..." }]
+        }]);
         await ui.verifyStreamingMessageExists();
 
         // Clear message log to track new commands
@@ -104,7 +114,10 @@ test.describe('Streaming Button States', () => {
 
         // Start streaming
         await injector.startStreaming();
-        await injector.updateStreaming("This will be aborted...");
+        await injector.updateMessages([{
+            role: "assistant",
+            blocks: [{ type: "text", content: "This will be aborted..." }]
+        }]);
 
         // Verify buttons are in streaming state
         await ui.verifyClearChatButtonEnabled(false);
@@ -113,6 +126,9 @@ test.describe('Streaming Button States', () => {
 
         // Abort the message
         await injector.abortMessage("This will be aborted");
+        
+        // End streaming (simulates agent completing after abort)
+        await injector.endStreaming();
 
         // Verify buttons are restored after abort
         await ui.verifyClearChatButtonEnabled(true);

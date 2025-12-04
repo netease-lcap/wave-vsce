@@ -11,23 +11,27 @@ test.describe('Streaming Messages', () => {
         // Start streaming
         await injector.startStreaming();
 
-        // Verify streaming message appears
+        // Verify streaming message appears (abort button visible)
         await ui.verifyStreamingMessageExists();
         
-        // Verify initial streaming content (should show "...")  
-        await ui.verifyLatestMessageContent('...');
-
-        // Simulate streaming updates
+        // Simulate streaming updates using updateMessages
         const scenario = StreamingFixtures.BASIC_STREAMING;
         let accumulated = '';
 
         for (const chunk of scenario.chunks) {
             accumulated += chunk;
-            await injector.updateStreaming(accumulated);
+            // Send progressive updates via updateMessages (simulating real agent-sdk behavior)
+            await injector.updateMessages([{
+                role: "assistant",
+                blocks: [{ type: "text", content: accumulated }]
+            }]);
             
             // Verify content is updated
             await ui.verifyLatestMessageContent(accumulated);
         }
+
+        // End streaming
+        await injector.endStreaming();
 
         // Verify final accumulated content
         await ui.verifyLatestMessageContent(scenario.finalContent);
@@ -48,7 +52,10 @@ test.describe('Streaming Messages', () => {
         // Stream content with delays
         for (let i = 0; i < scenario.chunks.length; i++) {
             accumulated += scenario.chunks[i];
-            await injector.updateStreaming(accumulated);
+            await injector.updateMessages([{
+                role: "assistant",
+                blocks: [{ type: "text", content: accumulated }]
+            }]);
             
             // Verify progressive content updates
             await ui.verifyLatestMessageContent(scenario.chunks[0]); // Should contain first chunk
@@ -56,6 +63,9 @@ test.describe('Streaming Messages', () => {
             // Small delay to simulate real streaming
             await webviewPage.waitForTimeout(10);
         }
+
+        // End streaming
+        await injector.endStreaming();
 
         // Verify final content includes all parts
         await ui.verifyLatestMessageContent('Looking at your code');
@@ -72,16 +82,28 @@ test.describe('Streaming Messages', () => {
         await ui.verifyStreamingMessageExists();
 
         // Send empty update
-        await injector.updateStreaming('');
-        await ui.verifyLatestMessageContent('...');
+        await injector.updateMessages([{
+            role: "assistant",
+            blocks: [{ type: "text", content: '' }]
+        }]);
+        // Empty content should show empty message
+        await ui.verifyLatestMessageContent('');
 
         // Send actual content
-        await injector.updateStreaming('Hello world');
+        await injector.updateMessages([{
+            role: "assistant",
+            blocks: [{ type: "text", content: 'Hello world' }]
+        }]);
         await ui.verifyLatestMessageContent('Hello world');
 
-        // Send empty again (should preserve last content)
-        await injector.updateStreaming('');
-        // Content should still be visible (implementation dependent)
+        // Send empty again
+        await injector.updateMessages([{
+            role: "assistant",
+            blocks: [{ type: "text", content: '' }]
+        }]);
+        
+        // End streaming
+        await injector.endStreaming();
     });
 
     test('should differentiate streaming from completed messages', async ({ webviewPage }) => {
@@ -94,23 +116,32 @@ test.describe('Streaming Messages', () => {
             blocks: [{ type: "text", content: "This is a completed message" }]
         }]);
 
-        await ui.verifyMessageCount(2); // Welcome + completed message
+        await ui.verifyMessageCount(2); // Welcome (hardcoded) + completed message
         await ui.verifyNoStreamingMessages();
 
         // Now start streaming
         await injector.startStreaming();
         
-        // Should now have the completed message plus a streaming one
-        await ui.verifyMessageCount(3); // Welcome + completed + streaming
+        // Should still have 2 messages (streaming doesn't add a message until content arrives)
+        await ui.verifyMessageCount(2); // Welcome + completed (no streaming message yet)
         await ui.verifyStreamingMessageExists();
 
-        // Update streaming content
-        await injector.updateStreaming('This is streaming content');
+        // Update streaming content by sending new message set
+        await injector.updateMessages([{
+            role: "assistant",
+            blocks: [{ type: "text", content: "This is a completed message" }]
+        }, {
+            role: "assistant",
+            blocks: [{ type: "text", content: "This is streaming content" }]
+        }]);
         
-        // Verify we still have both types
-        await ui.verifyMessageCount(3);
+        // Verify we now have all three types
+        await ui.verifyMessageCount(3); // welcome + completed + streaming
         await ui.verifyStreamingMessageExists();
-        await ui.verifyMessageContent(1, 'This is a completed message');
-        await ui.verifyLatestMessageContent('This is streaming content');
+        await ui.verifyMessageContent(1, 'This is a completed message'); // Completed message (index 1, after welcome)
+        await ui.verifyLatestMessageContent('This is streaming content'); // Streaming message
+        
+        // End streaming
+        await injector.endStreaming();
     });
 });

@@ -143,17 +143,20 @@ export class UIStateVerifier {
     }
 
     /**
-     * Verify streaming message exists
+     * Verify streaming message exists (by checking if abort button is visible during streaming)
      */
     async verifyStreamingMessageExists() {
-        await expect(this.streamingMessages).toHaveCount(1);
+        // In the simplified model, streaming is indicated by abort button being visible
+        // and having the expected message count
+        await expect(this.abortButton).toBeVisible();
     }
 
     /**
      * Verify no streaming messages exist
      */
     async verifyNoStreamingMessages() {
-        await expect(this.streamingMessages).toHaveCount(0);
+        // No streaming means abort button is hidden
+        await expect(this.abortButton).toBeHidden();
     }
 
     /**

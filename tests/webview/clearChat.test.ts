@@ -75,7 +75,10 @@ test.describe('Clear Chat Functionality', () => {
 
         // Start streaming
         await injector.startStreaming();
-        await injector.updateStreaming('This is being streamed...');
+        await injector.updateMessages([{
+            role: "assistant",
+            blocks: [{ type: "text", content: "This is being streamed..." }]
+        }]);
         
         await ui.verifyStreamingMessageExists();
         await ui.verifyAbortButtonVisible(true);

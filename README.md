@@ -36,7 +36,32 @@ A VS Code extension that provides an integrated chat interface for AI assistance
 
 ## Development
 
-The extension uses the Wave Agent SDK to communicate with AI agents. The SDK is installed as a regular npm dependency from the published package.
+The extension consists of two main components:
+
+### Extension Backend (TypeScript)
+- Uses the Wave Agent SDK to communicate with AI agents
+- Manages VS Code webview and message passing
+- Located in `src/` directory
+
+### Webview Frontend (React + TypeScript)  
+- Modern React interface with TypeScript for type safety
+- Source code located in `webview/src/` directory
+- Built with webpack to produce `webview/dist/chat.js`
+
+### Build Process
+```bash
+npm install          # Install dependencies
+npm run compile      # Build both extension and webview
+npm run watch        # Watch mode for development
+npm test            # Run Playwright tests
+```
+
+**Note**: The webview build artifacts in `webview/dist/` are auto-generated and excluded from git.
+
+### Architecture
+- **Extension**: TypeScript compiled to `dist/extension.js`
+- **Webview**: React/TypeScript compiled to `webview/dist/chat.js`
+- **Tests**: Playwright tests in `tests/webview/` directory
 
 ## License
 

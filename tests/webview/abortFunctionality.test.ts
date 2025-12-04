@@ -35,6 +35,9 @@ test.describe('Abort Functionality', () => {
             role: "assistant",
             blocks: [{ type: "text", content: "Completed message" }]
         }]);
+        
+        // End streaming (simulates agent.sendMessage() completion)
+        await injector.endStreaming();
 
         // Abort button should be hidden again
         await ui.verifyAbortButtonVisible(false);
@@ -52,7 +55,10 @@ test.describe('Abort Functionality', () => {
         await ui.verifyAbortButtonVisible(true);
 
         // Add some streaming content
-        await injector.updateStreaming('This is partial content that will be aborted...');
+        await injector.updateMessages([{
+            role: "assistant",
+            blocks: [{ type: "text", content: "This is partial content that will be aborted..." }]
+        }]);
         await ui.verifyLatestMessageContent('This is partial content');
 
         // Click abort button
@@ -73,11 +79,17 @@ test.describe('Abort Functionality', () => {
 
         // Add some content
         const partialContent = 'This message was interrupted';
-        await injector.updateStreaming(partialContent);
+        await injector.updateMessages([{
+            role: "assistant",
+            blocks: [{ type: "text", content: partialContent }]
+        }]);
         await ui.verifyLatestMessageContent(partialContent);
 
         // Simulate abort with partial content preservation
         await injector.abortMessage(partialContent);
+        
+        // End streaming (simulates agent completing after abort)
+        await injector.endStreaming();
 
         // Verify the partial content is still visible and marked as aborted
         await ui.verifyLatestMessageContent(partialContent);
@@ -96,8 +108,14 @@ test.describe('Abort Functionality', () => {
 
         // Start and abort streaming
         await injector.startStreaming();
-        await injector.updateStreaming('Partial content');
+        await injector.updateMessages([{
+            role: "assistant",
+            blocks: [{ type: "text", content: "Partial content" }]
+        }]);
         await injector.abortMessage('Partial content');
+        
+        // End streaming (simulates agent completing after abort)
+        await injector.endStreaming();
 
         // Verify UI is ready for new input
         await ui.verifyInputState(true, false); // Empty but enabled
@@ -129,7 +147,10 @@ test.describe('Abort Functionality', () => {
         let accumulated = '';
         for (let i = 0; i < (scenario.abortAtChunk || 3); i++) {
             accumulated += scenario.chunks[i];
-            await injector.updateStreaming(accumulated);
+            await injector.updateMessages([{
+                role: "assistant",
+                blocks: [{ type: "text", content: accumulated }]
+            }]);
         }
 
         // Verify content before abort
@@ -137,6 +158,9 @@ test.describe('Abort Functionality', () => {
 
         // Simulate abort
         await injector.abortMessage(scenario.finalContent);
+        
+        // End streaming (simulates agent completing after abort)
+        await injector.endStreaming();
 
         // Verify abort preserved the expected content
         await ui.verifyLatestMessageContent(scenario.finalContent);

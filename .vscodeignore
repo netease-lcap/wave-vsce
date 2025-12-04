@@ -1,6 +1,8 @@
 # Source files
 src/**
 out/**
+webview/src/**
+webview/tsconfig.json
 
 # TypeScript configuration
 tsconfig.json

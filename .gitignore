@@ -5,5 +5,8 @@ test-results/
 playwright-report/
 nohup.out
 
+# Build outputs
+webview/dist/
+
 # VS Code extension packages
 *.vsix

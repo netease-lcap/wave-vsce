@@ -10,7 +10,10 @@ test.describe('Error Message Display', () => {
 
         // Simulate an error
         const errorMessage = 'Connection failed: Unable to reach the server';
-        await injector.showError(errorMessage);
+        await injector.updateMessages([{
+            role: 'assistant',
+            blocks: [{ type: 'error', content: errorMessage }]
+        }]);
 
         // Verify error is displayed 
         await ui.verifyErrorMessageDisplayed(errorMessage);
@@ -34,7 +37,10 @@ test.describe('Error Message Display', () => {
         await ui.verifyMessageCount(3); // Welcome + user + assistant
 
         // Now show an error
-        await injector.showError('An error occurred while processing your request');
+        await injector.updateMessages([...messages, {
+            role: 'assistant',
+            blocks: [{ type: 'error', content: 'An error occurred while processing your request' }]
+        }]);
 
         // Verify error is displayed and previous messages remain
         await ui.verifyErrorMessageDisplayed('An error occurred');
@@ -68,17 +74,17 @@ test.describe('Error Message Display', () => {
             'Permission denied'
         ];
 
-        for (let i = 0; i < errors.length; i++) {
-            await injector.showError(errors[i]);
-            
-            // Verify this specific error appears
-            await ui.verifyErrorMessageDisplayed(errors[i]);
-            
-            // Verify we now have i+1 error messages total
-            await ui.verifyErrorMessageCount(i + 1);
-            
-            // Brief delay between errors
-            await webviewPage.waitForTimeout(50);
+        // Create error messages and send them all at once
+        const errorMessages = errors.map(error => ({
+            role: 'assistant' as const,
+            blocks: [{ type: 'error' as const, content: error }]
+        }));
+        
+        await injector.updateMessages(errorMessages);
+        
+        // Verify all errors are displayed
+        for (const error of errors) {
+            await ui.verifyErrorMessageDisplayed(error);
         }
 
         // Verify all errors are still present
@@ -90,7 +96,10 @@ test.describe('Error Message Display', () => {
         const ui = new UIStateVerifier(webviewPage);
 
         // Show error
-        await injector.showError('Something went wrong');
+        await injector.updateMessages([{
+            role: 'assistant',
+            blocks: [{ type: 'error', content: 'Something went wrong' }]
+        }]);
         await ui.verifyErrorMessageDisplayed('Something went wrong');
 
         // Verify user can still send messages
@@ -122,10 +131,16 @@ test.describe('Error Message Display', () => {
         await ui.verifyStreamingMessageExists();
 
         // Add some streaming content
-        await injector.updateStreaming('I was working on your request when...');
+        await injector.updateMessages([{
+            role: "assistant",
+            blocks: [{ type: "text", content: "I was working on your request when..." }]
+        }]);
 
         // Show error during streaming
-        await injector.showError('Connection lost during streaming');
+        await injector.updateMessages([{
+            role: 'assistant',
+            blocks: [{ type: 'error', content: 'Connection lost during streaming' }]
+        }]);
 
         // Verify error is displayed
         await ui.verifyErrorMessageDisplayed('Connection lost during streaming');

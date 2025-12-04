@@ -21,37 +21,8 @@ export class MessageInjector {
      * Update the chat with a list of messages
      */
     async updateMessages(messages: Message[]) {
-        // Convert Message objects to display format (matching chatProvider.ts logic)
-        const displayMessages = messages.map(msg => {
-            const textBlocks = msg.blocks?.filter(block => block.type === 'text') || [];
-            const errorBlocks = msg.blocks?.filter(block => block.type === 'error') || [];
-            
-            // For error messages, use error content; otherwise use text content
-            let content = '';
-            if (errorBlocks.length > 0) {
-                content = errorBlocks.map(block => block.content).join('\n');
-            } else {
-                content = textBlocks.map(block => block.content).join('\n') || '';
-            }
-            
-            const toolBlocks = msg.blocks?.filter(block => block.type === 'tool') || [];
-            const tool_calls = toolBlocks.map(tool => ({
-                function: {
-                    name: tool.name || 'unknown',
-                    arguments: tool.parameters || {}
-                }
-            }));
-
-            return {
-                role: msg.role,
-                content: content,
-                tool_calls: tool_calls.length > 0 ? tool_calls : undefined,
-                // Add a flag to indicate this is an error message
-                isError: errorBlocks.length > 0
-            };
-        });
-
-        await this.simulateExtensionMessage('updateMessages', { messages: displayMessages });
+        // Pass Message objects directly to the webview (no conversion needed)
+        await this.simulateExtensionMessage('updateMessages', { messages });
     }
 
     /**
@@ -62,25 +33,32 @@ export class MessageInjector {
     }
 
     /**
-     * Update streaming content
+     * End streaming mode
      */
-    async updateStreaming(accumulated: string) {
-        await this.simulateExtensionMessage('updateStreaming', { accumulated });
+    async endStreaming() {
+        await this.simulateExtensionMessage('endStreaming');
     }
 
     /**
-     * Simulate message abort
+     * Simulate message abort by sending a message with an error block
      */
     async abortMessage(partialContent: string) {
-        await this.simulateExtensionMessage('messageAborted', { partialContent });
+        // Create a message with an error block to represent aborted content
+        const abortedMessage = {
+            role: 'assistant' as const,
+            blocks: [
+                {
+                    type: 'error' as const,
+                    content: partialContent
+                }
+            ]
+        };
+        
+        // Send as final message (this replaces any streaming message)
+        await this.updateMessages([abortedMessage]);
     }
 
-    /**
-     * Show error message
-     */
-    async showError(error: string) {
-        await this.simulateExtensionMessage('showError', { error });
-    }
+
 
     /**
      * Clear all messages
