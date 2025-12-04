@@ -1,0 +1,49 @@
+# Source files
+src/**
+out/**
+
+# TypeScript configuration
+tsconfig.json
+tslint.json
+
+# Webpack configuration
+webpack.config.js
+
+# Build tools and dependencies
+node_modules/**
+.vscode/**
+.vscode-test/**
+
+# Test files
+test/**
+tests/**
+.nyc_output
+coverage
+
+# Git and version control
+.git
+.gitignore
+
+# Development files
+*.vsix
+.eslintrc.json
+
+# Documentation that shouldn't be included
+README.md
+CHANGELOG.md
+docs/**
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# npm files
+npm-debug.log
+yarn-error.log
+package-lock.json
+yarn.lock
+
+# Playwright
+playwright.config.ts
+playwright-report/**
+test-results/**
