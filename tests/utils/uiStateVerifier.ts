@@ -232,24 +232,6 @@ export class UIStateVerifier {
     }
 
     /**
-     * Get the analyze project button
-     */
-    get analyzeProjectButton(): Locator {
-        return this.page.getByTestId('analyze-project-btn');
-    }
-
-    /**
-     * Verify analyze project button state
-     */
-    async verifyAnalyzeProjectButtonEnabled(shouldBeEnabled: boolean = true) {
-        if (shouldBeEnabled) {
-            await expect(this.analyzeProjectButton).toBeEnabled();
-        } else {
-            await expect(this.analyzeProjectButton).toBeDisabled();
-        }
-    }
-
-    /**
      * Send a complete message (type + send)
      */
     async sendMessage(message: string) {

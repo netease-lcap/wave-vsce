@@ -133,9 +133,6 @@ export class ChatProvider {
             case 'clearChat':
                 await this.clearChat();
                 break;
-            case 'getWorkspaceInfo':
-                await this.sendWorkspaceInfo();
-                break;
             case 'abortMessage':
                 await this.abortMessage();
                 break;
@@ -185,17 +182,6 @@ export class ChatProvider {
             
             vscode.window.showErrorMessage('发送消息失败: ' + error);
         }
-    }
-
-    private async sendWorkspaceInfo() {
-        const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
-        if (!workspaceFolder) {
-            await this.sendMessageToAgent('在 VS Code 中当前没有打开工作区。');
-            return;
-        }
-
-        const workspaceInfo = `当前工作区: ${workspaceFolder.name} 位于 ${workspaceFolder.uri.fsPath}`;
-        await this.sendMessageToAgent(`请分析当前项目。${workspaceInfo}`);
     }
 
     private async abortMessage() {

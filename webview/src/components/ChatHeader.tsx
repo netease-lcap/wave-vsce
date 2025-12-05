@@ -4,7 +4,6 @@ import type { ChatHeaderProps } from '../types';
 
 export const ChatHeader: React.FC<ChatHeaderProps> = ({
   onClearChat,
-  onAnalyzeWorkspace,
   onAbortMessage,
   isStreaming,
   sessions,
@@ -26,15 +25,6 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
         />
       </div>
       <div className="header-buttons">
-        <button
-          className="header-button"
-          onClick={onAnalyzeWorkspace}
-          disabled={isStreaming}
-          data-testid="analyze-project-btn"
-        >
-          分析项目
-        </button>
-        
         <button
           className="header-button"
           onClick={onClearChat}

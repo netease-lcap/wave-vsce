@@ -9,7 +9,6 @@ test.describe('Streaming Button States', () => {
 
         // Verify initial state - all buttons should be enabled
         await ui.verifyClearChatButtonEnabled(true);
-        await ui.verifyAnalyzeProjectButtonEnabled(true);
         await ui.verifySendButtonVisible(true);
         await ui.verifyAbortButtonVisible(false);
 
@@ -18,7 +17,6 @@ test.describe('Streaming Button States', () => {
 
         // Verify buttons are disabled during streaming
         await ui.verifyClearChatButtonEnabled(false);
-        await ui.verifyAnalyzeProjectButtonEnabled(false);
         await ui.verifyAbortButtonVisible(true);
 
         // Verify input is also disabled during streaming
@@ -32,7 +30,6 @@ test.describe('Streaming Button States', () => {
         // Start streaming
         await injector.startStreaming();
         await ui.verifyClearChatButtonEnabled(false);
-        await ui.verifyAnalyzeProjectButtonEnabled(false);
 
         // End streaming by updating with final messages
         await injector.updateMessages([{
@@ -45,7 +42,6 @@ test.describe('Streaming Button States', () => {
 
         // Verify buttons are re-enabled
         await ui.verifyClearChatButtonEnabled(true);
-        await ui.verifyAnalyzeProjectButtonEnabled(true);
         await ui.verifyAbortButtonVisible(false);
         await ui.verifyInputState(true, false); // Empty and enabled
     });
@@ -89,24 +85,7 @@ test.describe('Streaming Button States', () => {
         await ui.verifyMessageCount(3); // Welcome + test message + streaming message
     });
 
-    test('should prevent analyze project during streaming', async ({ webviewPage }) => {
-        const injector = new MessageInjector(webviewPage);
-        const ui = new UIStateVerifier(webviewPage);
 
-        // Start streaming
-        await injector.startStreaming();
-        await ui.verifyAnalyzeProjectButtonEnabled(false);
-
-        // Clear message log
-        await injector.clearMessageLog();
-
-        // Verify analyze button is disabled
-        await expect(ui.analyzeProjectButton).toBeDisabled();
-
-        // Verify no getWorkspaceInfo command was sent
-        const sentMessages = await injector.getMessagesSentToExtension();
-        expect(sentMessages.filter(msg => msg.command === 'getWorkspaceInfo')).toHaveLength(0);
-    });
 
     test('should handle abort and restore button states', async ({ webviewPage }) => {
         const injector = new MessageInjector(webviewPage);
@@ -121,7 +100,6 @@ test.describe('Streaming Button States', () => {
 
         // Verify buttons are in streaming state
         await ui.verifyClearChatButtonEnabled(false);
-        await ui.verifyAnalyzeProjectButtonEnabled(false);
         await ui.verifyAbortButtonVisible(true);
 
         // Abort the message
@@ -132,7 +110,6 @@ test.describe('Streaming Button States', () => {
 
         // Verify buttons are restored after abort
         await ui.verifyClearChatButtonEnabled(true);
-        await ui.verifyAnalyzeProjectButtonEnabled(true);
         await ui.verifyAbortButtonVisible(false);
         await ui.verifyInputState(true, false); // Empty and enabled
     });

@@ -50,7 +50,6 @@ export interface MessageInputProps {
 
 export interface ChatHeaderProps {
   onClearChat: () => void;
-  onAnalyzeWorkspace: () => void;
   onAbortMessage: () => void;
   isStreaming: boolean;
   sessions: SessionMetadata[];

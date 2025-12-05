@@ -146,14 +146,6 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
     });
   }, [state.isStreaming, vscode]);
 
-  const handleAnalyzeWorkspace = useCallback(() => {
-    if (state.isStreaming) return;
-    
-    vscode.postMessage({
-      command: 'getWorkspaceInfo'
-    });
-  }, [state.isStreaming, vscode]);
-
   const handleAbortMessage = useCallback(() => {
     if (!state.isStreaming) return;
     
@@ -192,7 +184,6 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
     <div className="chat-container" data-testid="chat-container">
       <ChatHeader
         onClearChat={handleClearChat}
-        onAnalyzeWorkspace={handleAnalyzeWorkspace}
         onAbortMessage={handleAbortMessage}
         isStreaming={state.isStreaming}
         sessions={state.sessions}

@@ -5,7 +5,6 @@ A VS Code extension that provides an integrated chat interface for AI assistance
 ## Features
 
 - **AI Chat Interface**: Interactive chat panel within VS Code
-- **Project Awareness**: AI can analyze and understand your current workspace
 - **Real-time Responses**: Streaming responses with live message updates
 - **File Operations**: AI can read, write, and modify files in your project
 - **Tool Integration**: View AI tool usage and results in the chat
@@ -25,7 +24,6 @@ A VS Code extension that provides an integrated chat interface for AI assistance
 
 ## Quick Actions
 
-- **Analyze Project**: Click the "Analyze Project" button to have AI examine your workspace
 - **Clear Chat**: Start a fresh conversation
 - **File Operations**: Ask AI to read, write, or modify files in your project
 
