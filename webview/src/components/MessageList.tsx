@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Message } from './Message';
 import type { MessageListProps } from '../types';
 
@@ -11,8 +11,35 @@ const welcomeMessage = {
 };
 
 export const MessageList: React.FC<MessageListProps> = ({ messages, streamingMessageIndex }) => {
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll to bottom when messages change or streaming updates
+  useEffect(() => {
+    const scrollToBottom = () => {
+      if (!containerRef.current || !messagesEndRef.current) return;
+
+      const container = containerRef.current;
+      const isNearBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 100;
+      
+      // Always scroll if streaming (user expects to see new content) or if user is near bottom
+      if (streamingMessageIndex !== undefined || isNearBottom) {
+        messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+      }
+    };
+
+    // Small delay to ensure DOM is updated
+    const timeoutId = setTimeout(scrollToBottom, 10);
+    return () => clearTimeout(timeoutId);
+  }, [messages, streamingMessageIndex]);
+
   return (
-    <div id="messagesContainer" className="messages-container" data-testid="messages-container">
+    <div 
+      ref={containerRef}
+      id="messagesContainer" 
+      className="messages-container" 
+      data-testid="messages-container"
+    >
       {/* Welcome message - always show */}
       <Message
         message={welcomeMessage}
@@ -31,6 +58,9 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, streamingMes
           />
         );
       })}
+      
+      {/* Invisible div to scroll to */}
+      <div ref={messagesEndRef} />
     </div>
   );
 };
