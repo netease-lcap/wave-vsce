@@ -201,13 +201,18 @@ export class ChatProvider {
     }
 
     private async clearChat() {
-        if (this.agent) {
-            await this.initializeAgent();
-            if (this.panel) {
-                this.panel.webview.postMessage({
-                    command: 'clearMessages'
-                });
-            }
+        if (!this.agent) {
+            console.log('智能体未初始化，无法清除聊天');
+            return;
+        }
+
+        try {
+            console.log('正在清除聊天会话...');
+            await this.agent.sendMessage('/clear');
+            console.log('聊天会话清除成功');
+        } catch (error) {
+            console.error('清除聊天会话失败:', error);
+            vscode.window.showErrorMessage('清除聊天失败: ' + error);
         }
     }
 
@@ -241,17 +246,32 @@ export class ChatProvider {
             return;
         }
 
+        if (!this.agent) {
+            console.log('智能体未初始化，无法恢复会话');
+            return;
+        }
+
         try {
             console.log('恢复会话:', sessionId);
             
-            // Destroy current agent
-            if (this.agent) {
-                await this.agent.destroy();
-                this.agent = undefined;
-            }
+            // Use agent's restoreSession method instead of destroying and recreating
+            await this.agent.restoreSession(sessionId);
+            console.log('会话恢复成功');
             
-            // Create new agent with restored session
-            await this.initializeAgent(sessionId);
+            // Update current session info in webview
+            if (this.panel && this.agent) {
+                this.panel.webview.postMessage({
+                    command: 'updateCurrentSession',
+                    session: {
+                        id: this.agent.sessionId,
+                        sessionType: 'main',
+                        workdir: this.agent.workingDirectory,
+                        startedAt: new Date(),
+                        lastActiveAt: new Date(),
+                        latestTotalTokens: this.agent.latestTotalTokens
+                    } as SessionMetadata
+                });
+            }
             
         } catch (error) {
             console.error('恢复会话失败:', error);
