@@ -140,10 +140,11 @@ body {
     color: var(--vscode-inputValidation-errorForeground);
 }
 
-.message.streaming .message-content::after {
+.message.streaming::after {
     content: "▋";
     animation: blink 1s ease-in-out infinite;
     margin-left: 2px;
+    display: inline-block;
 }
 
 .message-content {
