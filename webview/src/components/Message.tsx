@@ -56,7 +56,7 @@ export const Message: React.FC<MessageProps> = ({ message, isStreaming = false }
 
   const renderContent = () => {
     if (!message.blocks || message.blocks.length === 0) {
-      return isStreaming ? '正在思考...' : '';
+      return '';
     }
 
     // Process blocks differently based on type
@@ -88,7 +88,7 @@ export const Message: React.FC<MessageProps> = ({ message, isStreaming = false }
       // Other block types (compress, etc.) are ignored in main content
     });
 
-    return contentParts.join('') || (isStreaming ? '正在思考...' : '');
+    return contentParts.join('');
   };
 
   const toolBlocks = message.blocks?.filter(block => block.type === 'tool') || [];
