@@ -19,8 +19,14 @@ export const SessionSelector: React.FC<SessionSelectorProps> = ({
   const formatSessionLabel = (session: SessionMetadata): string => {
     const date = new Date(session.lastActiveAt).toLocaleDateString();
     const time = new Date(session.lastActiveAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    return `${date} ${time} (${session.latestTotalTokens} tokens)`;
+    return `${date} ${time}`;
   };
+
+  // Check if currentSession exists in the sessions list
+  const currentSessionExists = currentSession && sessions.some(session => session.id === currentSession.id);
+  
+  // If currentSession doesn't exist in sessions list, we need to render it as a temporary option
+  const shouldRenderCurrentSession = currentSession && !currentSessionExists;
 
   return (
     <div className="session-selector" data-testid="session-selector">
@@ -34,6 +40,11 @@ export const SessionSelector: React.FC<SessionSelectorProps> = ({
         <option value="" disabled>
           {loading ? '加载会话...' : error ? '会话加载失败' : '选择会话'}
         </option>
+        {shouldRenderCurrentSession && (
+          <option key={currentSession.id} value={currentSession.id}>
+            新会话
+          </option>
+        )}
         {sessions.map((session) => (
           <option key={session.id} value={session.id}>
             {formatSessionLabel(session)}

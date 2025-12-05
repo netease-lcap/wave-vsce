@@ -110,4 +110,35 @@ export class MessageInjector {
             { timeout }
         );
     }
+
+    /**
+     * Update sessions list
+     */
+    async updateSessions(sessions: any[]) {
+        await this.simulateExtensionMessage('updateSessions', { sessions });
+    }
+
+    /**
+     * Update current session
+     */
+    async updateCurrentSession(session: any) {
+        await this.simulateExtensionMessage('updateCurrentSession', { session });
+    }
+
+    /**
+     * Simulate sessions loading state
+     */
+    async setSessionsLoading(loading: boolean) {
+        // This would normally be handled internally, but for testing we can simulate the state
+        if (loading) {
+            await this.simulateExtensionMessage('updateSessions', { sessions: [] });
+        }
+    }
+
+    /**
+     * Simulate sessions error
+     */
+    async setSessionsError(error: string) {
+        await this.simulateExtensionMessage('sessionsError', { error });
+    }
 }

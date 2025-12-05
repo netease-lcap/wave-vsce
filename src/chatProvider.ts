@@ -50,6 +50,12 @@ export class ChatProvider {
                 onMessagesChange: (messages: Message[]) => {
                     console.log('消息更新:', messages.length, '条消息');
                     this.updateChatMessages(messages);
+                },
+                onSessionIdChange: (sessionId: string) => {
+                    // Don't await here as callback is synchronous, but handle async work
+                    this.handleSessionIdChange(sessionId).catch(error => {
+                        console.error('❌ 处理会话ID变更时出错:', error);
+                    });
                 }
             };
 
@@ -61,19 +67,6 @@ export class ChatProvider {
             
             console.log('智能体初始化成功');
             
-            // Update current session info in webview
-            if (this.panel && this.agent) {
-                this.panel.webview.postMessage({
-                    command: 'updateCurrentSession',
-                    session: {
-                        id: this.agent.sessionId,
-                        sessionType: 'main',
-                        workdir: this.agent.workingDirectory,
-                        lastActiveAt: new Date(),
-                        latestTotalTokens: this.agent.latestTotalTokens
-                    } as SessionMetadata
-                });
-            }
         } catch (error) {
             console.error('初始化智能体失败:', error);
             vscode.window.showErrorMessage('初始化 AI 智能体失败: ' + error);
@@ -257,20 +250,6 @@ export class ChatProvider {
             await this.agent.restoreSession(sessionId);
             console.log('会话恢复成功');
             
-            // Update current session info in webview
-            if (this.panel && this.agent) {
-                this.panel.webview.postMessage({
-                    command: 'updateCurrentSession',
-                    session: {
-                        id: this.agent.sessionId,
-                        sessionType: 'main',
-                        workdir: this.agent.workingDirectory,
-                        lastActiveAt: new Date(),
-                        latestTotalTokens: this.agent.latestTotalTokens
-                    } as SessionMetadata
-                });
-            }
-            
         } catch (error) {
             console.error('恢复会话失败:', error);
             vscode.window.showErrorMessage('恢复会话失败: ' + error);
@@ -291,6 +270,26 @@ export class ChatProvider {
                 command: 'updateMessages',
                 messages: messages // Pass Message objects directly
             });
+        }
+    }
+
+    private async handleSessionIdChange(sessionId: string) {
+        console.log('🔄 处理会话ID变更:', sessionId);
+        if (this.panel && this.agent) {
+            console.log('📤 发送updateCurrentSession消息，新session ID:', sessionId);
+            // Update current session info
+            this.panel.webview.postMessage({
+                command: 'updateCurrentSession',
+                session: {
+                    id: sessionId,
+                    sessionType: 'main',
+                    workdir: this.agent.workingDirectory,
+                    lastActiveAt: new Date(),
+                    latestTotalTokens: this.agent.latestTotalTokens
+                } as SessionMetadata
+            });
+            
+            console.log('🔄 刷新会话列表...');
         }
     }
 

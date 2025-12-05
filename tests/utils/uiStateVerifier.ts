@@ -256,4 +256,76 @@ export class UIStateVerifier {
         await this.typeMessage(message);
         await this.clickSend();
     }
+
+    /**
+     * Get the session selector dropdown
+     */
+    get sessionSelector(): Locator {
+        return this.page.getByTestId('session-dropdown');
+    }
+
+    /**
+     * Get session selector container
+     */
+    get sessionSelectorContainer(): Locator {
+        return this.page.getByTestId('session-selector');
+    }
+
+    /**
+     * Verify session selector state
+     */
+    async verifySessionSelectorValue(expectedValue: string) {
+        await expect(this.sessionSelector).toHaveValue(expectedValue);
+    }
+
+    /**
+     * Verify session selector has specific option
+     */
+    async verifySessionOption(sessionId: string, shouldExist: boolean = true) {
+        const option = this.sessionSelector.locator(`option[value="${sessionId}"]`);
+        if (shouldExist) {
+            await expect(option).toHaveCount(1);
+        } else {
+            await expect(option).toHaveCount(0);
+        }
+    }
+
+    /**
+     * Select a session from dropdown
+     */
+    async selectSession(sessionId: string) {
+        await this.sessionSelector.selectOption(sessionId);
+    }
+
+    /**
+     * Get all session options
+     */
+    async getSessionOptions(): Promise<string[]> {
+        return await this.sessionSelector.locator('option[value]:not([value=""])').evaluateAll(
+            (elements) => elements.map(el => (el as HTMLOptionElement).value)
+        );
+    }
+
+    /**
+     * Verify session selector is disabled
+     */
+    async verifySessionSelectorDisabled(shouldBeDisabled: boolean = true) {
+        if (shouldBeDisabled) {
+            await expect(this.sessionSelector).toBeDisabled();
+        } else {
+            await expect(this.sessionSelector).toBeEnabled();
+        }
+    }
+
+    /**
+     * Verify session error is displayed
+     */
+    async verifySessionError(errorText?: string) {
+        const sessionError = this.page.getByTestId('session-error');
+        if (errorText) {
+            await expect(sessionError).toContainText(errorText);
+        } else {
+            await expect(sessionError).toBeVisible();
+        }
+    }
 }
