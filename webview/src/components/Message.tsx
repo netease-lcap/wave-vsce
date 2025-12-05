@@ -66,7 +66,7 @@ export const Message: React.FC<MessageProps> = ({ message, isStreaming = false }
       if (block.type === 'text') {
         const textBlock = block as TextBlock;
         const content = textBlock.content || '';
-        if (content) {
+        if (content.trim()) {
           // Apply markdown rendering to text blocks
           contentParts.push(renderMarkdown(content));
         }
@@ -92,15 +92,19 @@ export const Message: React.FC<MessageProps> = ({ message, isStreaming = false }
   };
 
   const toolBlocks = message.blocks?.filter(block => block.type === 'tool') || [];
+  const content = renderContent();
 
   return (
     <div className={getMessageClassName()}>
-      <div 
-        className="message-content markdown-content"
-        dangerouslySetInnerHTML={{ 
-          __html: renderContent() 
-        }}
-      />
+      {/* Only render content div if there's actual content */}
+      {content.trim() && (
+        <div 
+          className="message-content markdown-content"
+          dangerouslySetInnerHTML={{ 
+            __html: content 
+          }}
+        />
+      )}
       
       {/* Render tool blocks separately */}
       {toolBlocks.map((block, index) => {

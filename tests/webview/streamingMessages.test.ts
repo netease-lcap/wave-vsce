@@ -86,8 +86,8 @@ test.describe('Streaming Messages', () => {
             role: "assistant",
             blocks: [{ type: "text", content: '' }]
         }]);
-        // Empty content should show empty message
-        await ui.verifyLatestMessageContent('');
+        // Empty content should not render .message-content div
+        await expect(webviewPage.getByTestId('messages-container').locator('.message').last().locator('.message-content')).toHaveCount(0);
 
         // Send actual content
         await injector.updateMessages([{
@@ -101,6 +101,8 @@ test.describe('Streaming Messages', () => {
             role: "assistant",
             blocks: [{ type: "text", content: '' }]
         }]);
+        // Empty content should not render .message-content div
+        await expect(webviewPage.getByTestId('messages-container').locator('.message').last().locator('.message-content')).toHaveCount(0);
         
         // End streaming
         await injector.endStreaming();
