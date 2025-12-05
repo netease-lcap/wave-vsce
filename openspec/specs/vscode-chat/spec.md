@@ -15,44 +15,21 @@ The system SHALL provide a VS Code extension that registers with the editor and 
 - **THEN** the "Open AI Chat" command is available
 
 ### Requirement: Chat Interface
-The system SHALL provide a React and TypeScript-based webview chat interface for AI interaction with strong type safety and component-based architecture, including session management capabilities.
+The system SHALL provide a React and TypeScript-based webview chat interface for AI interaction with strong type safety and component-based architecture, including session management capabilities and enhanced tool display with compact parameter representation.
 
-#### Scenario: Open chat interface
-- **WHEN** user executes the "Open AI Chat" command
-- **THEN** a webview panel opens with the React-based chat interface
-- **AND** all UI components are type-safe with TypeScript
-- **AND** the session selector is prominently displayed in the header
-
-#### Scenario: Message display
-- **WHEN** messages exist in the chat history
-- **THEN** all messages are displayed in chronological order with proper formatting
-- **AND** message rendering is handled by React components with proper type definitions
-
-#### Scenario: Message input
-- **WHEN** user types in the input field and presses Enter
-- **THEN** the message is sent to the AI agent for the currently selected session
-- **AND** input handling is managed by React state with TypeScript type safety
-
-#### Scenario: Streaming message display
-- **WHEN** AI generates streaming responses
-- **THEN** streaming content updates are handled by React state management
-- **AND** streaming UI states are type-safe and properly managed
-- **AND** session switching is disabled during streaming operations
-
-#### Scenario: Tool execution display  
+#### Scenario: Tool execution display with compact parameters
 - **WHEN** AI executes tools during message generation
-- **THEN** tool status updates are displayed using React components
-- **AND** tool block rendering follows typed interfaces
+- **THEN** tool status updates are displayed using React components with compact inline format
+- **AND** tool blocks show tool icon, name, and compactParams (when available) in a single line
+- **AND** full parameter details are not expanded in separate blocks
+- **AND** compact parameter representation uses the existing ToolBlock.compactParams field
 
-#### Scenario: Error message display
-- **WHEN** errors occur during AI interaction or session operations
-- **THEN** error messages are displayed using dedicated React error components
-- **AND** error states are properly typed and handled
-
-#### Scenario: Abort functionality
-- **WHEN** user aborts message generation
-- **THEN** React state properly manages abort UI transitions
-- **AND** partial content preservation follows typed message structures
+#### Scenario: Message visual flow unification
+- **WHEN** multiple messages are displayed in the chat interface
+- **THEN** messages flow together without prominent visual separators
+- **AND** message borders and backgrounds are removed for unified appearance
+- **AND** message content remains readable and accessible
+- **AND** error messages maintain distinctive styling for critical visibility
 
 ### Requirement: Agent SDK Integration
 The system SHALL integrate with wave-agent-sdk to communicate with AI agents.
@@ -275,37 +252,14 @@ The system SHALL sanitize rendered markdown HTML to prevent security vulnerabili
 - **AND** external links follow VS Code security policies
 
 ### Requirement: Selective Block Type Markdown Rendering
-The system SHALL apply markdown parsing only to appropriate block types while preserving existing rendering for other block types.
+The system SHALL apply markdown parsing only to appropriate block types while preserving existing rendering for other block types, with enhanced tool block compact display.
 
-#### Scenario: Text block markdown rendering
-- **WHEN** a message contains text blocks with markdown syntax
-- **THEN** the text block content is parsed and rendered as formatted HTML
-- **AND** the markdown formatting (bold, headers, lists, code) displays properly
-
-#### Scenario: Tool block rendering preserved
+#### Scenario: Tool block compact rendering
 - **WHEN** a message contains tool blocks
-- **THEN** tool blocks render exactly as before with tool icon, name, and parameters
-- **AND** tool block content (parameters, result) does not receive markdown parsing
-
-#### Scenario: Error block rendering preserved  
-- **WHEN** a message contains error blocks
-- **THEN** error blocks render as plain text with error styling
-- **AND** error content does not receive markdown parsing to maintain error message clarity
-
-#### Scenario: Memory block content handling
-- **WHEN** a message contains memory blocks with content
-- **THEN** memory block content receives markdown parsing for better readability
-- **AND** memory block maintains its distinctive styling and metadata display
-
-#### Scenario: Other content-bearing blocks
-- **WHEN** a message contains compress blocks or other blocks with content fields
-- **THEN** only text blocks and memory blocks receive markdown parsing
-- **AND** all other block types maintain their existing plain text rendering
-
-#### Scenario: Plain text fallback
-- **WHEN** message content contains no markdown syntax
-- **THEN** the content renders as normal text without markdown processing overhead
-- **AND** display behavior is identical to current implementation
+- **THEN** tool blocks render in compact format with tool icon, name, and compactParams inline
+- **AND** tool block content uses the existing ToolBlock.compactParams field when available
+- **AND** tools without compactParams display tool name only
+- **AND** compact tool display integrates seamlessly with message flow
 
 ### Requirement: React Component Architecture
 The webview SHALL use a component-based React architecture with TypeScript for type safety and maintainability.
@@ -393,14 +347,59 @@ The system SHALL integrate with wave-agent-sdk session management to provide ses
 - **THEN** the VS Code extension calls wave-agent-sdk `listSessions` with current workspace directory
 - **AND** SessionMetadata array is returned to the webview for display
 
-#### Scenario: Backend session restoration
+#### Scenario: Backend session restoration using agent method
 - **WHEN** user selects a session to restore
-- **THEN** the current Agent instance is properly destroyed via agent.destroy()
-- **AND** the VS Code extension creates a new Agent instance with the selected SessionMetadata.id as restoreSessionId
-- **AND** the webview receives updated message history from the restored SessionData
+- **THEN** the VS Code extension calls `agent.restoreSession(sessionId)` on the current Agent instance
+- **AND** the agent switches to the selected session without destroying or recreating the agent instance
+- **AND** the webview receives updated message history from the restored session
 
 #### Scenario: Error handling for session operations
 - **WHEN** session listing or restoration fails
 - **THEN** appropriate error messages are displayed to the user
 - **AND** the interface falls back to current session state
+
+### Requirement: Tool Parameter Compact Display
+The system SHALL utilize existing ToolBlock compactParams field for inline tool display while maintaining readability and context.
+
+#### Scenario: compactParams field usage
+- **WHEN** a tool block contains the compactParams field
+- **THEN** the compactParams string is displayed inline with the tool name
+- **AND** the full parameters block is not shown in expanded format
+- **AND** compactParams provides essential context about tool operation
+
+#### Scenario: Tool information graceful fallback
+- **WHEN** tool blocks do not have compactParams defined
+- **THEN** the tool displays with name and icon only
+- **AND** tool purpose remains identifiable through tool name
+- **AND** display formatting remains consistent across all tool types
+
+#### Scenario: Compact display integration
+- **WHEN** displaying tool blocks with compactParams
+- **THEN** the format follows "🛠️ {toolName} {compactParams}" pattern
+- **AND** display integrates seamlessly with message flow
+- **AND** tool information remains accessible and readable
+- **AND** no custom parameter processing or abbreviation is performed
+
+### Requirement: Unified Message Visual Design
+The system SHALL provide a visually unified message flow that reduces visual clutter while maintaining message readability and accessibility.
+
+#### Scenario: Message container styling removal
+- **WHEN** messages are displayed in the chat interface
+- **THEN** message containers do not have background colors or borders
+- **AND** visual separation between messages is minimized
+- **AND** message alignment (user/assistant positioning) is preserved
+- **AND** message content remains clearly readable
+
+#### Scenario: Error message visual distinction preservation
+- **WHEN** error messages are displayed
+- **THEN** error styling is maintained for critical visibility
+- **AND** error messages remain visually distinct from regular content
+- **AND** error background and border styling is preserved for user safety
+- **AND** unified design applies only to non-error message types
+
+#### Scenario: Responsive layout with unified design
+- **WHEN** the interface is viewed on different screen sizes
+- **THEN** unified message design maintains readability across viewport sizes
+- **AND** compact tool displays work properly in narrow layouts
+- **AND** message flow remains accessible on mobile and desktop interfaces
 
