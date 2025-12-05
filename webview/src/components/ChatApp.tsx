@@ -24,17 +24,9 @@ const initialState: ChatState = {
 function chatReducer(state: ChatState, action: ChatAction): ChatState {
   switch (action.type) {
     case 'SET_MESSAGES':
-      // Check if the latest message contains an error block, which should end streaming
-      const latestMessage = action.payload[action.payload.length - 1];
-      const hasErrorBlock = latestMessage?.blocks?.some(block => block.type === 'error');
-      
       return {
         ...state,
-        messages: action.payload,
-        // End streaming if there's an error, otherwise preserve streaming state
-        isStreaming: hasErrorBlock ? false : state.isStreaming,
-        // Re-enable input when messages are updated, unless we're actively streaming (and no error)
-        inputDisabled: hasErrorBlock ? false : state.isStreaming
+        messages: action.payload
       };
     case 'START_STREAMING':
       return {
@@ -52,13 +44,6 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
       return {
         ...state,
         inputDisabled: action.payload
-      };
-    case 'CLEAR_MESSAGES':
-      return {
-        ...initialState,
-        sessions: state.sessions, // Preserve sessions when clearing messages
-        currentSession: state.currentSession,
-        shouldClearInput: true
       };
     case 'INPUT_CLEARED':
       return {
@@ -104,9 +89,6 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
       switch (message.command) {
         case 'updateMessages':
           dispatch({ type: 'SET_MESSAGES', payload: message.messages });
-          break;
-        case 'clearMessages':
-          dispatch({ type: 'CLEAR_MESSAGES' });
           break;
         // Test-only handlers 
         case 'startStreaming':

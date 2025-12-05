@@ -64,7 +64,7 @@ export class MessageInjector {
      * Clear all messages
      */
     async clearMessages() {
-        await this.simulateExtensionMessage('clearMessages');
+        await this.updateMessages([]);
     }
 
     /**

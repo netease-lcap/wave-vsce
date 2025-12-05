@@ -87,7 +87,6 @@ export type ChatAction =
   | { type: 'START_STREAMING' }
   | { type: 'END_STREAMING' }
   | { type: 'SET_INPUT_DISABLED'; payload: boolean }
-  | { type: 'CLEAR_MESSAGES' }
   | { type: 'INPUT_CLEARED' }
   | { type: 'SET_SESSIONS'; payload: SessionMetadata[] }
   | { type: 'SET_CURRENT_SESSION'; payload: SessionMetadata | undefined }

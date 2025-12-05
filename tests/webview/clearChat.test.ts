@@ -57,14 +57,15 @@ test.describe('Clear Chat Functionality', () => {
             MockDataGenerator.createAssistantMessage('Hi!')
         ]);
 
-        await ui.typeMessage('This text should be cleared');
-        await expect(ui.messageInput).toHaveValue('This text should be cleared');
+        await ui.typeMessage('This text should be preserved');
+        await expect(ui.messageInput).toHaveValue('This text should be preserved');
 
         // Clear chat
         await injector.clearMessages();
 
-        // Verify input state is reset
-        await ui.verifyInputState(true, false); // Empty but enabled
+        // Verify input text is preserved but state is reset
+        await expect(ui.messageInput).toHaveValue('This text should be preserved'); // Input preserved
+        await ui.verifyInputState(false, false); // Not empty but enabled
         await ui.verifySendButtonVisible(true);
         await ui.verifyAbortButtonVisible(false);
     });
@@ -89,9 +90,13 @@ test.describe('Clear Chat Functionality', () => {
         // But extension can still clear messages via injector (simulating extension command)
         await injector.clearMessages();
 
-        // Verify chat is cleared and streaming state is reset
+        // Verify chat is cleared but streaming state is preserved (since streaming is independent of clearing)
         await ui.verifyChatCleared();
-        await ui.verifyNoStreamingMessages();
+        // Streaming state should still be active since clearing doesn't affect streaming
+        await ui.verifyAbortButtonVisible(true);
+        
+        // End streaming separately
+        await injector.endStreaming();
         await ui.verifyAbortButtonVisible(false);
     });
 

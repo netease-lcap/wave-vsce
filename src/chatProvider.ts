@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
-import { Agent, Message, TextBlock, ToolBlock, ErrorBlock, listSessions, SessionMetadata } from 'wave-agent-sdk';
+import { Agent, Message, listSessions, SessionMetadata } from 'wave-agent-sdk';
 import type { MessageManagerCallbacks } from 'wave-agent-sdk/dist/managers/messageManager';
-import type { AgentToolBlockUpdateParams } from 'wave-agent-sdk/dist/utils/messageOperations';
 
 export class ChatProvider {
     private static readonly viewType = 'waveChatView';
@@ -157,10 +156,33 @@ export class ChatProvider {
 
         try {
             console.log('发送消息给智能体:', text);
+            
+            // Start streaming before sending message
+            if (this.panel) {
+                this.panel.webview.postMessage({
+                    command: 'startStreaming'
+                });
+            }
+            
             await this.agent.sendMessage(text);
             console.log('智能体 sendMessage 完成');
+            
+            // End streaming after message is complete
+            if (this.panel) {
+                this.panel.webview.postMessage({
+                    command: 'endStreaming'
+                });
+            }
         } catch (error) {
             console.error('发送消息给智能体时出错:', error);
+            
+            // End streaming on error
+            if (this.panel) {
+                this.panel.webview.postMessage({
+                    command: 'endStreaming'
+                });
+            }
+            
             vscode.window.showErrorMessage('发送消息失败: ' + error);
         }
     }
