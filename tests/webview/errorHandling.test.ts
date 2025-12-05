@@ -145,6 +145,9 @@ test.describe('Error Message Display', () => {
         // Verify error is displayed
         await ui.verifyErrorMessageDisplayed('Connection lost during streaming');
 
+        // End streaming to restore UI state (error should end streaming)
+        await injector.endStreaming();
+
         // Verify streaming state is reset
         await ui.verifyAbortButtonVisible(false);
 

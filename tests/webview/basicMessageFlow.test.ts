@@ -38,6 +38,9 @@ test.describe('Basic Message Flow', () => {
 
         await injector.updateMessages(messages);
 
+        // End streaming to restore UI state (simulates agent.sendMessage() completion)
+        await injector.endStreaming();
+
         // Verify both messages are displayed
         await ui.verifyMessageCount(3); // Welcome + user + assistant
         await ui.verifyMessageContent(1, 'Hello, can you help me?');
@@ -82,6 +85,9 @@ test.describe('Basic Message Flow', () => {
             MockDataGenerator.createAssistantMessage('Response to first message')
         ];
         await injector.updateMessages(messages);
+
+        // End streaming to restore UI state
+        await injector.endStreaming();
 
         // Verify input is still functional
         await ui.verifyInputState(true, false); // Empty but enabled
