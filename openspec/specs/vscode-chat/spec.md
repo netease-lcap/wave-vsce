@@ -372,7 +372,7 @@ The system SHALL provide a session selector dropdown component in the chat inter
 #### Scenario: Session list population
 - **WHEN** the session selector is opened
 - **THEN** the system uses wave-agent-sdk `listSessions` to fetch available SessionMetadata objects
-- **AND** sessions are displayed with meaningful identifiers derived from SessionMetadata (startedAt, lastActiveAt, latestTotalTokens)
+- **AND** sessions are displayed with meaningful identifiers derived from SessionMetadata (lastActiveAt, latestTotalTokens)
 
 #### Scenario: Session selection and restoration
 - **WHEN** user selects a different session from the dropdown

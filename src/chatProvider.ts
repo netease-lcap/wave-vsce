@@ -69,7 +69,6 @@ export class ChatProvider {
                         id: this.agent.sessionId,
                         sessionType: 'main',
                         workdir: this.agent.workingDirectory,
-                        startedAt: new Date(),
                         lastActiveAt: new Date(),
                         latestTotalTokens: this.agent.latestTotalTokens
                     } as SessionMetadata
@@ -266,7 +265,6 @@ export class ChatProvider {
                         id: this.agent.sessionId,
                         sessionType: 'main',
                         workdir: this.agent.workingDirectory,
-                        startedAt: new Date(),
                         lastActiveAt: new Date(),
                         latestTotalTokens: this.agent.latestTotalTokens
                     } as SessionMetadata
