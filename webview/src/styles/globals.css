@@ -138,6 +138,8 @@ body {
     background-color: var(--vscode-inputValidation-errorBackground);
     border: 1px solid var(--vscode-inputValidation-errorBorder);
     color: var(--vscode-inputValidation-errorForeground);
+    padding: 8px 12px;
+    border-radius: 8px;
 }
 
 .message.streaming::after {
