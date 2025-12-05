@@ -115,21 +115,23 @@ body {
 
 .message {
     max-width: 80%;
-    padding: 8px 12px;
-    border-radius: 8px;
     word-wrap: break-word;
 }
 
 .message.assistant {
+    display: flex;
+        gap: 10px;
+    flex-direction: column;
     align-self: flex-start;
-    background-color: var(--vscode-input-background);
-    border: 1px solid var(--vscode-input-border);
 }
 
 .message.user {
-    align-self: flex-end;
+    align-self: flex-start;
     background-color: var(--vscode-button-background);
     color: var(--vscode-button-foreground);
+    border-radius: 8px;
+    padding: 8px 12px;
+    margin-bottom: 8px;
 }
 
 .message.error {
@@ -155,29 +157,13 @@ body {
 
 /* Tools */
 .tool-block {
-    margin: 8px 0;
-    padding: 8px;
-    background-color: var(--vscode-textCodeBlock-background);
-    border-radius: 4px;
-    border-left: 3px solid var(--vscode-button-background);
-}
-
-.tool-block pre {
-    margin: 0;
-    padding: 4px 0;
-    white-space: pre;
-    overflow-x: auto;
-    font-family: var(--vscode-editor-font-family);
-    font-size: 12px;
-}
-
-.tool-header {
-    font-weight: bold;
     color: var(--vscode-button-background);
-    margin-bottom: 4px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    font-weight: bold;
+}
+
+.compact-params {
+    color: var(--vscode-descriptionForeground);
+    font-weight: normal;
 }
 
 /* Input Area */

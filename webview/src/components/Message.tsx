@@ -105,10 +105,10 @@ export const Message: React.FC<MessageProps> = ({ message, isStreaming = false }
       {/* Render tool blocks separately */}
       {toolBlocks.map((block, index) => {
         const toolBlock = block as ToolBlock;
+        const compactInfo = toolBlock.compactParams || '';
         return (
           <div key={index} className="tool-block">
-            <div className="tool-header">🛠️ {toolBlock.name || 'Tool'}</div>
-            <pre>{escapeHtml(toolBlock.parameters || '')}</pre>
+            🛠️ {toolBlock.name || 'Tool'}{compactInfo ? <span className="compact-params"> {compactInfo}</span> : ''}
           </div>
         );
       })}

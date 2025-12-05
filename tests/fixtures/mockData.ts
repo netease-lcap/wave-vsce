@@ -53,6 +53,10 @@ export class MockDataGenerator {
             type: "tool",
             name: toolName,
             parameters: toolParams,
+            compactParams: toolName === "Read" ? "file.ts" : 
+                          toolName === "Write" ? "config.json" : 
+                          toolName === "Bash" ? "npm install" : 
+                          `${toolName.toLowerCase()}`,
             result: toolResult,
             stage: toolResult ? "end" : "running",
             success: toolResult ? true : undefined,
