@@ -3,11 +3,7 @@
   "displayName": "Wave AI 聊天",
   "description": "基于 Wave Agent SDK 的 VS Code AI 聊天界面",
   "version": "0.0.1",
-  "publisher": "wave-ai",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/wave-ai/vscode-extension"
-  },
+  "publisher": "wave-code",
   "engines": {
     "vscode": "^1.74.0"
   },
@@ -15,20 +11,20 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:wave-chat.openChat"
+    "onCommand:wave-code.openChat"
   ],
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "wave-chat.openChat",
+        "command": "wave-code.openChat",
         "title": "打开 AI 聊天",
         "category": "Wave"
       }
     ],
     "keybindings": [
       {
-        "command": "wave-chat.openChat",
+        "command": "wave-code.openChat",
         "key": "ctrl+shift+w",
         "mac": "cmd+shift+w"
       }

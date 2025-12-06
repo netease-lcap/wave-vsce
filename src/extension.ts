@@ -10,7 +10,7 @@ export function activate(context: vscode.ExtensionContext) {
     chatProvider = new ChatProvider(context);
 
     // Register the main chat command
-    const openChatCommand = vscode.commands.registerCommand('wave-chat.openChat', async () => {
+    const openChatCommand = vscode.commands.registerCommand('wave-code.openChat', async () => {
         try {
             // Show progress indicator while opening chat
             await vscode.window.withProgress({
