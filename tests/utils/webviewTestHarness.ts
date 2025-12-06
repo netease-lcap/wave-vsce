@@ -38,6 +38,66 @@ export const test = base.extend<WebviewTestContext>({
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Wave AI Chat</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@vscode/codicons@latest/dist/codicon.css">
+    <style>
+        /* Global VS Code CSS Variables for Testing */
+        :root {
+            /* Dropdown and widget styling */
+            --vscode-dropdown-background: #3c3c3c;
+            --vscode-dropdown-border: #464647;
+            --vscode-dropdown-listBackground: #383838;
+            --vscode-widget-shadow: rgba(0, 0, 0, 0.36);
+
+            /* List and selection colors */
+            --vscode-list-hoverBackground: #2a2d2e;
+            --vscode-list-activeSelectionBackground: #094771;
+            --vscode-list-activeSelectionForeground: #ffffff;
+            --vscode-list-inactiveSelectionBackground: #37373d;
+
+            /* Input and editor colors */
+            --vscode-input-background: #3c3c3c;
+            --vscode-input-border: #464647;
+            --vscode-input-foreground: #cccccc;
+            --vscode-input-placeholderForeground: #858585;
+
+            /* Editor colors */
+            --vscode-editor-background: #1e1e1e;
+            --vscode-editor-foreground: #d4d4d4;
+            --vscode-editor-findMatchHighlightBackground: #ea5c004d;
+            --vscode-editor-findMatchHighlightForeground: #ffffff;
+
+            /* General colors */
+            --vscode-foreground: #cccccc;
+            --vscode-descriptionForeground: #9c9c9c;
+            --vscode-icon-foreground: #cccccc;
+            --vscode-panel-border: #464647;
+
+            /* Button colors */
+            --vscode-button-background: #0e639c;
+            --vscode-button-foreground: #ffffff;
+            --vscode-button-hoverBackground: #1177bb;
+
+            /* Typography */
+            --vscode-font-family: 'Segoe UI', system-ui, sans-serif;
+            --vscode-font-size: 13px;
+            --vscode-font-weight: 400;
+        }
+
+        /* Ensure body has proper styling */
+        body {
+            margin: 0;
+            padding: 20px;
+            background-color: var(--vscode-editor-background);
+            color: var(--vscode-editor-foreground);
+            font-family: var(--vscode-font-family);
+            font-size: var(--vscode-font-size);
+        }
+
+        #root {
+            width: 100%;
+            height: 100vh;
+        }
+    </style>
 </head>
 <body>
     <div id="root"></div>

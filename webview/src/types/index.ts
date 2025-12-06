@@ -12,6 +12,44 @@ import type { SessionMetadata, SessionData } from 'wave-agent-sdk';
 // Export the agent-sdk types for use in components
 export type { Message, MessageBlock, TextBlock, ErrorBlock, ToolBlock, SessionMetadata, SessionData };
 
+// File mention types for @ file suggestion feature
+
+/**
+ * Represents a file or directory item in the suggestion dropdown
+ */
+export interface FileItem {
+  /** Full absolute path to the file or directory */
+  path: string;
+  /** Relative path from workspace root */
+  relativePath: string;
+  /** File or directory name without path */
+  name: string;
+  /** File extension (without dot) - empty string for directories */
+  extension: string;
+  /** VS Code file icon class name */
+  icon: string;
+  /** Flag to distinguish files vs directories */
+  isDirectory: boolean;
+}
+
+/**
+ * State for file mention suggestions
+ */
+export interface FileSuggestionState {
+  /** Whether the file mention dropdown is active */
+  isActive: boolean;
+  /** Array of file suggestions to display */
+  suggestions: FileItem[];
+  /** Currently selected suggestion index */
+  selectedIndex: number;
+  /** Text being typed after @ symbol for filtering */
+  filterText: string;
+  /** Position for dropdown placement */
+  position: { top: number; left: number };
+  /** Loading state for API requests */
+  isLoading: boolean;
+}
+
 // VS Code webview message types
 
 /**
@@ -46,6 +84,21 @@ export interface MessageInputProps {
   onAbortMessage: () => void;
   shouldClearInput?: boolean;
   onInputCleared?: () => void;
+  vscode: any;
+}
+
+/**
+ * Props for the file suggestion dropdown component
+ */
+export interface FileSuggestionDropdownProps {
+  suggestions: FileItem[];
+  isVisible: boolean;
+  selectedIndex: number;
+  onSelect: (file: FileItem) => void;
+  onClose: () => void;
+  position: { top: number; left: number };
+  filterText: string;
+  isLoading?: boolean;
 }
 
 export interface ChatHeaderProps {
@@ -81,7 +134,7 @@ export interface ChatState {
   sessionsError?: string;
 }
 
-export type ChatAction = 
+export type ChatAction =
   | { type: 'SET_MESSAGES'; payload: Message[] }
   | { type: 'START_STREAMING' }
   | { type: 'END_STREAMING' }

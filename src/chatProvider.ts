@@ -142,6 +142,9 @@ export class ChatProvider {
             case 'restoreSession':
                 await this.restoreSession(message.sessionId);
                 break;
+            case 'requestFileSuggestions':
+                await this.handleFileSuggestionsRequest(message.filterText, message.requestId);
+                break;
         }
     }
 
@@ -253,15 +256,15 @@ export class ChatProvider {
 
         try {
             console.log('恢复会话:', sessionId);
-            
+
             // Use agent's restoreSession method instead of destroying and recreating
             await this.agent.restoreSession(sessionId);
             console.log('会话恢复成功');
-            
+
         } catch (error) {
             console.error('恢复会话失败:', error);
             vscode.window.showErrorMessage('恢复会话失败: ' + error);
-            
+
             if (this.panel) {
                 this.panel.webview.postMessage({
                     command: 'sessionsError',
@@ -269,6 +272,184 @@ export class ChatProvider {
                 });
             }
         }
+    }
+
+    private async handleFileSuggestionsRequest(filterText: string, requestId: string) {
+        try {
+            console.log('处理文件建议请求:', filterText, requestId);
+
+            const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+            if (!workspaceFolder) {
+                if (this.panel) {
+                    this.panel.webview.postMessage({
+                        command: 'fileSuggestionsResponse',
+                        suggestions: [],
+                        filterText: filterText,
+                        requestId: requestId
+                    });
+                }
+                return;
+            }
+
+            // Find files in workspace with intelligent filtering
+            const files = await this.findWorkspaceFiles(filterText);
+
+            if (this.panel) {
+                this.panel.webview.postMessage({
+                    command: 'fileSuggestionsResponse',
+                    suggestions: files,
+                    filterText: filterText,
+                    requestId: requestId
+                });
+            }
+
+        } catch (error) {
+            console.error('获取文件建议失败:', error);
+            if (this.panel) {
+                this.panel.webview.postMessage({
+                    command: 'fileSuggestionsError',
+                    error: '获取文件建议失败: ' + error,
+                    requestId: requestId
+                });
+            }
+        }
+    }
+
+    private async findWorkspaceFiles(filterText: string): Promise<any[]> {
+        const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+        if (!workspaceFolder) {
+            return [];
+        }
+
+        try {
+            const allItems: any[] = [];
+
+            // 1. Get files (existing logic)
+            const files = await vscode.workspace.findFiles(
+                '**/*',  // Include all files
+                '{**/node_modules/**,**/.git/**,**/dist/**,**/build/**,**/.vscode/**}', // Exclude common folders
+                100  // Limit to 100 files for performance
+            );
+
+            // Convert files to FileItem format
+            const fileItems = files.map(uri => {
+                const relativePath = vscode.workspace.asRelativePath(uri);
+                const path = uri.fsPath;
+                const pathSegments = relativePath.split('/');
+                const name = pathSegments[pathSegments.length - 1];
+                const extensionMatch = name.match(/\.([^.]+)$/);
+                const extension = extensionMatch ? extensionMatch[1] : '';
+
+                return {
+                    path: path,
+                    relativePath: relativePath,
+                    name: name,
+                    extension: extension,
+                    icon: 'codicon-file',      // Simplified: all files use file icon
+                    isDirectory: false
+                };
+            });
+
+            // 2. Get directories (NEW LOGIC)
+            const directories = await this.findWorkspaceDirectories(workspaceFolder);
+
+            // Combine files and directories
+            allItems.push(...fileItems, ...directories);
+
+            // 3. Filter based on user input
+            const filteredItems = allItems.filter(item => {
+                if (!filterText) return true;
+                const lowerFilter = filterText.toLowerCase();
+                return (
+                    item.name.toLowerCase().includes(lowerFilter) ||
+                    item.relativePath.toLowerCase().includes(lowerFilter)
+                );
+            });
+
+            // 4. Sort by relevance
+            filteredItems.sort((a, b) => {
+                const aNameMatch = a.name.toLowerCase().startsWith(filterText.toLowerCase());
+                const bNameMatch = b.name.toLowerCase().startsWith(filterText.toLowerCase());
+
+                if (aNameMatch && !bNameMatch) return -1;
+                if (!aNameMatch && bNameMatch) return 1;
+
+                // Prefer directories over files (optional)
+                if (a.isDirectory && !b.isDirectory) return -1;
+                if (!a.isDirectory && b.isDirectory) return 1;
+
+                return a.name.localeCompare(b.name);
+            });
+
+            return filteredItems.slice(0, 50); // Limit total results
+        } catch (error) {
+            console.error('搜索工作区文件失败:', error);
+            return [];
+        }
+    }
+
+    // NEW METHOD: Find directories
+    private async findWorkspaceDirectories(workspaceFolder: vscode.WorkspaceFolder): Promise<any[]> {
+        const directories: any[] = [];
+        const maxDepth = 3; // Limit depth to avoid scanning too deep
+
+        await this.scanDirectoryRecursively(workspaceFolder.uri, '', directories, 0, maxDepth);
+
+        return directories;
+    }
+
+    // NEW METHOD: Recursively scan for directories
+    private async scanDirectoryRecursively(
+        uri: vscode.Uri,
+        relativePath: string,
+        directories: any[],
+        currentDepth: number,
+        maxDepth: number
+    ): Promise<void> {
+        if (currentDepth >= maxDepth) return;
+
+        try {
+            const entries = await vscode.workspace.fs.readDirectory(uri);
+
+            for (const [name, type] of entries) {
+                if (type === vscode.FileType.Directory) {
+                    // Skip common folders to ignore
+                    if (['node_modules', '.git', 'dist', 'build', '.vscode'].includes(name)) {
+                        continue;
+                    }
+
+                    const dirRelativePath = relativePath ? `${relativePath}/${name}` : name;
+                    const dirUri = vscode.Uri.joinPath(uri, name);
+
+                    directories.push({
+                        path: dirUri.fsPath,
+                        relativePath: dirRelativePath,
+                        name: name,
+                        extension: '',
+                        icon: 'codicon-folder',
+                        isDirectory: true
+                    });
+
+                    // Recurse into subdirectory
+                    await this.scanDirectoryRecursively(
+                        dirUri,
+                        dirRelativePath,
+                        directories,
+                        currentDepth + 1,
+                        maxDepth
+                    );
+                }
+            }
+        } catch (error) {
+            // Ignore permission errors, etc.
+            console.warn('无法扫描目录:', uri.fsPath, error);
+        }
+    }
+
+    private getFileIcon(extension: string): string {
+        // Simplified: only return 'codicon-file'
+        // Directory icons are handled in the findWorkspaceFiles method
+        return 'codicon-file';
     }
 
     private updateChatMessages(messages: Message[]) {
@@ -308,13 +489,19 @@ export class ChatProvider {
             vscode.Uri.joinPath(this.context.extensionUri, 'webview', 'dist', 'chat.js')
         );
 
+        // Add codicon CSS URI
+        const codiconUri = this.panel!.webview.asWebviewUri(
+            vscode.Uri.joinPath(this.context.extensionUri, 'node_modules', '@vscode', 'codicons', 'dist', 'codicon.css')
+        );
+
         return `<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${this.panel!.webview.cspSource} 'unsafe-inline'; script-src ${this.panel!.webview.cspSource};">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${this.panel!.webview.cspSource} 'unsafe-inline'; script-src ${this.panel!.webview.cspSource}; font-src ${this.panel!.webview.cspSource};">
     <title>Wave AI Chat</title>
+    <link rel="stylesheet" href="${codiconUri}">
 </head>
 <body>
     <div id="root"></div>

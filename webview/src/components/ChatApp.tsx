@@ -205,6 +205,7 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
         onAbortMessage={handleAbortMessage}
         shouldClearInput={state.shouldClearInput}
         onInputCleared={handleInputCleared}
+        vscode={vscode}
       />
     </div>
   );
