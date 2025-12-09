@@ -32,8 +32,8 @@
   },
   "scripts": {
     "vscode:prepublish": "npm run package",
-    "compile": "webpack",
-    "watch": "webpack --watch",
+    "compile": "webpack --mode production",
+    "watch": "webpack --watch --mode development",
     "package": "webpack --mode production --devtool false",
     "test": "npm run test:playwright",
     "test:playwright": "playwright test",

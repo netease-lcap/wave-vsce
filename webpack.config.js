@@ -2,7 +2,7 @@ const path = require('path');
 
 const extensionConfig = {
   target: 'node',
-  mode: 'none',
+  // mode 将通过命令行参数设置，不在这里硬编码
   
   entry: './src/extension.ts',
   output: {
@@ -37,7 +37,7 @@ const extensionConfig = {
 
 const webviewConfig = {
   target: 'web',
-  mode: 'none',
+  // mode 将通过命令行参数设置，不在这里硬编码
   
   entry: './webview/src/index.tsx',
   output: {
