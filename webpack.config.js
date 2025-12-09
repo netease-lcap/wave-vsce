@@ -53,7 +53,6 @@ const webviewConfig = {
   },
   plugins: [
     new (require('webpack')).DefinePlugin({
-      'process.env.NODE_ENV': JSON.stringify('production'),
       'process': false
     })
   ],
