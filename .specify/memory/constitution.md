@@ -1,132 +1,116 @@
 <!--
-SYNC IMPACT REPORT - 2025-01-17
-Version: 1.0.0 → 1.1.0 (Test file organization standardization)
-Modified Principles: Added VI. Test File Organization
-Added Sections: Test File Organization requirements
-Deleted Sections: None
-Template Updates:
-- ✅ plan-template.md: Constitution checks aligned with TDD principles
-- ✅ spec-template.md: Acceptance criteria aligned with test-first approach  
-- ✅ tasks-template.md: Test tasks mandatory for all user stories with TDD sequencing
-- ✅ checklist-template.md: No changes needed (generic)
-- ✅ agent-file-template.md: No changes needed (auto-generated)
-Implementation Changes:
-- ✅ All test files moved from src/ to __tests__/ directory
-- ✅ Jest configuration updated to only look in __tests__/
-- ✅ Test imports updated to use absolute paths with @/ alias
-Delayed TODOs: None
+影响报告 - Wave VS Code 扩展章程 v1.0.0
+
+版本变更：初始版本 → v1.0.0
+修改内容：
+- 添加原则 I：核心用例测试（专注核心功能）
+- 添加原则 II：最小数据设计（精简数据模型，无多余字段）
+- 添加原则 III：TypeScript严格安全（类型安全但不复杂）
+- 添加原则 IV：扩展API集成（VS Code特定模式）
+- 添加原则 V：Webpack双重构建（扩展+webview架构）
+
+模板状态：
+✅ 已更新：.specify/templates/plan-template.md
+✅ 已更新：.specify/templates/spec-template.md  
+✅ 已更新：.specify/templates/tasks-template.md
+
+待办事项：无
 -->
 
-# Hot One Constitution
+# 项目章程：Wave AI 聊天扩展
 
-## Core Principles
+**版本**：1.0.0  
+**批准日期**：2025-12-09  
+**最后修订日期**：2025-12-09  
+**项目**：Wave AI Chat VS Code 扩展
 
-### I. Test-First Development (NON-NEGOTIABLE)
-Every feature implementation MUST follow strict Test-Driven Development (TDD):
-- Tests written first based on acceptance criteria from specs
-- Tests MUST fail initially (red phase)
-- Implementation follows to make tests pass (green phase)
-- Code refactoring only after tests pass (refactor phase)
-- No code ships without comprehensive test coverage
+## 目的
 
-**Rationale**: Test-first ensures code quality, prevents regression bugs, and validates that implementation meets user requirements before development begins.
+本章程确立了 Wave AI Chat VS Code 扩展项目的核心原则和治理规范。该扩展使用 Wave Agent SDK 在 VS Code 内提供集成的 AI 聊天界面，架构基于 TypeScript、React webview 和 VS Code 扩展 API。
 
-### II. User Story Isolation
-Each user story MUST be independently testable and deliverable:
-- Stories can be developed in parallel without dependencies
-- Each story provides standalone business value
-- Test suites organized by user story for clear traceability
-- Integration points explicitly tested between stories
+## 核心原则
 
-**Rationale**: Independent stories enable incremental delivery, parallel development, and easier debugging when issues arise.
+### 原则 I：核心用例测试
 
-### III. TypeScript Strictness
-All code MUST use TypeScript with strict type checking:
-- No `any` types without explicit justification
-- All function parameters and return types explicitly typed
-- Zod schemas for runtime validation at API boundaries
-- Type safety maintained across Next.js App Router patterns
+**规则**：只编写覆盖核心用户功能的必要测试，避免拖慢开发速度的全面测试套件。
 
-**Rationale**: TypeScript strictness catches errors at compile time, improves code maintainability, and provides better developer experience with IDE support.
+**应用**：
+- 专注测试主要用户旅程：打开聊天、发送消息、接收 AI 响应
+- 测试关键集成点：扩展-webview 通信、Wave Agent SDK 集成
+- 跳过详尽的边缘情况测试，优先快速反馈循环
+- 优先功能测试而非单元测试覆盖率指标
 
-### IV. API Contract Testing
-All API endpoints MUST have contract tests:
-- Request/response schema validation
-- Error condition coverage
-- Authentication and authorization verification
-- Database transaction rollback on test completion
+**理由**：提升开发速度需要高效的测试，既能捕获破坏性变更，又不会产生维护负担。
 
-**Rationale**: Contract tests ensure API reliability and prevent breaking changes from reaching production.
+### 原则 II：最小数据设计
 
-### V. Component Testing Strategy
-React components MUST have comprehensive test coverage:
-- Unit tests for component logic and rendering
-- Integration tests for user interactions
-- Accessibility testing for all interactive elements
-- Mock external dependencies to isolate component behavior
+**规则**：保持数据模型精简，只包含必要字段，避免推测性或便利性属性。
 
-**Rationale**: Component tests ensure UI reliability and prevent user experience degradation.
+**应用**：
+- 消息对象仅包含：内容、角色、时间戳、流式状态
+- 会话对象仅包含：ID、标题、最后活跃时间戳
+- 文件建议对象仅包含：路径、类型（文件/目录）
+- 避免嵌套对象、计算属性或框架特定装饰器
 
-### VI. Test File Organization
-All test files MUST be organized in the root `__tests__` directory:
-- Test files mirror the source directory structure under `__tests__/`
-- No test files allowed in source directories (`src/`)
-- Jest configuration only looks for tests in `__tests__/**/*.{test,spec}.{js,jsx,ts,tsx}`
-- Imports use absolute paths with `@/` alias for consistency
+**理由**：简单的数据结构降低认知负载，减少错误，提高可维护性。
 
-**Rationale**: Centralized test organization improves maintainability and prevents accidental test files in production bundles.
+### 原则 III：TypeScript严格安全
 
-## Development Workflow
+**规则**：使用严格的 TypeScript 配置，但不通过过度工程化的类型定义增加复杂性。
 
-### Code Review Requirements
-All code changes MUST pass:
-- Automated test suite (no failing tests)
-- TypeScript compilation without errors
-- ESLint and Prettier formatting checks
-- Manual code review focusing on test quality and coverage
+**应用**：
+- 在 tsconfig.json 中启用 strict 模式、noImplicitAny、strictNullChecks
+- 为 VS Code API 交互和 Wave SDK 合约使用接口定义
+- 避免复杂的泛型类型、条件类型或模板字面量类型
+- 对公共接口优先显式类型声明而非推断
 
-### Feature Development Process
-1. **Specification Phase**: User stories with acceptance criteria written
-2. **Test Design Phase**: Test cases written based on acceptance criteria
-3. **Red Phase**: Tests written and confirmed failing
-4. **Green Phase**: Minimal code written to pass tests
-5. **Refactor Phase**: Code improved while maintaining test passage
-6. **Integration Phase**: Feature tested with existing system
+**理由**：类型安全防止运行时错误，而不牺牲代码简洁性或可读性。
 
-## Quality Gates
+### 原则 IV：扩展API集成
 
-### Pre-Deployment Checklist
-- [ ] All tests passing (unit, integration, component)
-- [ ] TypeScript compilation successful
-- [ ] No ESLint errors or warnings unaddressed
-- [ ] Database migrations tested and reversible
-- [ ] API endpoints documented with examples
-- [ ] User stories verified through acceptance tests
+**规则**：按照 VS Code 扩展 API 的预期模式使用，不创建抽象层。
 
-### Performance Standards
-- Next.js build completes without warnings
-- API response times under 200ms for standard operations
-- Client-side bundle size monitored and optimized
-- Database queries optimized with proper indexing
+**应用**：
+- 直接使用 WebviewPanel 作为聊天界面，不使用包装类
+- 按文档实现命令、激活事件和贡献点
+- 用最少的自定义状态管理处理扩展生命周期（activate/deactivate）
+- 使用 VS Code 的消息传递进行 webview 通信，不使用中间件
 
-## Governance
+**理由**：遵循 VS Code 模式确保兼容性并高效利用平台能力。
 
-### Constitution Authority
-This constitution supersedes all other development practices and guidelines. Any conflicts between this document and other practices must be resolved in favor of constitutional requirements.
+### 原则 V：Webpack双重构建
 
-### Amendment Process
-Constitution changes require:
-1. Documented justification for the change
-2. Impact analysis on existing workflows
-3. Migration plan for affected code and processes
-4. Team review and approval
-5. Version increment following semantic versioning
+**规则**：在扩展（Node.js）和 webview（浏览器）构建之间保持清晰分离，最小化配置重叠。
 
-### Compliance Verification
-All pull requests MUST verify compliance with constitutional principles. Reviewers must confirm:
-- TDD process was followed with evidence of red-green-refactor cycle
-- Test coverage meets quality standards
-- TypeScript strictness maintained
-- User story independence preserved
+**应用**：
+- 扩展目标：Node.js，带 vscode 外部依赖
+- Webview目标：web，带 React、CSS 加载器
+- 仅在真正共享时才共享依赖项（TypeScript 类型）
+- 构建输出到独立目录：dist/ 和 webview/dist/
 
-**Version**: 1.1.0 | **Ratified**: 2025-10-18 | **Last Amended**: 2025-01-17
+**理由**：清晰的构建分离防止运行时环境冲突，维护可部署工件完整性。
+
+## 治理
+
+### 修订流程
+
+1. **提案**：通过拉取请求提交变更并说明理由
+2. **审查**：原则变更的最少 24 小时审查期
+3. **批准**：需要活跃维护者的多数批准
+4. **文档**：使用语义版本控制更新章程版本
+
+### 版本控制
+
+- **主要版本（x.0.0）**：移除或根本性改变现有原则
+- **次要版本（0.x.0）**：添加新原则或扩展范围
+- **补丁版本（0.0.x）**：澄清措辞、修复错误、更新引用
+
+### 合规审查
+
+- 在代码审查过程中检查章程遵守情况
+- 在规范更新期间验证模板一致性
+- 原则违规需要明确说明和维护者批准
+
+## 执行
+
+所有项目工件（规范、计划、实现）必须与这些原则保持一致。偏离需要书面说明和维护者批准。章程优先于与既定原则冲突的个人偏好或外部模式。

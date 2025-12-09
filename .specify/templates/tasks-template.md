@@ -7,7 +7,7 @@ description: "功能实施任务列表模板"
 **输入**: 来自 `/specs/[###-功能名称]/` 的设计文档
 **前置条件**: plan.md（必需）、spec.md（用户故事所需）、research.md、data-model.md、contracts/
 
-**测试**: 根据章程原则 I（测试优先开发），所有用户故事都必须包含测试任务。测试任务必须在实现任务之前列出和执行，遵循红-绿-重构 TDD 周期。
+**测试**: 根据章程原则 I（核心用例测试），关注主要用户旅程和关键集成点。避免过度的边缘案例测试以保持开发速度。
 
 **组织**: 任务按用户故事分组，以便独立实施和测试每个故事。
 
@@ -16,13 +16,12 @@ description: "功能实施任务列表模板"
 - **[故事]**: 此任务属于哪个用户故事（例如，US1、US2、US3）
 - 在描述中包含确切的文件路径
 
-### TDD 任务顺序要求
-每个用户故事必须遵循以下任务顺序：
-1. **测试设计任务** - 基于验收场景编写失败测试
-2. **红阶段验证任务** - 确认测试失败且原因正确
-3. **实现任务** - 编写最少代码使测试通过
-4. **绿阶段验证任务** - 确认所有测试通过
-5. **重构任务** - 改进代码质量同时保持测试通过
+### 核心用例测试要求
+每个用户故事应遵循以下测试方法：
+1. **功能测试** - 验证主要用户旅程工作正常
+2. **集成测试** - 测试关键集成点（VS Code API、Wave Agent SDK）
+3. **基本错误处理** - 覆盖常见失败场景
+4. **简洁实现** - 避免过度测试以保持开发速度
 
 ## 路径约定
 - **单一项目**: 仓库根目录的 `src/`、`tests/`
@@ -84,21 +83,20 @@ description: "功能实施任务列表模板"
 
 **独立测试**: [如何独立验证此故事是否工作]
 
-### 用户故事 1 的测试（可选 - 仅在请求测试时）⚠️
+### 用户故事 1 的测试（关注核心功能）
 
-**注意：首先编写这些测试，确保在实施之前它们失败**
+**注意：专注于主要用户旅程和关键集成点**
 
-- [ ] T010 [P] [US1] 在 tests/contract/test_[name].py 中为 [端点] 编写契约测试
-- [ ] T011 [P] [US1] 在 tests/integration/test_[name].py 中为 [用户旅程] 编写集成测试
+- [ ] T010 [P] [US1] 在 tests/integration/test_[name].js 中为主要用户流程编写功能测试
+- [ ] T011 [P] [US1] 测试扩展-webview通信和Wave Agent SDK集成
 
 ### 用户故事 1 的实施
 
-- [ ] T012 [P] [US1] 在 src/models/[entity1].py 中创建 [Entity1] 模型
-- [ ] T013 [P] [US1] 在 src/models/[entity2].py 中创建 [Entity2] 模型
-- [ ] T014 [US1] 在 src/services/[service].py 中实施 [Service]（依赖于 T012、T013）
-- [ ] T015 [US1] 在 src/[location]/[file].py 中实施 [端点/功能]
-- [ ] T016 [US1] 添加验证和错误处理
-- [ ] T017 [US1] 为用户故事 1 操作添加日志
+- [ ] T012 [P] [US1] 在 src/models/[entity1].ts 中创建精简 [Entity1] 模型（仅必需字段）
+- [ ] T013 [P] [US1] 在 src/services/[service].ts 中实施 [Service]（依赖于 T012）
+- [ ] T014 [US1] 在 src/[location]/[file].ts 中实施 [VS Code API集成]
+- [ ] T015 [US1] 使用严格TypeScript配置添加类型安全
+- [ ] T016 [US1] 配置Webpack双重构建（扩展+webview）
 
 **检查点**: 此时，用户故事 1 应该完全功能正常且可独立测试
 
@@ -110,17 +108,16 @@ description: "功能实施任务列表模板"
 
 **独立测试**: [如何独立验证此故事是否工作]
 
-### 用户故事 2 的测试（可选 - 仅在请求测试时）⚠️
+### 用户故事 2 的测试（关注核心功能）
 
-- [ ] T018 [P] [US2] 在 tests/contract/test_[name].py 中为 [端点] 编写契约测试
-- [ ] T019 [P] [US2] 在 tests/integration/test_[name].py 中为 [用户旅程] 编写集成测试
+- [ ] T018 [P] [US2] 测试主要用户交互和关键集成点
 
 ### 用户故事 2 的实施
 
-- [ ] T020 [P] [US2] 在 src/models/[entity].py 中创建 [Entity] 模型
-- [ ] T021 [US2] 在 src/services/[service].py 中实施 [Service]
-- [ ] T022 [US2] 在 src/[location]/[file].py 中实施 [端点/功能]
-- [ ] T023 [US2] 与用户故事 1 组件集成（如果需要）
+- [ ] T020 [P] [US2] 在 src/models/[entity].ts 中创建精简 [Entity] 模型
+- [ ] T021 [US2] 在 src/services/[service].ts 中实施 [Service]
+- [ ] T022 [US2] 在 src/[location]/[file].ts 中实施 VS Code API 集成
+- [ ] T023 [US2] 优化webview构建和类型安全
 
 **检查点**: 此时，用户故事 1 和 2 都应该能够独立工作
 
@@ -132,16 +129,15 @@ description: "功能实施任务列表模板"
 
 **独立测试**: [如何独立验证此故事是否工作]
 
-### 用户故事 3 的测试（可选 - 仅在请求测试时）⚠️
+### 用户故事 3 的测试（关注核心功能）
 
-- [ ] T024 [P] [US3] 在 tests/contract/test_[name].py 中为 [端点] 编写契约测试
-- [ ] T025 [P] [US3] 在 tests/integration/test_[name].py 中为 [用户旅程] 编写集成测试
+- [ ] T024 [P] [US3] 验证主要功能和关键集成正常工作
 
 ### 用户故事 3 的实施
 
-- [ ] T026 [P] [US3] 在 src/models/[entity].py 中创建 [Entity] 模型
-- [ ] T027 [US3] 在 src/services/[service].py 中实施 [Service]
-- [ ] T028 [US3] 在 src/[location]/[file].py 中实施 [端点/功能]
+- [ ] T026 [P] [US3] 在 src/models/[entity].ts 中创建精简 [Entity] 模型
+- [ ] T027 [US3] 在 src/services/[service].ts 中实施 [Service]
+- [ ] T028 [US3] 完成组件集成和类型安全优化
 
 **检查点**: 所有用户故事现在都应该独立功能正常
 
@@ -203,13 +199,13 @@ description: "功能实施任务列表模板"
 ## 并行示例: 用户故事 1
 
 ```bash
-# 一起启动用户故事 1 的所有测试（如果请求测试）：
-任务："在 tests/contract/test_[name].py 中为 [端点] 编写契约测试"
-任务："在 tests/integration/test_[name].py 中为 [用户旅程] 编写集成测试"
+# 一起启动用户故事 1 的核心测试：
+任务："测试主要用户流程的功能性"
+任务："验证扩展-webview通信和Wave Agent SDK集成"
 
-# 一起启动用户故事 1 的所有模型：
-任务："在 src/models/[entity1].py 中创建 [Entity1] 模型"
-任务："在 src/models/[entity2].py 中创建 [Entity2] 模型"
+# 一起启动用户故事 1 的精简模型：
+任务："在 src/models/[entity1].ts 中创建精简 [Entity1] 模型（仅必需字段）"
+任务："配置严格TypeScript和Webpack双重构建"
 ```
 
 ---
