@@ -33,7 +33,7 @@
   "scripts": {
     "vscode:prepublish": "npm run package",
     "compile": "webpack --mode production",
-    "watch": "webpack --watch --mode development",
+    "watch": "webpack --watch --mode development --devtool cheap-source-map",
     "package": "webpack --mode production --devtool false",
     "test": "npm run test:playwright",
     "test:playwright": "playwright test",
