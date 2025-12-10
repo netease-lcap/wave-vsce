@@ -322,6 +322,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
           className="send-button"
           onClick={handleSend}
           disabled={disabled || !message.trim()}
+          style={{ display: isStreaming ? 'none' : 'block' }}
           data-testid="send-btn"
         >
           发送
