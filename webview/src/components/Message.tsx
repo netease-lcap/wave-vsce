@@ -1,7 +1,8 @@
 import React from 'react';
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
-import type { MessageProps, TextBlock, ErrorBlock, ToolBlock } from '../types';
+import type { MessageProps, TextBlock, ErrorBlock, ToolBlock, DiffBlock } from '../types';
+import { DiffViewer } from './DiffViewer';
 
 // Configure marked for VS Code webview context
 marked.setOptions({
@@ -85,13 +86,14 @@ export const Message: React.FC<MessageProps> = ({ message, isStreaming = false }
           contentParts.push(escapeHtml(`错误: ${content}`));
         }
       }
-      // Other block types (compress, etc.) are ignored in main content
+      // Other block types (compress, diff, etc.) are ignored in main content
     });
 
     return contentParts.join('');
   };
 
   const toolBlocks = message.blocks?.filter(block => block.type === 'tool') || [];
+  const diffBlocks = message.blocks?.filter(block => block.type === 'diff') || [];
   const content = renderContent();
 
   return (
@@ -116,6 +118,11 @@ export const Message: React.FC<MessageProps> = ({ message, isStreaming = false }
           </div>
         );
       })}
+
+      {/* Render diff blocks separately */}
+      {diffBlocks.map((block, index) => (
+        <DiffViewer key={`diff-${index}`} diffBlock={block as DiffBlock} />
+      ))}
     </div>
   );
 };

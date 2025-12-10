@@ -669,3 +669,94 @@ body {
 .input-container {
     position: relative;
 }
+
+/* Simple CSS-based Diff Viewer Styles */
+.diff-viewer-container {
+    margin: 8px 0;
+    border: 1px solid var(--vscode-panel-border);
+    border-radius: 6px;
+    overflow: hidden;
+    background-color: var(--vscode-editor-background);
+    max-height: 300px;
+    display: flex;
+    flex-direction: column;
+}
+
+.diff-content {
+    flex: 1;
+    overflow-y: auto;
+    font-family: var(--vscode-editor-font-family, 'Consolas', 'Monaco', monospace);
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.diff-chunk {
+    display: flex;
+    align-items: flex-start;
+    border: none;
+}
+
+.diff-chunk-prefix {
+    flex-shrink: 0;
+    width: 20px;
+    text-align: center;
+    font-weight: bold;
+    user-select: none;
+    padding-top: 2px; /* Align with first line of content */
+}
+
+.diff-chunk-content {
+    flex: 1;
+    padding: 2px 8px;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+/* Added chunks (green) */
+.diff-chunk-added {
+    background-color: var(--vscode-diffEditor-insertedTextBackground, rgba(0, 255, 0, 0.1));
+}
+
+.diff-chunk-added .diff-chunk-prefix {
+    color: var(--vscode-gitDecoration-addedResourceForeground, #73c991);
+}
+
+/* Removed chunks (red) */
+.diff-chunk-removed {
+    background-color: var(--vscode-diffEditor-removedTextBackground, rgba(255, 0, 0, 0.1));
+}
+
+.diff-chunk-removed .diff-chunk-prefix {
+    color: var(--vscode-gitDecoration-deletedResourceForeground, #f85149);
+}
+
+/* Unchanged chunks */
+.diff-chunk:not(.diff-chunk-added):not(.diff-chunk-removed) .diff-chunk-prefix {
+    color: var(--vscode-editorLineNumber-foreground);
+}
+
+/* Empty diff message */
+.diff-empty {
+    padding: 20px;
+    text-align: center;
+    color: var(--vscode-descriptionForeground);
+    font-style: italic;
+}
+
+/* Scrollbar styling for diff content */
+.diff-content::-webkit-scrollbar {
+    width: 10px;
+}
+
+.diff-content::-webkit-scrollbar-track {
+    background: var(--vscode-scrollbar-shadow);
+}
+
+.diff-content::-webkit-scrollbar-thumb {
+    background: var(--vscode-scrollbarSlider-background);
+    border-radius: 5px;
+}
+
+.diff-content::-webkit-scrollbar-thumb:hover {
+    background: var(--vscode-scrollbarSlider-hoverBackground);
+}

@@ -6,11 +6,11 @@
  */
 
 // Import message structures and session types from wave-agent-sdk
-import type { Message, MessageBlock, TextBlock, ErrorBlock, ToolBlock } from 'wave-agent-sdk';
+import type { Message, MessageBlock, TextBlock, ErrorBlock, ToolBlock, DiffBlock } from 'wave-agent-sdk';
 import type { SessionMetadata, SessionData } from 'wave-agent-sdk';
 
 // Export the agent-sdk types for use in components
-export type { Message, MessageBlock, TextBlock, ErrorBlock, ToolBlock, SessionMetadata, SessionData };
+export type { Message, MessageBlock, TextBlock, ErrorBlock, ToolBlock, DiffBlock, SessionMetadata, SessionData };
 
 // File mention types for @ file suggestion feature
 
