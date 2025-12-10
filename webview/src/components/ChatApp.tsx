@@ -2,10 +2,11 @@ import React, { useEffect, useReducer, useCallback } from 'react';
 import { MessageList } from './MessageList';
 import { MessageInput } from './MessageInput';
 import { ChatHeader } from './ChatHeader';
-import type { 
-  ChatAppProps, 
-  ChatState, 
-  ChatAction, 
+import { ConfirmationDialog } from './ConfirmationDialog';
+import type {
+  ChatAppProps,
+  ChatState,
+  ChatAction,
   WebviewMessage,
   Message
 } from '../types';
@@ -18,7 +19,8 @@ const initialState: ChatState = {
   sessions: [],
   currentSession: undefined,
   sessionsLoading: false,
-  sessionsError: undefined
+  sessionsError: undefined,
+  pendingConfirmation: undefined
 };
 
 function chatReducer(state: ChatState, action: ChatAction): ChatState {
@@ -73,6 +75,16 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
         sessionsError: action.payload,
         sessionsLoading: false
       };
+    case 'SHOW_CONFIRMATION':
+      return {
+        ...state,
+        pendingConfirmation: action.payload
+      };
+    case 'HIDE_CONFIRMATION':
+      return {
+        ...state,
+        pendingConfirmation: undefined
+      };
     default:
       return state;
   }
@@ -108,6 +120,17 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
           break;
         case 'sessionsError':
           dispatch({ type: 'SET_SESSIONS_ERROR', payload: message.error });
+          break;
+        case 'showConfirmation':
+          dispatch({
+            type: 'SHOW_CONFIRMATION',
+            payload: {
+              confirmationId: message.confirmationId,
+              toolName: message.toolName,
+              confirmationType: message.confirmationType,
+              toolInput: message.toolInput
+            }
+          });
           break;
       }
     };
@@ -180,6 +203,24 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
     dispatch({ type: 'INPUT_CLEARED' });
   }, []);
 
+  const handleConfirmation = useCallback((confirmationId: string) => {
+    vscode.postMessage({
+      command: 'confirmationResponse',
+      confirmationId,
+      approved: true
+    });
+    dispatch({ type: 'HIDE_CONFIRMATION' });
+  }, [vscode]);
+
+  const handleRejection = useCallback((confirmationId: string) => {
+    vscode.postMessage({
+      command: 'confirmationResponse',
+      confirmationId,
+      approved: false
+    });
+    dispatch({ type: 'HIDE_CONFIRMATION' });
+  }, [vscode]);
+
   return (
     <div className="chat-container" data-testid="chat-container">
       <ChatHeader
@@ -198,15 +239,25 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
         streamingMessageIndex={streamingMessageIndex}
       />
       
-      <MessageInput
-        onSendMessage={handleSendMessage}
-        disabled={state.inputDisabled}
-        isStreaming={state.isStreaming}
-        onAbortMessage={handleAbortMessage}
-        shouldClearInput={state.shouldClearInput}
-        onInputCleared={handleInputCleared}
-        vscode={vscode}
-      />
+      {!state.pendingConfirmation && (
+        <MessageInput
+          onSendMessage={handleSendMessage}
+          disabled={state.inputDisabled}
+          isStreaming={state.isStreaming}
+          onAbortMessage={handleAbortMessage}
+          shouldClearInput={state.shouldClearInput}
+          onInputCleared={handleInputCleared}
+          vscode={vscode}
+        />
+      )}
+
+      {state.pendingConfirmation && (
+        <ConfirmationDialog
+          confirmation={state.pendingConfirmation}
+          onConfirm={handleConfirmation}
+          onReject={handleRejection}
+        />
+      )}
     </div>
   );
 };

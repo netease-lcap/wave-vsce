@@ -78,10 +78,6 @@ test.describe('Tool Display Visual Test', () => {
         // Verify messages don't have borders/backgrounds (visual check via screenshot)
         const messageElements = webviewPage.locator('.message');
         await expect(messageElements).toHaveCount(6); // welcome + user + 4 assistant messages
-
-        console.log('✅ Tool display screenshot saved to: test-results/tool-display-visual-verification.png');
-        console.log('✅ Verified compact tool display format');
-        console.log('✅ Verified unified message appearance without borders');
     });
 
     test('should show unified message flow without visual separators', async ({ webviewPage }) => {
@@ -121,9 +117,6 @@ test.describe('Tool Display Visual Test', () => {
         // Verify messages flow together visually
         const messagesContainer = webviewPage.locator('.messages-container');
         await expect(messagesContainer).toBeVisible();
-
-        console.log('✅ Unified message flow screenshot saved to: test-results/unified-message-flow.png');
-        console.log('✅ Messages should appear to flow together without prominent visual separators');
     });
 
     test('should align user messages left with preserved styling', async ({ webviewPage }) => {
@@ -168,16 +161,11 @@ test.describe('Tool Display Visual Test', () => {
             };
         });
 
-        console.log('Computed style:', computedStyle);
-
         // User messages should align left (flex-start) but have distinctive styling
         expect(computedStyle.alignSelf).toBe('flex-start');
-        // Just log the background color for now instead of asserting
-        console.log('Background color:', computedStyle.backgroundColor);
+        // Just verify the background color exists (not specific color as it may vary by theme)
+        expect(computedStyle.backgroundColor).toBeTruthy();
         expect(computedStyle.borderRadius).toBe('8px'); // Should have rounded corners
-        
-        console.log('✅ User message alignment screenshot saved to: test-results/user-message-alignment.png');
-        console.log('✅ Verified user messages align left with preserved distinctive styling');
     });
 
     test('should display compactParams in gray color for visual hierarchy', async ({ webviewPage }) => {
@@ -247,15 +235,9 @@ test.describe('Tool Display Visual Test', () => {
             };
         });
 
-        console.log('Tool block style:', toolBlockStyle);
-        console.log('Compact param style:', compactParamStyle);
-
         // Tool block should be bold, compact params should be normal weight
         expect(toolBlockStyle.fontWeight).toBe('700'); // 700 = bold
         expect(compactParamStyle.fontWeight).toBe('400'); // 400 = normal
-
-        console.log('✅ Gray compact params screenshot saved to: test-results/gray-compact-params.png');
-        console.log('✅ Verified compactParams display in gray with proper visual hierarchy');
     });
 
 });

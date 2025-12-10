@@ -132,6 +132,20 @@ export interface ChatState {
   currentSession?: SessionMetadata;
   sessionsLoading: boolean;
   sessionsError?: string;
+  pendingConfirmation?: ConfirmationRequest;
+}
+
+export interface ConfirmationRequest {
+  confirmationId: string;
+  toolName: string;
+  confirmationType: string;
+  toolInput?: any;
+}
+
+export interface ConfirmationDialogProps {
+  confirmation: ConfirmationRequest;
+  onConfirm: (confirmationId: string) => void;
+  onReject: (confirmationId: string) => void;
 }
 
 export type ChatAction =
@@ -143,4 +157,6 @@ export type ChatAction =
   | { type: 'SET_SESSIONS'; payload: SessionMetadata[] }
   | { type: 'SET_CURRENT_SESSION'; payload: SessionMetadata | undefined }
   | { type: 'SET_SESSIONS_LOADING'; payload: boolean }
-  | { type: 'SET_SESSIONS_ERROR'; payload: string | undefined };
+  | { type: 'SET_SESSIONS_ERROR'; payload: string | undefined }
+  | { type: 'SHOW_CONFIRMATION'; payload: ConfirmationRequest }
+  | { type: 'HIDE_CONFIRMATION' };

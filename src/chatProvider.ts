@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { Agent, Message, listSessions, SessionMetadata } from 'wave-agent-sdk';
+import { Agent, Message, listSessions, SessionMetadata, type PermissionDecision, type ToolPermissionContext } from 'wave-agent-sdk';
 import type { MessageManagerCallbacks } from 'wave-agent-sdk/dist/managers/messageManager';
 
 export class ChatProvider {
@@ -7,6 +7,7 @@ export class ChatProvider {
     private panel: vscode.WebviewPanel | undefined;
     private agent: Agent | undefined;
     private context: vscode.ExtensionContext;
+    private pendingConfirmations: Map<string, { resolve: (decision: PermissionDecision) => void; toolName: string; }> = new Map();
 
     constructor(context: vscode.ExtensionContext) {
         this.context = context;
@@ -61,7 +62,11 @@ export class ChatProvider {
             this.agent = await Agent.create({
                 callbacks,
                 workdir,
-                restoreSessionId
+                restoreSessionId,
+                permissionMode: 'default',
+                canUseTool: async (context: ToolPermissionContext): Promise<PermissionDecision> => {
+                    return await this.handleToolPermissionRequest(context);
+                }
             });
             
             console.log('智能体初始化成功');
@@ -144,6 +149,9 @@ export class ChatProvider {
                 break;
             case 'requestFileSuggestions':
                 await this.handleFileSuggestionsRequest(message.filterText, message.requestId);
+                break;
+            case 'confirmationResponse':
+                await this.handleConfirmationResponse(message.confirmationId, message.approved);
                 break;
         }
     }
@@ -459,6 +467,69 @@ export class ChatProvider {
                 command: 'updateMessages',
                 messages: messages // Pass Message objects directly
             });
+        }
+    }
+
+    private async handleToolPermissionRequest(context: ToolPermissionContext): Promise<PermissionDecision> {
+        console.log('handleToolPermissionRequest 被调用:', context.toolName);
+        return new Promise((resolve) => {
+            const confirmationId = `confirmation_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+            // Store the resolve function to call later
+            this.pendingConfirmations.set(confirmationId, {
+                resolve,
+                toolName: context.toolName
+            });
+
+            // Determine confirmation message based on tool type
+            let confirmationType: string;
+            if (['Edit', 'MultiEdit', 'Write', 'Delete'].includes(context.toolName)) {
+                confirmationType = '代码修改待确认';
+            } else if (context.toolName === 'Bash') {
+                confirmationType = '命令执行待确认';
+            } else {
+                confirmationType = '操作待确认';
+            }
+
+            // Send confirmation request to webview
+            if (this.panel) {
+                this.panel.webview.postMessage({
+                    command: 'showConfirmation',
+                    confirmationId: confirmationId,
+                    toolName: context.toolName,
+                    confirmationType: confirmationType,
+                    toolInput: context.toolInput
+                });
+            }
+        });
+    }
+
+    private async handleConfirmationResponse(confirmationId: string, approved: boolean) {
+        const pending = this.pendingConfirmations.get(confirmationId);
+        if (!pending) {
+            console.warn('收到未知确认响应:', confirmationId);
+            return;
+        }
+
+        this.pendingConfirmations.delete(confirmationId);
+
+        if (approved) {
+            pending.resolve({ behavior: 'allow' });
+        } else {
+            pending.resolve({
+                behavior: 'deny',
+                message: '用户拒绝了操作'
+            });
+
+            // When user rejects, abort the current message
+            if (this.agent) {
+                try {
+                    this.agent.abortMessage();
+                    console.log('用户拒绝操作，已中止消息');
+                } catch (error) {
+                    console.error('中止消息时出错:', error);
+                }
+            }
         }
     }
 

@@ -93,16 +93,11 @@ test.describe('File Mention Feature (@)', () => {
     // Check if file suggestion dropdown is present
     const dropdown = webviewPage.locator('.file-suggestion-dropdown');
     const isDropdownVisible = await dropdown.isVisible();
-    console.log('File suggestion dropdown visible:', isDropdownVisible);
-    console.log('Captured requestId:', capturedRequestId);
 
     // Check dropdown positioning
     if (isDropdownVisible) {
       const dropdownBox = await dropdown.boundingBox();
       const inputBox = await messageInput.boundingBox();
-
-      console.log('Dropdown position:', dropdownBox);
-      console.log('Input position:', inputBox);
 
       // Take focused screenshot of the dropdown area
       await dropdown.screenshot({
@@ -122,7 +117,6 @@ test.describe('File Mention Feature (@)', () => {
     // Check for suggestion items
     const suggestionItems = webviewPage.locator('.suggestion-item');
     const itemCount = await suggestionItems.count();
-    console.log('Number of suggestion items:', itemCount);
 
     // Expect to see the suggestions we injected (1 folder + 2 files)
     expect(itemCount).toBe(3);
@@ -156,8 +150,6 @@ test.describe('File Mention Feature (@)', () => {
 
     // Wait for the debounced request
     await webviewPage.waitForTimeout(200);
-
-    console.log('Captured filter requestId:', capturedRequestId);
 
     // Mock filtered response with captured requestId
     await injector.simulateExtensionMessage('fileSuggestionsResponse', {
