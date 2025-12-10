@@ -1,10 +1,18 @@
 import React, { useState, useCallback, KeyboardEvent, useEffect, useRef } from 'react';
-import type { MessageInputProps, FileItem, ConfigurationData } from '../types';
+import type { MessageInputProps, FileItem, ConfigurationData, SlashCommand } from '../types';
 import { FileSuggestionDropdown } from './FileSuggestionDropdown';
+import { SlashCommandsPopup } from './SlashCommandsPopup';
 import ConfigurationButton from './ConfigurationButton';
 import ConfigurationDialog from './ConfigurationDialog';
 
 interface AtMentionState {
+  isActive: boolean;
+  filterText: string;
+  startPos: number;
+  endPos: number;
+}
+
+interface SlashCommandState {
   isActive: boolean;
   filterText: string;
   startPos: number;
@@ -34,11 +42,21 @@ export const MessageInput: React.FC<MessageInputProps> = ({
     startPos: 0,
     endPos: 0
   });
+  const [slashCommand, setSlashCommand] = useState<SlashCommandState>({
+    isActive: false,
+    filterText: '',
+    startPos: 0,
+    endPos: 0
+  });
   const [suggestions, setSuggestions] = useState<FileItem[]>([]);
+  const [slashCommands, setSlashCommands] = useState<SlashCommand[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [selectedSlashIndex, setSelectedSlashIndex] = useState(0);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
+  const [slashPopupPosition, setSlashPopupPosition] = useState({ top: 0, left: 0 });
   const [configDialogPosition, setConfigDialogPosition] = useState({ top: 0, left: 0 });
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
+  const [isLoadingSlashCommands, setIsLoadingSlashCommands] = useState(false);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const configButtonRef = useRef<HTMLDivElement>(null);
@@ -59,6 +77,55 @@ export const MessageInput: React.FC<MessageInputProps> = ({
     setSuggestions([]);
     setSelectedIndex(0);
     setIsLoadingSuggestions(false);
+  }, []);
+
+  // Close 指令 popup helper
+  const closeSlashCommandPopup = useCallback(() => {
+    setSlashCommand({ isActive: false, filterText: '', startPos: 0, endPos: 0 });
+    setSlashCommands([]);
+    setSelectedSlashIndex(0);
+    setIsLoadingSlashCommands(false);
+  }, []);
+
+  // Detect 指令 in text
+  const detectSlashCommand = useCallback((text: string, cursorPos: number): SlashCommandState => {
+    // Find the last / symbol before cursor position
+    let slashPos = -1;
+    for (let i = cursorPos - 1; i >= 0; i--) {
+      if (text[i] === '/') {
+        slashPos = i;
+        break;
+      }
+      // Stop if we hit whitespace or newline
+      if (text[i] === ' ' || text[i] === '\n') {
+        break;
+      }
+    }
+
+    if (slashPos === -1) {
+      return { isActive: false, filterText: '', startPos: 0, endPos: 0 };
+    }
+
+    // Check if / is at start of line or preceded by whitespace
+    const isValidPosition = slashPos === 0 || /\s/.test(text[slashPos - 1]);
+    if (!isValidPosition) {
+      return { isActive: false, filterText: '', startPos: 0, endPos: 0 };
+    }
+
+    // Extract filter text after /
+    const afterSlash = text.slice(slashPos + 1, cursorPos);
+
+    // Check if filter text contains invalid characters
+    if (/\s/.test(afterSlash)) {
+      return { isActive: false, filterText: '', startPos: 0, endPos: 0 };
+    }
+
+    return {
+      isActive: true,
+      filterText: afterSlash,
+      startPos: slashPos,
+      endPos: cursorPos
+    };
   }, []);
 
   // Detect @ mention in text
@@ -129,6 +196,16 @@ export const MessageInput: React.FC<MessageInputProps> = ({
     });
   }, []);
 
+  // Request 指令 from extension
+  const requestSlashCommands = useCallback((filterText: string) => {
+    setIsLoadingSlashCommands(true);
+
+    vscode.postMessage({
+      command: 'requestSlashCommands',
+      filterText: filterText
+    });
+  }, []);
+
   // Debounced file suggestion requests
   useEffect(() => {
     if (atMention.isActive) {
@@ -141,6 +218,19 @@ export const MessageInput: React.FC<MessageInputProps> = ({
       setIsLoadingSuggestions(false);
     }
   }, [atMention.isActive, atMention.filterText, requestFileSuggestions]);
+
+  // Debounced 指令 requests
+  useEffect(() => {
+    if (slashCommand.isActive) {
+      const timer = setTimeout(() => {
+        requestSlashCommands(slashCommand.filterText);
+      }, 150);
+      return () => clearTimeout(timer);
+    } else {
+      setSlashCommands([]);
+      setIsLoadingSlashCommands(false);
+    }
+  }, [slashCommand.isActive, slashCommand.filterText, requestSlashCommands]);
 
   // Listen for file suggestions response from extension
   useEffect(() => {
@@ -160,6 +250,14 @@ export const MessageInput: React.FC<MessageInputProps> = ({
           setIsLoadingSuggestions(false);
           console.error('File suggestions error:', message.error);
         }
+      } else if (message.command === 'slashCommandsResponse') {
+        setSlashCommands(message.commands || []);
+        setSelectedSlashIndex(0);
+        setIsLoadingSlashCommands(false);
+      } else if (message.command === 'slashCommandsError') {
+        setSlashCommands([]);
+        setIsLoadingSlashCommands(false);
+        console.error('指令错误:', message.error);
       }
     };
 
@@ -188,6 +286,27 @@ export const MessageInput: React.FC<MessageInputProps> = ({
     }, 0);
   }, [message, atMention.startPos, atMention.endPos, closeDropdown]);
 
+  // Handle 指令 selection
+  const handleSlashCommandSelect = useCallback((command: SlashCommand) => {
+    if (!textareaRef.current) return;
+
+    const newMessage = message.slice(0, slashCommand.startPos) +
+                      `/${command.name} ` +
+                      message.slice(slashCommand.endPos);
+
+    setMessage(newMessage);
+    closeSlashCommandPopup();
+
+    // Focus back to textarea and set cursor position
+    setTimeout(() => {
+      if (textareaRef.current) {
+        textareaRef.current.focus();
+        const newCursorPos = slashCommand.startPos + command.name.length + 2; // +2 for '/' and ' '
+        textareaRef.current.setSelectionRange(newCursorPos, newCursorPos);
+      }
+    }, 0);
+  }, [message, slashCommand.startPos, slashCommand.endPos, closeSlashCommandPopup]);
+
   const handleSend = useCallback(() => {
     if (message.trim() && !disabled) {
       onSendMessage(message);
@@ -197,6 +316,30 @@ export const MessageInput: React.FC<MessageInputProps> = ({
   }, [message, disabled, onSendMessage, closeDropdown]);
 
   const handleKeyDown = useCallback((event: KeyboardEvent<HTMLTextAreaElement>) => {
+    // Handle 指令 navigation
+    if (slashCommand.isActive && slashCommands.length > 0) {
+      switch (event.key) {
+        case 'ArrowUp':
+          event.preventDefault();
+          setSelectedSlashIndex(prev => Math.max(0, prev - 1));
+          return;
+        case 'ArrowDown':
+          event.preventDefault();
+          setSelectedSlashIndex(prev => Math.min(slashCommands.length - 1, prev + 1));
+          return;
+        case 'Enter':
+          event.preventDefault();
+          if (slashCommands[selectedSlashIndex]) {
+            handleSlashCommandSelect(slashCommands[selectedSlashIndex]);
+          }
+          return;
+        case 'Escape':
+          event.preventDefault();
+          closeSlashCommandPopup();
+          return;
+      }
+    }
+
     // Handle dropdown navigation
     if (atMention.isActive && suggestions.length > 0) {
       switch (event.key) {
@@ -226,7 +369,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
       event.preventDefault();
       handleSend();
     }
-  }, [atMention.isActive, suggestions, selectedIndex, handleFileSelect, closeDropdown, handleSend]);
+  }, [slashCommand.isActive, slashCommands, selectedSlashIndex, handleSlashCommandSelect, closeSlashCommandPopup, atMention.isActive, suggestions, selectedIndex, handleFileSelect, closeDropdown, handleSend]);
 
   const handleInput = useCallback((event: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newValue = event.target.value;
@@ -243,10 +386,18 @@ export const MessageInput: React.FC<MessageInputProps> = ({
     const mentionState = detectAtMention(newValue, cursorPos);
     setAtMention(mentionState);
 
+    // Detect 指令
+    const slashCommandState = detectSlashCommand(newValue, cursorPos);
+    setSlashCommand(slashCommandState);
+
     if (mentionState.isActive) {
       setDropdownPosition(calculateDropdownPosition());
     }
-  }, [detectAtMention, calculateDropdownPosition]);
+
+    if (slashCommandState.isActive) {
+      setSlashPopupPosition(calculateDropdownPosition());
+    }
+  }, [detectAtMention, detectSlashCommand, calculateDropdownPosition]);
 
   // Handle configuration button click
   const handleConfigurationClick = useCallback(() => {
@@ -272,11 +423,16 @@ export const MessageInput: React.FC<MessageInputProps> = ({
 
     const cursorPos = textareaRef.current.selectionStart || 0;
     const mentionState = detectAtMention(message, cursorPos);
+    const slashCommandState = detectSlashCommand(message, cursorPos);
 
     if (!mentionState.isActive) {
       closeDropdown();
     }
-  }, [message, detectAtMention, closeDropdown]);
+
+    if (!slashCommandState.isActive) {
+      closeSlashCommandPopup();
+    }
+  }, [message, detectAtMention, detectSlashCommand, closeDropdown, closeSlashCommandPopup]);
 
   return (
     <div className="input-container" data-testid="input-container">
@@ -298,6 +454,22 @@ export const MessageInput: React.FC<MessageInputProps> = ({
 
       {/* Buttons row - right aligned */}
       <div className="input-buttons-row">
+        {/* Left side - 指令 button */}
+        <button
+          className="slash-command-button"
+          onClick={() => {
+            // Request 指令 when button is clicked
+            requestSlashCommands('');
+            setSlashCommand({ isActive: true, filterText: '', startPos: message.length, endPos: message.length });
+            setSlashPopupPosition(calculateDropdownPosition());
+          }}
+          disabled={disabled}
+          title="指令"
+          data-testid="slash-command-btn"
+        >
+          指令
+        </button>
+
         <div className="button-spacer" />
 
         <div ref={configButtonRef}>
@@ -339,6 +511,17 @@ export const MessageInput: React.FC<MessageInputProps> = ({
         position={dropdownPosition}
         filterText={atMention.filterText}
         isLoading={isLoadingSuggestions}
+      />
+
+      {/* 指令弹窗 */}
+      <SlashCommandsPopup
+        commands={slashCommands}
+        isVisible={slashCommand.isActive && (slashCommands.length > 0 || isLoadingSlashCommands)}
+        selectedIndex={selectedSlashIndex}
+        onSelect={handleSlashCommandSelect}
+        onClose={closeSlashCommandPopup}
+        position={slashPopupPosition}
+        isLoading={isLoadingSlashCommands}
       />
 
       {/* Configuration Dialog */}

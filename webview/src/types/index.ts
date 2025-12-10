@@ -12,6 +12,13 @@ import type { SessionMetadata, SessionData } from 'wave-agent-sdk';
 // Export the agent-sdk types for use in components
 export type { Message, MessageBlock, TextBlock, ErrorBlock, ToolBlock, DiffBlock, SessionMetadata, SessionData };
 
+// Slash command types
+export interface SlashCommand {
+  id: string;
+  name: string;
+  description: string;
+}
+
 // File mention types for @ file suggestion feature
 
 /**

@@ -153,6 +153,9 @@ export class ChatProvider {
             case 'requestFileSuggestions':
                 await this.handleFileSuggestionsRequest(message.filterText, message.requestId);
                 break;
+            case 'requestSlashCommands':
+                await this.handleSlashCommandsRequest(message.filterText);
+                break;
             case 'confirmationResponse':
                 await this.handleConfirmationResponse(message.confirmationId, message.approved);
                 break;
@@ -721,6 +724,61 @@ export class ChatProvider {
                 this.panel.webview.postMessage({
                     command: 'configurationError',
                     error: 'Failed to save configuration: ' + error
+                });
+            }
+        }
+    }
+
+    /**
+     * Handle requestSlashCommands message from webview
+     */
+    private async handleSlashCommandsRequest(filterText: string) {
+        try {
+            console.log('处理指令请求:', filterText);
+
+            if (!this.agent) {
+                if (this.panel) {
+                    this.panel.webview.postMessage({
+                        command: 'slashCommandsError',
+                        error: '智能体未初始化'
+                    });
+                }
+                return;
+            }
+
+            // Get slash commands from the agent
+            const allCommands = this.agent.getSlashCommands();
+
+            // Filter commands based on filter text
+            let filteredCommands = allCommands;
+            if (filterText && filterText.trim().length > 0) {
+                const filter = filterText.toLowerCase();
+                filteredCommands = allCommands.filter(command =>
+                    command.name.toLowerCase().includes(filter) ||
+                    command.description.toLowerCase().includes(filter)
+                );
+            }
+
+            // Convert to the format expected by the frontend
+            const commands = filteredCommands.map(command => ({
+                id: command.id,
+                name: command.name,
+                description: command.description
+            }));
+
+            if (this.panel) {
+                this.panel.webview.postMessage({
+                    command: 'slashCommandsResponse',
+                    commands: commands
+                });
+            }
+
+        } catch (error) {
+            console.error('获取指令失败:', error);
+            if (this.panel) {
+                this.panel.webview.postMessage({
+                    command: 'slashCommandsError',
+                    error: '获取指令失败: ' + error
                 });
             }
         }
