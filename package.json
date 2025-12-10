@@ -60,6 +60,6 @@
     "@vscode/codicons": "^0.0.43",
     "dompurify": "^3.3.0",
     "marked": "^9.1.6",
-    "wave-agent-sdk": "file:../../personal-projects/wave-agent/packages/agent-sdk"
+    "wave-agent-sdk": "^0.0.8"
   }
 }

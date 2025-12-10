@@ -231,10 +231,10 @@ export class ChatProvider {
         try {
             const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
             const workdir = workspaceFolder?.uri.fsPath || process.cwd();
-            
+
             console.log('获取会话列表，工作目录:', workdir);
             const sessions = await listSessions(workdir);
-            
+
             if (this.panel) {
                 this.panel.webview.postMessage({
                     command: 'updateSessions',
@@ -243,11 +243,30 @@ export class ChatProvider {
             }
         } catch (error) {
             console.error('获取会话列表失败:', error);
-            if (this.panel) {
-                this.panel.webview.postMessage({
-                    command: 'sessionsError',
-                    error: '获取会话列表失败: ' + error
-                });
+
+            // Check if this is a directory not found error (ENOENT)
+            const isDirectoryNotFound = error &&
+                typeof error === 'object' &&
+                'code' in error &&
+                error.code === 'ENOENT';
+
+            if (isDirectoryNotFound) {
+                // For missing Wave directory, silently handle by sending empty sessions list
+                console.log('Wave sessions directory does not exist yet, showing empty sessions list');
+                if (this.panel) {
+                    this.panel.webview.postMessage({
+                        command: 'updateSessions',
+                        sessions: []
+                    });
+                }
+            } else {
+                // For other errors, show the error to the user
+                if (this.panel) {
+                    this.panel.webview.postMessage({
+                        command: 'sessionsError',
+                        error: '获取会话列表失败: ' + error
+                    });
+                }
             }
         }
     }
