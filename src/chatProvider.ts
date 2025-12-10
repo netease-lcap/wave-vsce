@@ -1,4 +1,7 @@
 import * as vscode from 'vscode';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as os from 'os';
 import { Agent, Message, listSessions, SessionMetadata, type PermissionDecision, type ToolPermissionContext } from 'wave-agent-sdk';
 import type { MessageManagerCallbacks } from 'wave-agent-sdk/dist/managers/messageManager';
 
@@ -152,6 +155,12 @@ export class ChatProvider {
                 break;
             case 'confirmationResponse':
                 await this.handleConfirmationResponse(message.confirmationId, message.approved);
+                break;
+            case 'getConfiguration':
+                await this.handleGetConfiguration();
+                break;
+            case 'updateConfiguration':
+                await this.handleUpdateConfiguration(message.configurationData);
                 break;
         }
     }
@@ -569,6 +578,151 @@ export class ChatProvider {
             });
             
             console.log('🔄 刷新会话列表...');
+        }
+    }
+
+    // Configuration management methods
+
+    /**
+     * Get the ~/.wave/settings.json file path
+     */
+    private getWaveSettingsPath(): string {
+        return path.join(os.homedir(), '.wave', 'settings.json');
+    }
+
+    /**
+     * Ensure ~/.wave directory exists
+     */
+    private async ensureWaveDirectory(): Promise<void> {
+        const waveDir = path.join(os.homedir(), '.wave');
+        try {
+            await fs.promises.access(waveDir);
+        } catch (error) {
+            // Directory doesn't exist, create it
+            await fs.promises.mkdir(waveDir, { recursive: true });
+            console.log('Created ~/.wave directory');
+        }
+    }
+
+    /**
+     * Load configuration from ~/.wave/settings.json
+     */
+    private async loadConfiguration(): Promise<any> {
+        try {
+            const settingsPath = this.getWaveSettingsPath();
+            await fs.promises.access(settingsPath);
+            const content = await fs.promises.readFile(settingsPath, 'utf8');
+            const settings = JSON.parse(content);
+
+            // Extract configuration from env field
+            const env = settings.env || {};
+            return {
+                apiKey: env.AIGW_TOKEN || '',
+                baseURL: env.AIGW_URL || '',
+                agentModel: env.AIGW_MODEL || '',
+                fastModel: env.AIGW_FAST_MODEL || ''
+            };
+        } catch (error) {
+            // File doesn't exist or is invalid, return default config
+            console.log('No configuration file found, using defaults');
+            return {
+                apiKey: '',
+                baseURL: '',
+                agentModel: '',
+                fastModel: ''
+            };
+        }
+    }
+
+    /**
+     * Save configuration to ~/.wave/settings.json
+     */
+    private async saveConfiguration(configData: any): Promise<void> {
+        try {
+            await this.ensureWaveDirectory();
+            const settingsPath = this.getWaveSettingsPath();
+
+            // Load existing settings or create new ones
+            let settings: any = {};
+            try {
+                const content = await fs.promises.readFile(settingsPath, 'utf8');
+                settings = JSON.parse(content);
+            } catch (error) {
+                // File doesn't exist or is invalid, start with empty settings
+                settings = {};
+            }
+
+            // Ensure env field exists
+            if (!settings.env) {
+                settings.env = {};
+            }
+
+            // Map configuration fields to environment variables
+            if (configData.apiKey !== undefined) {
+                settings.env.AIGW_TOKEN = configData.apiKey;
+            }
+            if (configData.baseURL !== undefined) {
+                settings.env.AIGW_URL = configData.baseURL;
+            }
+            if (configData.agentModel !== undefined) {
+                settings.env.AIGW_MODEL = configData.agentModel;
+            }
+            if (configData.fastModel !== undefined) {
+                settings.env.AIGW_FAST_MODEL = configData.fastModel;
+            }
+
+            // Write settings back to file
+            const content = JSON.stringify(settings, null, 2);
+            await fs.promises.writeFile(settingsPath, content, 'utf8');
+            console.log('Configuration saved to ~/.wave/settings.json');
+        } catch (error) {
+            console.error('Failed to save configuration:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Handle getConfiguration message from webview
+     */
+    private async handleGetConfiguration(): Promise<void> {
+        try {
+            const config = await this.loadConfiguration();
+            if (this.panel) {
+                this.panel.webview.postMessage({
+                    command: 'configurationResponse',
+                    configurationData: config
+                });
+            }
+        } catch (error) {
+            console.error('Failed to get configuration:', error);
+            if (this.panel) {
+                this.panel.webview.postMessage({
+                    command: 'configurationError',
+                    error: 'Failed to load configuration: ' + error
+                });
+            }
+        }
+    }
+
+    /**
+     * Handle updateConfiguration message from webview
+     */
+    private async handleUpdateConfiguration(configData: any): Promise<void> {
+        try {
+            await this.saveConfiguration(configData);
+            if (this.panel) {
+                this.panel.webview.postMessage({
+                    command: 'configurationUpdated'
+                });
+            }
+        } catch (error) {
+            console.error('Failed to update configuration:', error);
+            if (this.panel) {
+                this.panel.webview.postMessage({
+                    command: 'configurationError',
+                    error: 'Failed to save configuration: ' + error
+                });
+            }
         }
     }
 

@@ -183,7 +183,8 @@ body {
 }
 
 .message-input {
-    flex: 1;
+    width: 100%;
+    box-sizing: border-box;
     background-color: var(--vscode-input-background);
     color: var(--vscode-input-foreground);
     border: 1px solid var(--vscode-input-border);
@@ -237,6 +238,165 @@ body {
 
 .abort-button:hover {
     background-color: var(--vscode-inputValidation-errorBorder);
+}
+
+/* New two-tier button layout */
+.input-buttons-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.button-spacer {
+    flex: 1;
+}
+
+/* Configuration button */
+.configuration-button {
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    height: 36px;
+    min-width: 60px;
+    flex-shrink: 0;
+    background-color: var(--vscode-button-secondaryBackground);
+    color: var(--vscode-button-secondaryForeground);
+    position: relative;
+}
+
+.configuration-button:hover {
+    background-color: var(--vscode-button-secondaryHoverBackground);
+}
+
+.configuration-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Configuration Dialog */
+.configuration-dialog {
+    position: absolute;
+    background-color: var(--vscode-dropdown-background);
+    color: var(--vscode-dropdown-foreground);
+    border: 1px solid var(--vscode-dropdown-border);
+    border-radius: 4px;
+    padding: 16px;
+    min-width: 300px;
+    max-width: 400px;
+    z-index: 1000;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.configuration-dialog-header {
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--vscode-panel-border);
+}
+
+.configuration-dialog-header h3 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--vscode-editor-foreground);
+}
+
+/* Configuration Form */
+.configuration-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.configuration-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.configuration-field label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--vscode-editor-foreground);
+}
+
+.configuration-field input {
+    background-color: var(--vscode-input-background);
+    color: var(--vscode-input-foreground);
+    border: 1px solid var(--vscode-input-border);
+    padding: 6px 8px;
+    border-radius: 3px;
+    font-family: var(--vscode-font-family);
+    font-size: 13px;
+    min-height: 20px;
+}
+
+.configuration-field input:focus {
+    outline: none;
+    border-color: var(--vscode-focusBorder);
+}
+
+.configuration-field input:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Configuration Error */
+.configuration-error {
+    background-color: var(--vscode-inputValidation-errorBackground);
+    color: var(--vscode-inputValidation-errorForeground);
+    border: 1px solid var(--vscode-inputValidation-errorBorder);
+    padding: 8px;
+    border-radius: 3px;
+    font-size: 12px;
+    margin-top: 8px;
+}
+
+/* Configuration Actions */
+.configuration-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid var(--vscode-panel-border);
+}
+
+.configuration-cancel-btn,
+.configuration-save-btn {
+    border: none;
+    padding: 6px 12px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 12px;
+    min-width: 50px;
+    height: 28px;
+}
+
+.configuration-cancel-btn {
+    background-color: var(--vscode-button-secondaryBackground);
+    color: var(--vscode-button-secondaryForeground);
+}
+
+.configuration-cancel-btn:hover {
+    background-color: var(--vscode-button-secondaryHoverBackground);
+}
+
+.configuration-save-btn {
+    background-color: var(--vscode-button-background);
+    color: var(--vscode-button-foreground);
+}
+
+.configuration-save-btn:hover {
+    background-color: var(--vscode-button-hoverBackground);
+}
+
+.configuration-cancel-btn:disabled,
+.configuration-save-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
 }
 
 /* Animations */

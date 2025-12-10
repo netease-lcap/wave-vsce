@@ -1,6 +1,8 @@
 import React, { useState, useCallback, KeyboardEvent, useEffect, useRef } from 'react';
-import type { MessageInputProps, FileItem } from '../types';
+import type { MessageInputProps, FileItem, ConfigurationData } from '../types';
 import { FileSuggestionDropdown } from './FileSuggestionDropdown';
+import ConfigurationButton from './ConfigurationButton';
+import ConfigurationDialog from './ConfigurationDialog';
 
 interface AtMentionState {
   isActive: boolean;
@@ -16,7 +18,14 @@ export const MessageInput: React.FC<MessageInputProps> = ({
   onAbortMessage,
   shouldClearInput,
   onInputCleared,
-  vscode
+  vscode,
+  showConfiguration,
+  configurationData,
+  configurationLoading,
+  configurationError,
+  onConfigurationOpen,
+  onConfigurationSave,
+  onConfigurationCancel
 }) => {
   const [message, setMessage] = useState('');
   const [atMention, setAtMention] = useState<AtMentionState>({
@@ -28,9 +37,11 @@ export const MessageInput: React.FC<MessageInputProps> = ({
   const [suggestions, setSuggestions] = useState<FileItem[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
+  const [configDialogPosition, setConfigDialogPosition] = useState({ top: 0, left: 0 });
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const configButtonRef = useRef<HTMLDivElement>(null);
   const requestIdRef = useRef<string>('');
 
   // Handle input clearing when requested by parent
@@ -237,6 +248,24 @@ export const MessageInput: React.FC<MessageInputProps> = ({
     }
   }, [detectAtMention, calculateDropdownPosition]);
 
+  // Handle configuration button click
+  const handleConfigurationClick = useCallback(() => {
+    if (configButtonRef.current && textareaRef.current) {
+      const buttonRect = configButtonRef.current.getBoundingClientRect();
+      const containerRect = textareaRef.current.parentElement?.getBoundingClientRect();
+
+      if (containerRect) {
+        // Calculate position relative to the input container
+        // Position dialog at left edge of button, top above button
+        setConfigDialogPosition({
+          top: buttonRect.top - containerRect.top - 420, // Position above button relative to container
+          left: buttonRect.left - containerRect.left - 334 + buttonRect.width // Align right edge of dialog with right edge of button
+        });
+      }
+    }
+    onConfigurationOpen();
+  }, [onConfigurationOpen]);
+
   // Handle cursor position changes
   const handleSelectionChange = useCallback(() => {
     if (!textareaRef.current) return;
@@ -251,21 +280,32 @@ export const MessageInput: React.FC<MessageInputProps> = ({
 
   return (
     <div className="input-container" data-testid="input-container">
-      <div className="input-row">
-        <textarea
-          ref={textareaRef}
-          id="messageInput"
-          className="message-input"
-          value={message}
-          onChange={handleInput}
-          onKeyDown={handleKeyDown}
-          onSelect={handleSelectionChange}
-          onClick={handleSelectionChange}
-          disabled={disabled}
-          placeholder="在这里输入您的消息..."
-          rows={1}
-          data-testid="message-input"
-        />
+      {/* Textarea - full width */}
+      <textarea
+        ref={textareaRef}
+        id="messageInput"
+        className="message-input"
+        value={message}
+        onChange={handleInput}
+        onKeyDown={handleKeyDown}
+        onSelect={handleSelectionChange}
+        onClick={handleSelectionChange}
+        disabled={disabled}
+        placeholder="在这里输入您的消息..."
+        rows={1}
+        data-testid="message-input"
+      />
+
+      {/* Buttons row - right aligned */}
+      <div className="input-buttons-row">
+        <div className="button-spacer" />
+
+        <div ref={configButtonRef}>
+          <ConfigurationButton
+            onClick={handleConfigurationClick}
+            disabled={disabled}
+          />
+        </div>
 
         <button
           className="abort-button"
@@ -298,6 +338,17 @@ export const MessageInput: React.FC<MessageInputProps> = ({
         position={dropdownPosition}
         filterText={atMention.filterText}
         isLoading={isLoadingSuggestions}
+      />
+
+      {/* Configuration Dialog */}
+      <ConfigurationDialog
+        isVisible={showConfiguration}
+        configurationData={configurationData || {}}
+        isLoading={configurationLoading}
+        error={configurationError}
+        onSave={onConfigurationSave}
+        onCancel={onConfigurationCancel}
+        position={configDialogPosition}
       />
     </div>
   );

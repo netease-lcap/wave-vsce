@@ -20,7 +20,12 @@ const initialState: ChatState = {
   currentSession: undefined,
   sessionsLoading: false,
   sessionsError: undefined,
-  pendingConfirmation: undefined
+  pendingConfirmation: undefined,
+  // Configuration state
+  showConfiguration: false,
+  configurationData: undefined,
+  configurationLoading: false,
+  configurationError: undefined
 };
 
 function chatReducer(state: ChatState, action: ChatAction): ChatState {
@@ -85,6 +90,31 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
         ...state,
         pendingConfirmation: undefined
       };
+    case 'SHOW_CONFIGURATION':
+      return {
+        ...state,
+        showConfiguration: true,
+        configurationData: action.payload,
+        configurationLoading: false,
+        configurationError: undefined
+      };
+    case 'HIDE_CONFIGURATION':
+      return {
+        ...state,
+        showConfiguration: false,
+        configurationError: undefined
+      };
+    case 'SET_CONFIGURATION_LOADING':
+      return {
+        ...state,
+        configurationLoading: action.payload
+      };
+    case 'SET_CONFIGURATION_ERROR':
+      return {
+        ...state,
+        configurationError: action.payload,
+        configurationLoading: false
+      };
     default:
       return state;
   }
@@ -132,6 +162,18 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
             }
           });
           break;
+        case 'configurationResponse':
+          dispatch({
+            type: 'SHOW_CONFIGURATION',
+            payload: message.configurationData
+          });
+          break;
+        case 'configurationUpdated':
+          dispatch({ type: 'HIDE_CONFIGURATION' });
+          break;
+        case 'configurationError':
+          dispatch({ type: 'SET_CONFIGURATION_ERROR', payload: message.error });
+          break;
       }
     };
 
@@ -176,6 +218,25 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
       command: 'abortMessage'
     });
   }, [state.isStreaming, vscode]);
+
+  // Configuration handlers
+  const handleConfigurationOpen = useCallback(() => {
+    vscode.postMessage({
+      command: 'getConfiguration'
+    });
+  }, [vscode]);
+
+  const handleConfigurationSave = useCallback((configData: any) => {
+    dispatch({ type: 'SET_CONFIGURATION_LOADING', payload: true });
+    vscode.postMessage({
+      command: 'updateConfiguration',
+      configurationData: configData
+    });
+  }, [vscode]);
+
+  const handleConfigurationCancel = useCallback(() => {
+    dispatch({ type: 'HIDE_CONFIGURATION' });
+  }, []);
 
   // Simple streaming message detection
   const streamingMessageIndex = state.isStreaming && state.messages.length > 0 
@@ -248,6 +309,13 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
           shouldClearInput={state.shouldClearInput}
           onInputCleared={handleInputCleared}
           vscode={vscode}
+          showConfiguration={state.showConfiguration}
+          configurationData={state.configurationData}
+          configurationLoading={state.configurationLoading}
+          configurationError={state.configurationError}
+          onConfigurationOpen={handleConfigurationOpen}
+          onConfigurationSave={handleConfigurationSave}
+          onConfigurationCancel={handleConfigurationCancel}
         />
       )}
 

@@ -85,6 +85,14 @@ export interface MessageInputProps {
   shouldClearInput?: boolean;
   onInputCleared?: () => void;
   vscode: any;
+  // Configuration props
+  showConfiguration: boolean;
+  configurationData?: ConfigurationData;
+  configurationLoading: boolean;
+  configurationError?: string;
+  onConfigurationOpen: () => void;
+  onConfigurationSave: (config: ConfigurationData) => void;
+  onConfigurationCancel: () => void;
 }
 
 /**
@@ -133,6 +141,11 @@ export interface ChatState {
   sessionsLoading: boolean;
   sessionsError?: string;
   pendingConfirmation?: ConfirmationRequest;
+  // Configuration state
+  showConfiguration: boolean;
+  configurationData?: ConfigurationData;
+  configurationLoading: boolean;
+  configurationError?: string;
 }
 
 export interface ConfirmationRequest {
@@ -148,6 +161,44 @@ export interface ConfirmationDialogProps {
   onReject: (confirmationId: string) => void;
 }
 
+// Configuration management types
+
+/**
+ * Configuration data for AI agent settings
+ * Maps to environment variables in ~/.wave/settings.json
+ */
+export interface ConfigurationData {
+  /** API key for authentication -> env.AIGW_TOKEN */
+  apiKey?: string;
+  /** Base URL for API endpoints -> env.AIGW_URL */
+  baseURL?: string;
+  /** Primary agent model -> env.AIGW_MODEL */
+  agentModel?: string;
+  /** Fast model for quick responses -> env.AIGW_FAST_MODEL */
+  fastModel?: string;
+}
+
+/**
+ * Props for the configuration button component
+ */
+export interface ConfigurationButtonProps {
+  onClick: () => void;
+  disabled?: boolean;
+}
+
+/**
+ * Props for the configuration dialog component
+ */
+export interface ConfigurationDialogProps {
+  isVisible: boolean;
+  configurationData: ConfigurationData;
+  isLoading: boolean;
+  error?: string;
+  onSave: (config: ConfigurationData) => void;
+  onCancel: () => void;
+  position: { top: number; left: number };
+}
+
 export type ChatAction =
   | { type: 'SET_MESSAGES'; payload: Message[] }
   | { type: 'START_STREAMING' }
@@ -159,4 +210,8 @@ export type ChatAction =
   | { type: 'SET_SESSIONS_LOADING'; payload: boolean }
   | { type: 'SET_SESSIONS_ERROR'; payload: string | undefined }
   | { type: 'SHOW_CONFIRMATION'; payload: ConfirmationRequest }
-  | { type: 'HIDE_CONFIRMATION' };
+  | { type: 'HIDE_CONFIRMATION' }
+  | { type: 'SHOW_CONFIGURATION'; payload: ConfigurationData }
+  | { type: 'HIDE_CONFIGURATION' }
+  | { type: 'SET_CONFIGURATION_LOADING'; payload: boolean }
+  | { type: 'SET_CONFIGURATION_ERROR'; payload: string | undefined };
