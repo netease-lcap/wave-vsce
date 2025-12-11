@@ -62,6 +62,13 @@ export const MessageInput: React.FC<MessageInputProps> = ({
   const configButtonRef = useRef<HTMLDivElement>(null);
   const requestIdRef = useRef<string>('');
 
+  // Auto-focus input on component mount
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.focus();
+    }
+  }, []);
+
   // Handle input clearing when requested by parent
   useEffect(() => {
     if (shouldClearInput) {
