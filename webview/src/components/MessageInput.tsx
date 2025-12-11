@@ -320,7 +320,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
   }, [message, slashCommand.startPos, slashCommand.endPos, closeSlashCommandPopup]);
 
   const handleSend = useCallback(() => {
-    if ((message.trim() || attachedImages.length > 0) && !disabled) {
+    if ((message.trim() || attachedImages.length > 0) && !disabled && !isStreaming) {
       // Convert attached images to base64 format for SDK
       const images = attachedImages.map(img => ({
         data: img.data, // This is already base64 data URL
@@ -332,7 +332,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
       setAttachedImages([]);
       closeDropdown();
     }
-  }, [message, attachedImages, disabled, onSendMessage, closeDropdown]);
+  }, [message, attachedImages, disabled, isStreaming, onSendMessage, closeDropdown]);
 
   const handleKeyDown = useCallback((event: KeyboardEvent<HTMLTextAreaElement>) => {
     // Handle 指令 navigation
