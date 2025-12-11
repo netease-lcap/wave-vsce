@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { diffLines, diffWords } from 'diff';
 import { transformToolBlockToChanges } from '../utils/diffTransform';
 import type { ToolBlock } from '../types';
-import './DiffViewer.css';
+import '../styles/DiffViewer.css';
 
 interface DiffViewerProps {
   toolBlock: ToolBlock;

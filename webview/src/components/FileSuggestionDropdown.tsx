@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { FileSuggestionDropdownProps, FileItem } from '../types';
+import '../styles/FileSuggestionDropdown.css';
 
 /**
  * FileSuggestionDropdown - A dropdown component for file suggestions

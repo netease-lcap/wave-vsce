@@ -1,0 +1,43 @@
+/* Header */
+.chat-header {
+    padding: 10px;
+    border-bottom: 1px solid var(--vscode-panel-border);
+    background-color: var(--vscode-panel-background);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header-left {
+    flex: 1;
+    display: flex;
+    align-items: center;
+}
+
+.header-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.header-button {
+    background-color: var(--vscode-button-secondaryBackground);
+    color: var(--vscode-button-secondaryForeground);
+    border: none;
+    padding: 4px 8px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.header-button:hover {
+    background-color: var(--vscode-button-secondaryHoverBackground);
+}
+
+.header-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.header-button:disabled:hover {
+    background-color: var(--vscode-button-secondaryBackground);
+}

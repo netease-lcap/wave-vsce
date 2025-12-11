@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Message } from './Message';
 import type { MessageListProps } from '../types';
+import '../styles/MessageList.css';
 
 const welcomeMessage = {
   role: 'assistant' as const,

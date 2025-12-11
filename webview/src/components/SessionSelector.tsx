@@ -1,5 +1,6 @@
 import React from 'react';
 import type { SessionSelectorProps, SessionMetadata } from '../types';
+import '../styles/SessionSelector.css';
 
 export const SessionSelector: React.FC<SessionSelectorProps> = ({
   sessions,

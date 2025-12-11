@@ -1,6 +1,7 @@
 import React from 'react';
 import { SessionSelector } from './SessionSelector';
 import type { ChatHeaderProps } from '../types';
+import '../styles/ChatHeader.css';
 
 export const ChatHeader: React.FC<ChatHeaderProps> = ({
   onClearChat,

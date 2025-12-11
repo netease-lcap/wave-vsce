@@ -5,6 +5,7 @@ import type { MessageProps, TextBlock, ErrorBlock, ToolBlock, SubagentBlock } fr
 import { DiffViewer } from './DiffViewer';
 import { TodoList } from './TodoList';
 import { SubagentDisplay } from './SubagentDisplay';
+import '../styles/Message.css';
 
 // Configure marked for VS Code webview context
 marked.setOptions({

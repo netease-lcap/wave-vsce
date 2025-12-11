@@ -8,6 +8,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { ConfigurationDialogProps, ConfigurationData } from '../types';
+import '../styles/ConfigurationDialog.css';
 
 const ConfigurationDialog: React.FC<ConfigurationDialogProps> = ({
   isVisible,

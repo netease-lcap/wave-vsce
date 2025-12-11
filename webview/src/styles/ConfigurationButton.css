@@ -1,0 +1,23 @@
+/* Configuration button */
+.configuration-button {
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    height: 36px;
+    min-width: 60px;
+    flex-shrink: 0;
+    background-color: var(--vscode-button-secondaryBackground);
+    color: var(--vscode-button-secondaryForeground);
+    position: relative;
+}
+
+.configuration-button:hover {
+    background-color: var(--vscode-button-secondaryHoverBackground);
+}
+
+.configuration-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}

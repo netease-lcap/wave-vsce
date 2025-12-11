@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import '../styles/SlashCommandsPopup.css';
 
 export interface SlashCommand {
   id: string;

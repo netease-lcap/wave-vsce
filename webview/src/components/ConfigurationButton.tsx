@@ -7,6 +7,7 @@
 
 import React from 'react';
 import { ConfigurationButtonProps } from '../types';
+import '../styles/ConfigurationButton.css';
 
 const ConfigurationButton: React.FC<ConfigurationButtonProps> = ({
   onClick,

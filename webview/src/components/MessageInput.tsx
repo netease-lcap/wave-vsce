@@ -4,6 +4,7 @@ import { FileSuggestionDropdown } from './FileSuggestionDropdown';
 import { SlashCommandsPopup } from './SlashCommandsPopup';
 import ConfigurationButton from './ConfigurationButton';
 import ConfigurationDialog from './ConfigurationDialog';
+import '../styles/MessageInput.css';
 
 interface AtMentionState {
   isActive: boolean;

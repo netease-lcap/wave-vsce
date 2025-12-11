@@ -10,6 +10,7 @@ import type {
   WebviewMessage,
   Message
 } from '../types';
+import '../styles/ChatApp.css';
 
 const initialState: ChatState = {
   messages: [],

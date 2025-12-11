@@ -1,6 +1,6 @@
 import React from 'react';
 import type { ToolBlock } from '../types';
-import './TodoList.css';
+import '../styles/TodoList.css';
 
 export interface TodoItem {
   id: string;

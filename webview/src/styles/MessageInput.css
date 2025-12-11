@@ -1,0 +1,93 @@
+/* Input Area */
+.input-container {
+    padding: 10px;
+    border-top: 1px solid var(--vscode-panel-border);
+    background-color: var(--vscode-panel-background);
+    position: relative;
+}
+
+.input-row {
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+}
+
+.message-input {
+    width: 100%;
+    box-sizing: border-box;
+    background-color: var(--vscode-input-background);
+    color: var(--vscode-input-foreground);
+    border: 1px solid var(--vscode-input-border);
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-family: var(--vscode-font-family);
+    font-size: 13px;
+    line-height: 1.4;
+    min-height: 20px;
+    max-height: 100px;
+    resize: none;
+    overflow-y: auto;
+}
+
+.message-input:focus {
+    outline: none;
+    border-color: var(--vscode-focusBorder);
+}
+
+/* Buttons */
+.send-button,
+.abort-button,
+.slash-command-button {
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    height: 36px;
+    min-width: 60px;
+    flex-shrink: 0;
+}
+
+.send-button {
+    background-color: var(--vscode-button-background);
+    color: var(--vscode-button-foreground);
+}
+
+.send-button:hover {
+    background-color: var(--vscode-button-hoverBackground);
+}
+
+.slash-command-button {
+    background-color: var(--vscode-button-secondaryBackground);
+    color: var(--vscode-button-secondaryForeground);
+}
+
+.slash-command-button:hover {
+    background-color: var(--vscode-button-secondaryHoverBackground);
+}
+
+.send-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.abort-button {
+    background-color: var(--vscode-inputValidation-errorBackground);
+    color: var(--vscode-inputValidation-errorForeground);
+}
+
+.abort-button:hover {
+    background-color: var(--vscode-inputValidation-errorBorder);
+}
+
+/* New two-tier button layout */
+.input-buttons-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.button-spacer {
+    flex: 1;
+}
