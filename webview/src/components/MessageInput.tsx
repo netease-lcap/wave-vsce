@@ -1,7 +1,8 @@
 import React, { useState, useCallback, KeyboardEvent, useEffect, useRef } from 'react';
-import type { MessageInputProps, FileItem, ConfigurationData, SlashCommand } from '../types';
+import type { MessageInputProps, FileItem, ConfigurationData, SlashCommand, AttachedImage } from '../types';
 import { FileSuggestionDropdown } from './FileSuggestionDropdown';
 import { SlashCommandsPopup } from './SlashCommandsPopup';
+import { AttachedImages } from './AttachedImages';
 import ConfigurationButton from './ConfigurationButton';
 import ConfigurationDialog from './ConfigurationDialog';
 import '../styles/MessageInput.css';
@@ -59,6 +60,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
   const [isLoadingSlashCommands, setIsLoadingSlashCommands] = useState(false);
   const [isComposing, setIsComposing] = useState(false);
+  const [attachedImages, setAttachedImages] = useState<AttachedImage[]>([]);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const configButtonRef = useRef<HTMLDivElement>(null);
@@ -75,6 +77,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
   useEffect(() => {
     if (shouldClearInput) {
       setMessage('');
+      setAttachedImages([]);
       closeDropdown();
       onInputCleared?.();
     }
@@ -317,12 +320,19 @@ export const MessageInput: React.FC<MessageInputProps> = ({
   }, [message, slashCommand.startPos, slashCommand.endPos, closeSlashCommandPopup]);
 
   const handleSend = useCallback(() => {
-    if (message.trim() && !disabled) {
-      onSendMessage(message);
+    if ((message.trim() || attachedImages.length > 0) && !disabled) {
+      // Convert attached images to base64 format for SDK
+      const images = attachedImages.map(img => ({
+        data: img.data, // This is already base64 data URL
+        mediaType: img.mimeType
+      }));
+      
+      onSendMessage(message, images.length > 0 ? images : undefined);
       setMessage('');
+      setAttachedImages([]);
       closeDropdown();
     }
-  }, [message, disabled, onSendMessage, closeDropdown]);
+  }, [message, attachedImages, disabled, onSendMessage, closeDropdown]);
 
   const handleKeyDown = useCallback((event: KeyboardEvent<HTMLTextAreaElement>) => {
     // Handle 指令 navigation
@@ -452,8 +462,92 @@ export const MessageInput: React.FC<MessageInputProps> = ({
     setIsComposing(false);
   }, []);
 
+  // Image handling functions
+  const generateImageId = useCallback(() => {
+    return `img_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  }, []);
+
+  const createDataUrlFromBlob = useCallback((blob: Blob, filename: string): Promise<string> => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        resolve(reader.result as string);
+      };
+      reader.readAsDataURL(blob);
+    });
+  }, []);
+
+  const handleImagePaste = useCallback(async (files: FileList) => {
+    const imageFiles = Array.from(files).filter(file => file.type.startsWith('image/'));
+    
+    for (const file of imageFiles) {
+      try {
+        const dataUrl = await createDataUrlFromBlob(file, file.name);
+        const newImage: AttachedImage = {
+          id: generateImageId(),
+          data: dataUrl,
+          mimeType: file.type,
+          filename: file.name,
+          size: file.size
+        };
+        
+        setAttachedImages(prev => [...prev, newImage]);
+      } catch (error) {
+        console.error('Failed to process image:', error);
+      }
+    }
+  }, [generateImageId]);
+
+  const handleRemoveImage = useCallback((imageId: string) => {
+    setAttachedImages(prev => prev.filter(img => img.id !== imageId));
+  }, []);
+
+  // Paste event handler
+  const handlePaste = useCallback((event: ClipboardEvent) => {
+    const items = event.clipboardData?.items;
+    if (!items) return;
+
+    const files: File[] = [];
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      if (item.type.startsWith('image/')) {
+        const file = item.getAsFile();
+        if (file) files.push(file);
+      }
+    }
+
+    if (files.length > 0) {
+      event.preventDefault();
+      const fileList = new DataTransfer();
+      files.forEach(file => fileList.items.add(file));
+      handleImagePaste(fileList.files);
+    }
+  }, [handleImagePaste]);
+
+  // Add event listeners for paste only
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const pasteHandler = (e: ClipboardEvent) => handlePaste(e);
+
+    textarea.addEventListener('paste', pasteHandler);
+
+    return () => {
+      textarea.removeEventListener('paste', pasteHandler);
+    };
+  }, [handlePaste]);
+
   return (
     <div className="input-container" data-testid="input-container">
+      {/* Attached Images */}
+      {attachedImages.length > 0 && (
+        <AttachedImages
+          images={attachedImages}
+          onRemove={handleRemoveImage}
+        />
+      )}
+      
       {/* Textarea - full width */}
       <textarea
         ref={textareaRef}
@@ -467,7 +561,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
         onCompositionStart={handleCompositionStart}
         onCompositionEnd={handleCompositionEnd}
         disabled={disabled}
-        placeholder="在这里输入您的消息..."
+        placeholder="在这里输入您的消息或粘贴图片..."
         rows={1}
         data-testid="message-input"
       />
@@ -513,7 +607,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
           id="sendButton"
           className="send-button"
           onClick={handleSend}
-          disabled={disabled || !message.trim()}
+          disabled={disabled || (!message.trim() && attachedImages.length === 0)}
           style={{ display: isStreaming ? 'none' : 'block' }}
           data-testid="send-btn"
         >

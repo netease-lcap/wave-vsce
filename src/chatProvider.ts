@@ -139,7 +139,7 @@ export class ChatProvider {
     private async handleWebviewMessage(message: any) {
         switch (message.command) {
             case 'sendMessage':
-                await this.sendMessageToAgent(message.text);
+                await this.sendMessageToAgent(message.text, message.images);
                 break;
             case 'clearChat':
                 await this.clearChat();
@@ -171,7 +171,7 @@ export class ChatProvider {
         }
     }
 
-    private async sendMessageToAgent(text: string) {
+    private async sendMessageToAgent(text: string, images?: Array<{ data: string; mediaType: string; }>) {
         if (!this.agent) {
             vscode.window.showErrorMessage('智能体未初始化');
             return;
@@ -179,6 +179,9 @@ export class ChatProvider {
 
         try {
             console.log('发送消息给智能体:', text);
+            if (images) {
+                console.log('包含图片:', images.length, '张');
+            }
             
             // Start streaming before sending message
             if (this.panel) {
@@ -187,7 +190,16 @@ export class ChatProvider {
                 });
             }
             
-            await this.agent.sendMessage(text);
+            // Convert base64 images to SDK format (assuming SDK accepts base64 in path field)
+            let processedImages: Array<{ path: string; mimeType: string; }> | undefined;
+            if (images && images.length > 0) {
+                processedImages = images.map(image => ({
+                    path: image.data, // Pass base64 data URL directly
+                    mimeType: image.mediaType
+                }));
+            }
+            
+            await this.agent.sendMessage(text, processedImages);
             console.log('智能体 sendMessage 完成');
             
             // End streaming after message is complete

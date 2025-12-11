@@ -1,7 +1,7 @@
 import React from 'react';
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
-import type { MessageProps, TextBlock, ErrorBlock, ToolBlock, SubagentBlock } from '../types';
+import type { MessageProps, TextBlock, ErrorBlock, ToolBlock, SubagentBlock, ImageBlock } from '../types';
 import { DiffViewer } from './DiffViewer';
 import { TodoList } from './TodoList';
 import { SubagentDisplay } from './SubagentDisplay';
@@ -194,6 +194,42 @@ export const Message: React.FC<MessageProps> = (props) => {
     return toolHeader;
   };
 
+  const renderImageBlock = (imageBlock: ImageBlock, index: number) => {
+    if (!imageBlock.imageUrls || imageBlock.imageUrls.length === 0) {
+      return null;
+    }
+
+    const getImageTypeFromUrl = (url: string): string => {
+      // Try to determine type from URL extension or default to IMG
+      const extension = url.split('.').pop()?.toLowerCase();
+      switch (extension) {
+        case 'png': return 'PNG';
+        case 'jpg':
+        case 'jpeg': return 'JPG';
+        case 'gif': return 'GIF';
+        case 'webp': return 'WEBP';
+        case 'svg': return 'SVG';
+        default: return 'IMG';
+      }
+    };
+
+    return (
+      <div key={`image-${index}`} className="image-block">
+        {imageBlock.imageUrls.map((imageUrl, imgIndex) => (
+          <div key={`img-${index}-${imgIndex}`} className="image-item-message">
+            <div className="image-icon">
+              <span className="image-type">{getImageTypeFromUrl(imageUrl)}</span>
+            </div>
+            <div className="image-info">
+              <span className="image-name">
+                {`Image ${imgIndex + 1}`}
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
   const renderSubagentBlock = (subagentBlock: SubagentBlock, index: number) => {
     return (
       <div key={`subagent-${index}`}>
@@ -207,6 +243,7 @@ export const Message: React.FC<MessageProps> = (props) => {
 
   const toolBlocks = message.blocks?.filter(block => block.type === 'tool') || [];
   const subagentBlocks = message.blocks?.filter(block => block.type === 'subagent') || [];
+  const imageBlocks = message.blocks?.filter(block => block.type === 'image') || [];
   const content = renderContent();
 
   return (
@@ -220,6 +257,9 @@ export const Message: React.FC<MessageProps> = (props) => {
           }}
         />
       )}
+      
+      {/* Render image blocks */}
+      {imageBlocks.map((block, index) => renderImageBlock(block as ImageBlock, index))}
       
       {/* Render tool blocks separately */}
       {toolBlocks.map((block, index) => renderToolBlock(block as ToolBlock, index))}

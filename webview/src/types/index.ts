@@ -6,11 +6,11 @@
  */
 
 // Import message structures and session types from wave-agent-sdk
-import type { Message, MessageBlock, TextBlock, ErrorBlock, ToolBlock, SubagentBlock } from 'wave-agent-sdk';
+import type { Message, MessageBlock, TextBlock, ErrorBlock, ToolBlock, SubagentBlock, ImageBlock } from 'wave-agent-sdk';
 import type { SessionMetadata, SessionData } from 'wave-agent-sdk';
 
 // Export the agent-sdk types for use in components
-export type { Message, MessageBlock, TextBlock, ErrorBlock, ToolBlock, SubagentBlock, SessionMetadata, SessionData };
+export type { Message, MessageBlock, TextBlock, ErrorBlock, ToolBlock, SubagentBlock, ImageBlock, SessionMetadata, SessionData };
 
 // Slash command types
 export interface SlashCommand {
@@ -86,8 +86,22 @@ export interface MessageProps {
   subagentMessages?: Map<string, Message[]>;
 }
 
+// Image attachment types (uses base64 data directly)
+export interface AttachedImage {
+  /** Unique identifier for the image (for UI management) */
+  id: string;
+  /** Base64 data URL (e.g., "data:image/png;base64,iVBORw0...") */
+  data: string;
+  /** MIME type of the image */
+  mimeType: string;
+  /** Original filename if available */
+  filename?: string;
+  /** File size in bytes */
+  size?: number;
+}
+
 export interface MessageInputProps {
-  onSendMessage: (text: string) => void;
+  onSendMessage: (text: string, images?: Array<{ data: string; mediaType: string; }>) => void;
   disabled: boolean;
   isStreaming: boolean;
   onAbortMessage: () => void;
@@ -102,6 +116,14 @@ export interface MessageInputProps {
   onConfigurationOpen: () => void;
   onConfigurationSave: (config: ConfigurationData) => void;
   onConfigurationCancel: () => void;
+}
+
+/**
+ * Props for the attached images component
+ */
+export interface AttachedImagesProps {
+  images: AttachedImage[];
+  onRemove: (imageId: string) => void;
 }
 
 /**
