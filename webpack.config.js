@@ -56,6 +56,11 @@ const webviewConfig = {
       'process': false
     })
   ],
+  performance: {
+    hints: false, // Disable performance warnings
+    maxAssetSize: 512000, // Increase max asset size (500 KiB)
+    maxEntrypointSize: 512000 // Increase max entrypoint size (500 KiB)
+  },
   module: {
     rules: [
       {
