@@ -66,7 +66,6 @@ export class ChatProvider {
                 callbacks,
                 workdir,
                 restoreSessionId,
-                permissionMode: 'default',
                 canUseTool: async (context: ToolPermissionContext): Promise<PermissionDecision> => {
                     return await this.handleToolPermissionRequest(context);
                 }
