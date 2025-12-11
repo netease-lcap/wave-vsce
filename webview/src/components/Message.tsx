@@ -69,8 +69,12 @@ export const Message: React.FC<MessageProps> = ({ message, isStreaming = false }
         const textBlock = block as TextBlock;
         const content = textBlock.content || '';
         if (content.trim()) {
-          // Apply markdown rendering to text blocks
-          contentParts.push(renderMarkdown(content));
+          // Only apply markdown rendering to assistant messages, not user messages
+          if (message.role === 'user') {
+            contentParts.push(escapeHtml(content));
+          } else {
+            contentParts.push(renderMarkdown(content));
+          }
         }
       } else if (block.type === 'memory') {
         // Apply markdown rendering to memory blocks for better readability
