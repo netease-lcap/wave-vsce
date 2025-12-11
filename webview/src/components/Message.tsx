@@ -1,9 +1,10 @@
 import React from 'react';
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
-import type { MessageProps, TextBlock, ErrorBlock, ToolBlock, DiffBlock } from '../types';
+import type { MessageProps, TextBlock, ErrorBlock, ToolBlock, DiffBlock, SubagentBlock } from '../types';
 import { DiffViewer } from './DiffViewer';
 import { TodoList } from './TodoList';
+import { SubagentDisplay } from './SubagentDisplay';
 
 // Configure marked for VS Code webview context
 marked.setOptions({
@@ -34,7 +35,8 @@ const renderMarkdown = (content: string): string => {
   });
 };
 
-export const Message: React.FC<MessageProps> = ({ message, isStreaming = false }) => {
+export const Message: React.FC<MessageProps> = (props) => {
+  const { message, isStreaming = false, subagentMessages } = props;
   const getMessageClassName = () => {
     const classes = ['message'];
     
@@ -181,8 +183,20 @@ export const Message: React.FC<MessageProps> = ({ message, isStreaming = false }
     return toolHeader;
   };
 
+  const renderSubagentBlock = (subagentBlock: SubagentBlock, index: number) => {
+    return (
+      <div key={`subagent-${index}`}>
+        <SubagentDisplay 
+          subagentBlock={subagentBlock} 
+          subagentMessages={props.subagentMessages} 
+        />
+      </div>
+    );
+  };
+
   const toolBlocks = message.blocks?.filter(block => block.type === 'tool') || [];
   const diffBlocks = message.blocks?.filter(block => block.type === 'diff') || [];
+  const subagentBlocks = message.blocks?.filter(block => block.type === 'subagent') || [];
   const content = renderContent();
 
   return (
@@ -199,6 +213,9 @@ export const Message: React.FC<MessageProps> = ({ message, isStreaming = false }
       
       {/* Render tool blocks separately */}
       {toolBlocks.map((block, index) => renderToolBlock(block as ToolBlock, index))}
+
+      {/* Render subagent blocks separately */}
+      {subagentBlocks.map((block, index) => renderSubagentBlock(block as SubagentBlock, index))}
 
       {/* Render diff blocks separately */}
       {diffBlocks.map((block, index) => (

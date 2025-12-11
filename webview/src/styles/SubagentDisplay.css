@@ -1,0 +1,100 @@
+/* Subagent Display Component Styling - appears within tool blocks */
+
+.subagent-display {
+  background-color: var(--vscode-editor-background);
+  border: 1px solid var(--vscode-panel-border);
+  border-radius: 4px;
+  padding: 8px;
+  margin-top: 6px;
+  font-size: 12px;
+}
+
+.subagent-info {
+  margin-bottom: 8px;
+}
+
+.subagent-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.subagent-type {
+  font-weight: 600;
+  color: var(--vscode-textLink-foreground);
+  font-size: 12px;
+}
+
+.subagent-status {
+  font-size: 10px;
+  font-weight: 500;
+  padding: 2px 6px;
+  opacity: 0.8;
+}
+
+
+/* Subagent Messages Container */
+.subagent-messages {
+  margin-top: 8px;
+  padding-top: 6px;
+  padding-bottom: 4px;
+}
+
+.subagent-messages-header {
+  margin-bottom: 6px;
+  padding-left: 4px;
+}
+
+.messages-label {
+  font-weight: 600;
+  color: var(--vscode-foreground);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Individual Subagent Message Wrapper */
+.subagent-message-wrapper {
+  font-size: 11px; /* Slightly smaller than main messages */
+  opacity: 0.95;
+  margin-bottom: 6px;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+/* Override message styles for subagent context */
+.subagent-message-wrapper .message {
+  padding: 4px 6px;
+  margin: 0;
+  font-size: 11px;
+}
+
+.subagent-message-wrapper .message-content {
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.subagent-message-wrapper .tool-block {
+  font-size: 10px;
+  padding: 2px 4px;
+  margin: 2px 0;
+}
+
+.subagent-message-wrapper .compact-params {
+  font-size: 9px;
+}
+
+/* Status indicator for waiting state */
+.subagent-status-area {
+  text-align: center;
+  padding: 8px;
+}
+
+.status-indicator {
+  color: var(--vscode-descriptionForeground);
+  font-size: 11px;
+  font-style: italic;
+}

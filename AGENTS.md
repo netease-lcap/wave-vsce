@@ -160,7 +160,7 @@ Sessions managed via Wave Agent SDK:
 - Block-based rendering: text, error, tool, memory blocks
 
 ### 5. VS Code Theme Integration
-**File:** `webview/src/styles/globals.css`
+**File:** `webview/src/styles/*.css`
 Uses CSS variables for automatic theme adaptation:
 ```css
 background-color: var(--vscode-editor-background);

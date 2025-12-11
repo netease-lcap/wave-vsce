@@ -6,11 +6,11 @@
  */
 
 // Import message structures and session types from wave-agent-sdk
-import type { Message, MessageBlock, TextBlock, ErrorBlock, ToolBlock, DiffBlock } from 'wave-agent-sdk';
+import type { Message, MessageBlock, TextBlock, ErrorBlock, ToolBlock, DiffBlock, SubagentBlock } from 'wave-agent-sdk';
 import type { SessionMetadata, SessionData } from 'wave-agent-sdk';
 
 // Export the agent-sdk types for use in components
-export type { Message, MessageBlock, TextBlock, ErrorBlock, ToolBlock, DiffBlock, SessionMetadata, SessionData };
+export type { Message, MessageBlock, TextBlock, ErrorBlock, ToolBlock, DiffBlock, SubagentBlock, SessionMetadata, SessionData };
 
 // Slash command types
 export interface SlashCommand {
@@ -77,11 +77,13 @@ export interface ChatAppProps {
 export interface MessageListProps {
   messages: Message[];
   streamingMessageIndex?: number;
+  subagentMessages?: Map<string, Message[]>;
 }
 
 export interface MessageProps {
   message: Message;
   isStreaming?: boolean;
+  subagentMessages?: Map<string, Message[]>;
 }
 
 export interface MessageInputProps {
@@ -153,6 +155,8 @@ export interface ChatState {
   configurationData?: ConfigurationData;
   configurationLoading: boolean;
   configurationError?: string;
+  // Subagent state
+  subagentMessages: Map<string, Message[]>;
 }
 
 export interface ConfirmationRequest {
@@ -221,4 +225,5 @@ export type ChatAction =
   | { type: 'SHOW_CONFIGURATION'; payload: ConfigurationData }
   | { type: 'HIDE_CONFIGURATION' }
   | { type: 'SET_CONFIGURATION_LOADING'; payload: boolean }
-  | { type: 'SET_CONFIGURATION_ERROR'; payload: string | undefined };
+  | { type: 'SET_CONFIGURATION_ERROR'; payload: string | undefined }
+  | { type: 'UPDATE_SUBAGENT_MESSAGES'; payload: { subagentId: string; messages: Message[] } };

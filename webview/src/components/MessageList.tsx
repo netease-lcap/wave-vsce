@@ -10,7 +10,7 @@ const welcomeMessage = {
   }]
 };
 
-export const MessageList: React.FC<MessageListProps> = ({ messages, streamingMessageIndex }) => {
+export const MessageList: React.FC<MessageListProps> = ({ messages, streamingMessageIndex, subagentMessages }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -44,6 +44,7 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, streamingMes
       <Message
         message={welcomeMessage}
         isStreaming={false}
+        subagentMessages={subagentMessages}
       />
       
       {/* Chat messages */}
@@ -55,6 +56,7 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, streamingMes
             key={`${message.role}-${index}`}
             message={message}
             isStreaming={isStreaming}
+            subagentMessages={subagentMessages}
           />
         );
       })}

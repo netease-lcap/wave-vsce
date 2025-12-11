@@ -25,7 +25,9 @@ const initialState: ChatState = {
   showConfiguration: false,
   configurationData: undefined,
   configurationLoading: false,
-  configurationError: undefined
+  configurationError: undefined,
+  // Subagent state
+  subagentMessages: new Map()
 };
 
 function chatReducer(state: ChatState, action: ChatAction): ChatState {
@@ -113,6 +115,13 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
         configurationError: action.payload,
         configurationLoading: false
       };
+    case 'UPDATE_SUBAGENT_MESSAGES':
+      const newSubagentMessages = new Map(state.subagentMessages);
+      newSubagentMessages.set(action.payload.subagentId, action.payload.messages);
+      return {
+        ...state,
+        subagentMessages: newSubagentMessages
+      };
     default:
       return state;
   }
@@ -129,6 +138,15 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
       switch (message.command) {
         case 'updateMessages':
           dispatch({ type: 'SET_MESSAGES', payload: message.messages });
+          break;
+        case 'updateSubagentMessages':
+          dispatch({
+            type: 'UPDATE_SUBAGENT_MESSAGES',
+            payload: {
+              subagentId: message.subagentId,
+              messages: message.messages
+            }
+          });
           break;
         // Test-only handlers 
         case 'startStreaming':
@@ -295,6 +313,7 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
       <MessageList 
         messages={state.messages} 
         streamingMessageIndex={streamingMessageIndex}
+        subagentMessages={state.subagentMessages}
       />
       
       {!state.pendingConfirmation && (

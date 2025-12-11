@@ -2,8 +2,7 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
-import { Agent, Message, listSessions, SessionMetadata, type PermissionDecision, type ToolPermissionContext } from 'wave-agent-sdk';
-import type { MessageManagerCallbacks } from 'wave-agent-sdk/dist/managers/messageManager';
+import { Agent, Message, listSessions, SessionMetadata, type PermissionDecision, type ToolPermissionContext, AgentCallbacks } from 'wave-agent-sdk';
 
 export class ChatProvider {
     private static readonly viewType = 'waveChatView';
@@ -49,7 +48,7 @@ export class ChatProvider {
             }
             
             // Only use onMessagesChange as it contains all data including errors
-            const callbacks: MessageManagerCallbacks = {
+            const callbacks: AgentCallbacks = {
                 onMessagesChange: (messages: Message[]) => {
                     console.log('消息更新:', messages.length, '条消息');
                     this.updateChatMessages(messages);
@@ -59,6 +58,10 @@ export class ChatProvider {
                     this.handleSessionIdChange(sessionId).catch(error => {
                         console.error('❌ 处理会话ID变更时出错:', error);
                     });
+                },
+                onSubagentMessagesChange: (subagentId: string, messages: Message[]) => {
+                    console.log(`子智能体消息更新 [${subagentId}]:`, messages.length, '条消息');
+                    this.updateSubagentMessages(subagentId, messages);
                 }
             };
 
@@ -496,6 +499,17 @@ export class ChatProvider {
             this.panel.webview.postMessage({
                 command: 'updateMessages',
                 messages: messages // Pass Message objects directly
+            });
+        }
+    }
+
+    private updateSubagentMessages(subagentId: string, messages: Message[]) {
+        console.log(`更新子智能体 [${subagentId}] 消息:`, messages.length);
+        if (this.panel) {
+            this.panel.webview.postMessage({
+                command: 'updateSubagentMessages',
+                subagentId: subagentId,
+                messages: messages
             });
         }
     }
