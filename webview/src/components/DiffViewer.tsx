@@ -36,185 +36,174 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({ toolBlock }) => {
     newLine: string,
     keyPrefix: string,
   ) => {
-    try {
-      const wordChanges = diffWords(oldLine, newLine);
+    const wordChanges = diffWords(oldLine, newLine);
 
-      const removedParts: React.ReactNode[] = [];
-      const addedParts: React.ReactNode[] = [];
+    const removedParts: React.ReactNode[] = [];
+    const addedParts: React.ReactNode[] = [];
 
-      wordChanges.forEach((part, index) => {
-        if (part.removed) {
-          removedParts.push(
-            <span
-              key={`removed-${keyPrefix}-${index}`}
-              className="diff-word-removed"
-            >
-              {part.value}
-            </span>
-          );
-        } else if (part.added) {
-          addedParts.push(
-            <span
-              key={`added-${keyPrefix}-${index}`}
-              className="diff-word-added"
-            >
-              {part.value}
-            </span>
-          );
-        } else {
-          // Unchanged parts
-          removedParts.push(
-            <span key={`removed-unchanged-${keyPrefix}-${index}`} className="diff-word-unchanged">
-              {part.value}
-            </span>
-          );
-          addedParts.push(
-            <span key={`added-unchanged-${keyPrefix}-${index}`} className="diff-word-unchanged">
-              {part.value}
-            </span>
-          );
-        }
-      });
-
-      return { removedParts, addedParts };
-    } catch (error) {
-      console.warn("Error rendering word-level diff:", error);
-      // Fallback to simple line display
-      return {
-        removedParts: [
-          <span key={`fallback-removed-${keyPrefix}`} className="diff-word-unchanged">
-            {oldLine}
+    wordChanges.forEach((part, index) => {
+      if (part.removed) {
+        removedParts.push(
+          <span
+            key={`removed-${keyPrefix}-${index}`}
+            className="diff-word-removed"
+          >
+            {part.value}
           </span>
-        ],
-        addedParts: [
-          <span key={`fallback-added-${keyPrefix}`} className="diff-word-unchanged">
-            {newLine}
+        );
+      } else if (part.added) {
+        addedParts.push(
+          <span
+            key={`added-${keyPrefix}-${index}`}
+            className="diff-word-added"
+          >
+            {part.value}
           </span>
-        ],
-      };
-    }
+        );
+      } else {
+        // Unchanged parts
+        removedParts.push(
+          <span key={`removed-unchanged-${keyPrefix}-${index}`} className="diff-word-unchanged">
+            {part.value}
+          </span>
+        );
+        addedParts.push(
+          <span key={`added-unchanged-${keyPrefix}-${index}`} className="diff-word-unchanged">
+            {part.value}
+          </span>
+        );
+      }
+    });
+
+    return { removedParts, addedParts };
   };
 
-  // Render expanded diff display using diffLines with word-level support
+  // Render expanded diff display using word-level diff for all scenarios
   const renderExpandedDiff = () => {
-    try {
-      if (changes.length === 0) return null;
+    if (changes.length === 0) return null;
 
-      return (
-        <div className="diff-changes">
-          {changes.map((change, changeIndex) => {
-            try {
-              const lineDiffs = diffLines(
-                change.oldContent || "",
-                change.newContent || "",
+    return (
+      <div className="diff-changes">
+        {changes.map((change, changeIndex) => {
+          const lineDiffsResult = diffLines(
+            change.oldContent || "",
+            change.newContent || "",
+          );
+
+          // Extract removed and added lines for word-level comparison
+          const removedLines: string[] = [];
+          const addedLines: string[] = [];
+          const contextLines: string[] = [];
+
+          lineDiffsResult.forEach((part: any) => {
+            if (part.removed) {
+              removedLines.push(...part.value.split("\n").filter((line: string) => line !== ""));
+            } else if (part.added) {
+              addedLines.push(...part.value.split("\n").filter((line: string) => line !== ""));
+            } else {
+              contextLines.push(...part.value.split("\n").filter((line: string) => line !== ""));
+            }
+          });
+
+          const diffLinesElements: React.ReactNode[] = [];
+
+          // Handle context lines first
+          contextLines.forEach((line, lineIndex) => {
+            const { addedParts } = renderWordLevelDiff(
+              line, 
+              line, 
+              `context-${changeIndex}-${lineIndex}`
+            );
+            diffLinesElements.push(
+              <div
+                key={`context-${changeIndex}-${lineIndex}`}
+                className="diff-line diff-line-context"
+              >
+                <span className="diff-prefix"> </span>
+                <span className="diff-content">{addedParts}</span>
+              </div>
+            );
+          });
+
+          // Pair removed and added lines for word-level diff
+          const maxLines = Math.max(removedLines.length, addedLines.length);
+          
+          for (let i = 0; i < maxLines; i++) {
+            const oldLine = removedLines[i] || "";
+            const newLine = addedLines[i] || "";
+
+            if (oldLine && newLine) {
+              // Both lines exist - do word-level diff
+              const { removedParts, addedParts } = renderWordLevelDiff(
+                oldLine,
+                newLine,
+                `paired-${changeIndex}-${i}`
               );
 
-              // For simple single-line changes, use word-level diff
-              const isSingleLineChange =
-                !change.oldContent.includes("\n") &&
-                !change.newContent.includes("\n") &&
-                change.oldContent.trim() !== "" &&
-                change.newContent.trim() !== "";
-
-              if (isSingleLineChange) {
-                const { removedParts, addedParts } = renderWordLevelDiff(
-                  change.oldContent,
-                  change.newContent,
-                  `change-${changeIndex}`,
-                );
-
-                return (
-                  <div key={changeIndex} className="diff-change">
-                    <div className="diff-line diff-line-removed">
-                      <span className="diff-prefix">-</span>
-                      <span className="diff-content">{removedParts}</span>
-                    </div>
-                    <div className="diff-line diff-line-added">
-                      <span className="diff-prefix">+</span>
-                      <span className="diff-content">{addedParts}</span>
-                    </div>
-                  </div>
-                );
-              }
-
-              // For multi-line changes, use line-level diff
-              return (
-                <div key={changeIndex} className="diff-change">
-                  {lineDiffs.map((part, partIndex) => {
-                    if (part.added) {
-                      return part.value
-                        .split("\n")
-                        .filter((line) => line !== "")
-                        .map((line, lineIndex) => (
-                          <div
-                            key={`add-${changeIndex}-${partIndex}-${lineIndex}`}
-                            className="diff-line diff-line-added"
-                          >
-                            <span className="diff-prefix">+</span>
-                            <span className="diff-content">{line}</span>
-                          </div>
-                        ));
-                    } else if (part.removed) {
-                      return part.value
-                        .split("\n")
-                        .filter((line) => line !== "")
-                        .map((line, lineIndex) => (
-                          <div
-                            key={`remove-${changeIndex}-${partIndex}-${lineIndex}`}
-                            className="diff-line diff-line-removed"
-                          >
-                            <span className="diff-prefix">-</span>
-                            <span className="diff-content">{line}</span>
-                          </div>
-                        ));
-                    } else {
-                      // Context lines - show unchanged content
-                      return part.value
-                        .split("\n")
-                        .filter((line) => line !== "")
-                        .map((line, lineIndex) => (
-                          <div
-                            key={`context-${changeIndex}-${partIndex}-${lineIndex}`}
-                            className="diff-line diff-line-context"
-                          >
-                            <span className="diff-prefix"> </span>
-                            <span className="diff-content">{line}</span>
-                          </div>
-                        ));
-                    }
-                  })}
+              diffLinesElements.push(
+                <div
+                  key={`removed-${changeIndex}-${i}`}
+                  className="diff-line diff-line-removed"
+                >
+                  <span className="diff-prefix">-</span>
+                  <span className="diff-content">{removedParts}</span>
                 </div>
               );
-            } catch (error) {
-              console.warn(
-                `Error rendering diff for change ${changeIndex}:`,
-                error,
+
+              diffLinesElements.push(
+                <div
+                  key={`added-${changeIndex}-${i}`}
+                  className="diff-line diff-line-added"
+                >
+                  <span className="diff-prefix">+</span>
+                  <span className="diff-content">{addedParts}</span>
+                </div>
               );
-              // Fallback to simple display
-              return (
-                <div key={changeIndex} className="diff-change">
-                  <div className="diff-line diff-line-removed">
-                    <span className="diff-prefix">-</span>
-                    <span className="diff-content">{change.oldContent || ""}</span>
-                  </div>
-                  <div className="diff-line diff-line-added">
-                    <span className="diff-prefix">+</span>
-                    <span className="diff-content">{change.newContent || ""}</span>
-                  </div>
+            } else if (oldLine) {
+              // Only removed line
+              const { removedParts } = renderWordLevelDiff(
+                oldLine,
+                "",
+                `removed-only-${changeIndex}-${i}`
+              );
+
+              diffLinesElements.push(
+                <div
+                  key={`removed-only-${changeIndex}-${i}`}
+                  className="diff-line diff-line-removed"
+                >
+                  <span className="diff-prefix">-</span>
+                  <span className="diff-content">{removedParts}</span>
+                </div>
+              );
+            } else if (newLine) {
+              // Only added line
+              const { addedParts } = renderWordLevelDiff(
+                "",
+                newLine,
+                `added-only-${changeIndex}-${i}`
+              );
+
+              diffLinesElements.push(
+                <div
+                  key={`added-only-${changeIndex}-${i}`}
+                  className="diff-line diff-line-added"
+                >
+                  <span className="diff-prefix">+</span>
+                  <span className="diff-content">{addedParts}</span>
                 </div>
               );
             }
-          })}
-        </div>
-      );
-    } catch (error) {
-      console.warn("Error rendering expanded diff:", error);
-      return (
-        <div className="diff-error">
-          <span>Error rendering diff display</span>
-        </div>
-      );
-    }
+          }
+
+          return (
+            <div key={changeIndex} className="diff-change">
+              {diffLinesElements}
+            </div>
+          );
+        })}
+      </div>
+    );
   };
 
   // Don't render anything if no diff should be shown
