@@ -9,10 +9,6 @@
   font-size: 12px;
 }
 
-.subagent-info {
-  margin-bottom: 8px;
-}
-
 .subagent-header {
   display: flex;
   justify-content: space-between;
@@ -42,12 +38,6 @@
 }
 
 
-/* Subagent Messages Container */
-.subagent-messages {
-  margin-top: 8px;
-  padding-top: 6px;
-  padding-bottom: 4px;
-}
 
 /* Individual Subagent Message Wrapper */
 .subagent-message-wrapper {
@@ -58,27 +48,6 @@
   overflow: hidden;
 }
 
-/* Override message styles for subagent context */
-.subagent-message-wrapper .message {
-  padding: 4px 6px;
-  margin: 0;
-  font-size: 11px;
-}
-
-.subagent-message-wrapper .message-content {
-  font-size: 11px;
-  line-height: 1.4;
-}
-
-.subagent-message-wrapper .tool-block {
-  font-size: 10px;
-  padding: 2px 4px;
-  margin: 2px 0;
-}
-
-.subagent-message-wrapper .compact-params {
-  font-size: 9px;
-}
 
 /* Status indicator for waiting state */
 .subagent-status-area {
