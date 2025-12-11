@@ -3,6 +3,7 @@ import { marked } from 'marked';
 import DOMPurify from 'dompurify';
 import type { MessageProps, TextBlock, ErrorBlock, ToolBlock, DiffBlock } from '../types';
 import { DiffViewer } from './DiffViewer';
+import { TodoList } from './TodoList';
 
 // Configure marked for VS Code webview context
 marked.setOptions({
@@ -162,7 +163,17 @@ export const Message: React.FC<MessageProps> = ({ message, isStreaming = false }
       }
     }
     
-    // For non-Bash tools or Bash tools without special content, just return the header
+    // For TodoWrite tools, add the todo list below the header
+    if (toolBlock.name === 'TodoWrite') {
+      return (
+        <div key={index}>
+          {toolHeader}
+          <TodoList toolBlock={toolBlock} />
+        </div>
+      );
+    }
+    
+    // For other tools without special content, just return the header
     return toolHeader;
   };
 
