@@ -167,8 +167,22 @@ test.describe('Confirmation Dialog', () => {
         });
     });
 
-    test('should position confirmation dialog at bottom of screen', async ({ webviewPage }) => {
+    test('should position confirmation dialog at bottom and not overlap messages', async ({ webviewPage }) => {
         const injector = new MessageInjector(webviewPage);
+
+        // Add some messages first to create content above
+        const testMessages = [
+            {
+                role: 'user' as const,
+                blocks: [{ type: 'text', content: 'Test message 1' }]
+            },
+            {
+                role: 'assistant' as const,
+                blocks: [{ type: 'text', content: 'Test response 1' }]
+            }
+        ];
+
+        await injector.updateMessages(testMessages);
 
         // Simulate confirmation request
         await injector.simulateExtensionMessage('showConfirmation', {
@@ -178,25 +192,32 @@ test.describe('Confirmation Dialog', () => {
             toolInput: {}
         });
 
-        // Verify dialog positioning
+        // Verify dialog is visible
         const dialog = webviewPage.locator('.confirmation-dialog');
         await expect(dialog).toBeVisible();
 
-        // Check CSS properties for bottom positioning
+        // Verify dialog uses normal document flow positioning (not fixed)
         const position = await dialog.evaluate(el => {
             const styles = window.getComputedStyle(el);
             return {
-                position: styles.position,
-                bottom: styles.bottom,
-                left: styles.left,
-                right: styles.right
+                position: styles.position
             };
         });
 
-        expect(position.position).toBe('fixed');
-        expect(position.bottom).toBe('0px');
-        expect(position.left).toBe('0px');
-        expect(position.right).toBe('0px');
+        expect(position.position).toBe('static');
+
+        // Verify dialog is at the bottom by checking it appears after messages
+        const chatContainer = webviewPage.locator('.chat-container');
+        const elementsOrder = await chatContainer.evaluate(container => {
+            const elements = Array.from(container.children);
+            return elements.map(el => el.className.split(' ')[0]); // Get first class name
+        });
+
+        // Confirmation dialog should be the last element in the chat container
+        expect(elementsOrder[elementsOrder.length - 1]).toBe('confirmation-dialog');
+
+        // Verify messages are still visible and not overlapped
+        await expect(webviewPage.locator('.message').first()).toBeVisible();
     });
 
     test('should handle confirmation for different tool types correctly', async ({ webviewPage }) => {
@@ -228,6 +249,72 @@ test.describe('Confirmation Dialog', () => {
             await webviewPage.locator('.confirmation-btn-apply').click();
             await expect(webviewPage.locator('.confirmation-dialog')).not.toBeVisible();
         }
+    });
+
+    test('should occupy bottom space like MessageInput instead of overlaying content', async ({ webviewPage }) => {
+        const injector = new MessageInjector(webviewPage);
+
+        // Add multiple messages to fill up space
+        const manyMessages = Array.from({ length: 5 }, (_, i) => ({
+            role: (i % 2 === 0 ? 'user' : 'assistant') as const,
+            blocks: [{ type: 'text', content: `Test message ${i + 1} with some longer content to take up space` }]
+        }));
+
+        await injector.updateMessages(manyMessages);
+
+        // Get initial message count (includes any default messages)
+        const messageCountBefore = await webviewPage.locator('.message').count();
+        
+        // Verify last message is visible before confirmation
+        await expect(webviewPage.locator('.message').last()).toBeVisible();
+
+        // Show confirmation dialog
+        await injector.simulateExtensionMessage('showConfirmation', {
+            confirmationId: 'test_space_occupation',
+            toolName: 'Edit',
+            confirmationType: '代码修改待确认',
+            toolInput: {}
+        });
+
+        // Wait for confirmation to be visible
+        await expect(webviewPage.locator('.confirmation-dialog')).toBeVisible();
+
+        // Verify input is hidden (replaced by confirmation)
+        await expect(webviewPage.locator('textarea')).not.toBeVisible();
+
+        // All messages should still be accessible and visible (not overlapped)
+        const messageCountAfter = await webviewPage.locator('.message').count();
+        expect(messageCountAfter).toBe(messageCountBefore); // Same number of messages
+        
+        // Last message should still be visible and not overlapped by the dialog
+        await expect(webviewPage.locator('.message').last()).toBeVisible();
+
+        // Verify confirmation dialog is at the bottom by checking element order
+        const chatContainerChildren = await webviewPage.evaluate(() => {
+            const chatContainer = document.querySelector('.chat-container');
+            return Array.from(chatContainer.children).map(child => child.className);
+        });
+
+        // Should have header, messages, and confirmation dialog (no input when confirmation is shown)
+        expect(chatContainerChildren).toEqual([
+            'chat-header',
+            'messages-container',
+            'confirmation-dialog'
+        ]);
+
+        // Verify confirmation dialog is styled consistently with input area
+        const dialogStyles = await webviewPage.locator('.confirmation-dialog').evaluate(el => {
+            const styles = window.getComputedStyle(el);
+            return {
+                borderTop: styles.borderTop,
+                position: styles.position
+            };
+        });
+
+        // Should use static positioning (not fixed/absolute) and have border-top
+        expect(dialogStyles.position).toBe('static');
+        expect(dialogStyles.borderTop).toContain('1px');
+        expect(dialogStyles.borderTop).toContain('solid');
     });
 
     test('should prevent user interaction with input while confirmation is shown', async ({ webviewPage }) => {
