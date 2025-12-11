@@ -45,11 +45,7 @@ test.describe('Tool Display Visual Test', () => {
         // Wait for all content to render
         await webviewPage.waitForTimeout(500);
 
-        // Take screenshot to verify visual appearance
-        await webviewPage.screenshot({ 
-            path: 'test-results/tool-display-visual-verification.png',
-            fullPage: true 
-        });
+
 
         // Verify tool blocks are present and have correct content
         const toolBlocks = webviewPage.locator('.tool-block');
@@ -75,7 +71,7 @@ test.describe('Tool Display Visual Test', () => {
         const preElements = webviewPage.locator('.tool-block pre');
         await expect(preElements).toHaveCount(0);
 
-        // Verify messages don't have borders/backgrounds (visual check via screenshot)
+        // Verify messages don't have borders/backgrounds
         const messageElements = webviewPage.locator('.message');
         await expect(messageElements).toHaveCount(6); // welcome + user + 4 assistant messages
     });
@@ -108,11 +104,7 @@ test.describe('Tool Display Visual Test', () => {
         // Wait for rendering
         await webviewPage.waitForTimeout(500);
 
-        // Take screenshot showing unified conversation flow
-        await webviewPage.screenshot({ 
-            path: 'test-results/unified-message-flow.png',
-            fullPage: true 
-        });
+
 
         // Verify messages flow together visually
         const messagesContainer = webviewPage.locator('.messages-container');
@@ -139,11 +131,7 @@ test.describe('Tool Display Visual Test', () => {
         await messageInjector.updateMessages(messages);
         await webviewPage.waitForTimeout(500);
 
-        // Take screenshot to verify user message alignment and styling
-        await webviewPage.screenshot({ 
-            path: 'test-results/user-message-alignment.png',
-            fullPage: true 
-        });
+
 
         // Verify user messages have proper styling and alignment
         const userMessages = webviewPage.locator('.message.user');
@@ -198,11 +186,7 @@ test.describe('Tool Display Visual Test', () => {
         await messageInjector.updateMessages(messages);
         await webviewPage.waitForTimeout(500);
 
-        // Take screenshot to show gray compact parameters
-        await webviewPage.screenshot({ 
-            path: 'test-results/gray-compact-params.png',
-            fullPage: true 
-        });
+
 
         // Verify tool blocks and compact params styling
         const toolBlocks = webviewPage.locator('.tool-block');

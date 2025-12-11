@@ -201,5 +201,3 @@ Potential enhancements for the testing setup:
 1. **Integration tests**: Test actual extension-webview communication
 2. **Performance tests**: Measure rendering performance with large message histories  
 3. **Accessibility tests**: Verify keyboard navigation and screen reader support
-4. **Visual regression tests**: Compare screenshots across changes
-5. **Cross-browser tests**: Expand beyond Chromium to Firefox and Safari

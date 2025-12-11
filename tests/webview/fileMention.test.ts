@@ -27,11 +27,7 @@ test.describe('File Mention Feature (@)', () => {
       });
     });
 
-    // Take initial screenshot
-    await webviewPage.screenshot({
-      path: 'test-results/file-mention-initial.png',
-      fullPage: true
-    });
+
 
     // Type @ symbol to trigger file suggestions
     await messageInput.fill('@');
@@ -40,11 +36,7 @@ test.describe('File Mention Feature (@)', () => {
     // Wait for the request to be sent and captured
     await webviewPage.waitForTimeout(200);
 
-    // Take screenshot after typing @
-    await webviewPage.screenshot({
-      path: 'test-results/file-mention-at-symbol.png',
-      fullPage: true
-    });
+
 
     // Wait a bit more to ensure the debounced request is sent
     await webviewPage.waitForTimeout(200);
@@ -84,11 +76,7 @@ test.describe('File Mention Feature (@)', () => {
     // Wait for suggestions to render
     await webviewPage.waitForTimeout(500);
 
-    // Take screenshot with mock suggestions
-    await webviewPage.screenshot({
-      path: 'test-results/file-mention-with-suggestions.png',
-      fullPage: true
-    });
+
 
     // Check if file suggestion dropdown is present
     const dropdown = webviewPage.locator('.file-suggestion-dropdown');
@@ -99,10 +87,7 @@ test.describe('File Mention Feature (@)', () => {
       const dropdownBox = await dropdown.boundingBox();
       const inputBox = await messageInput.boundingBox();
 
-      // Take focused screenshot of the dropdown area
-      await dropdown.screenshot({
-        path: 'test-results/dropdown-focused.png'
-      });
+
 
       // Verify dropdown is positioned correctly relative to input
       if (dropdownBox && inputBox) {
@@ -168,10 +153,7 @@ test.describe('File Mention Feature (@)', () => {
 
     await webviewPage.waitForTimeout(500);
 
-    await webviewPage.screenshot({
-      path: 'test-results/file-mention-filtered.png',
-      fullPage: true
-    });
+
 
     // Should only show filtered results
     const suggestionItems = webviewPage.locator('.suggestion-item');
