@@ -135,11 +135,9 @@ body {
 }
 
 .message.error {
-    background-color: var(--vscode-inputValidation-errorBackground);
-    border: 1px solid var(--vscode-inputValidation-errorBorder);
-    color: var(--vscode-inputValidation-errorForeground);
+    color: var(--vscode-descriptionForeground);
+    font-style: italic;
     padding: 8px 12px;
-    border-radius: 8px;
 }
 
 .message.streaming::after {

@@ -90,7 +90,7 @@ export const Message: React.FC<MessageProps> = (props) => {
         const content = errorBlock.content || '';
         if (content) {
           // Keep error content as plain text for clarity
-          contentParts.push(escapeHtml(`错误: ${content}`));
+          contentParts.push(escapeHtml(content));
         }
       }
       // Other block types (compress, diff, etc.) are ignored in main content
