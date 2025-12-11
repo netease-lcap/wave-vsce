@@ -68,7 +68,11 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(formData);
+    // Filter out empty strings to avoid writing them to settings.json
+    const filteredData = Object.fromEntries(
+      Object.entries(formData).filter(([_, value]) => value && value.trim() !== '')
+    );
+    onSave(filteredData);
   };
 
   if (!isVisible) {
