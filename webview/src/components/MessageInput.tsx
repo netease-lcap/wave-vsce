@@ -57,6 +57,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
   const [configDialogPosition, setConfigDialogPosition] = useState({ top: 0, left: 0 });
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
   const [isLoadingSlashCommands, setIsLoadingSlashCommands] = useState(false);
+  const [isComposing, setIsComposing] = useState(false);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const configButtonRef = useRef<HTMLDivElement>(null);
@@ -372,11 +373,11 @@ export const MessageInput: React.FC<MessageInputProps> = ({
     }
 
     // Normal behavior for Enter key
-    if (event.key === 'Enter' && !event.shiftKey) {
+    if (event.key === 'Enter' && !event.shiftKey && !isComposing) {
       event.preventDefault();
       handleSend();
     }
-  }, [slashCommand.isActive, slashCommands, selectedSlashIndex, handleSlashCommandSelect, closeSlashCommandPopup, atMention.isActive, suggestions, selectedIndex, handleFileSelect, closeDropdown, handleSend]);
+  }, [slashCommand.isActive, slashCommands, selectedSlashIndex, handleSlashCommandSelect, closeSlashCommandPopup, atMention.isActive, suggestions, selectedIndex, handleFileSelect, closeDropdown, handleSend, isComposing]);
 
   const handleInput = useCallback((event: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newValue = event.target.value;
@@ -441,6 +442,15 @@ export const MessageInput: React.FC<MessageInputProps> = ({
     }
   }, [message, detectAtMention, detectSlashCommand, closeDropdown, closeSlashCommandPopup]);
 
+  // Handle IME composition events
+  const handleCompositionStart = useCallback(() => {
+    setIsComposing(true);
+  }, []);
+
+  const handleCompositionEnd = useCallback(() => {
+    setIsComposing(false);
+  }, []);
+
   return (
     <div className="input-container" data-testid="input-container">
       {/* Textarea - full width */}
@@ -453,6 +463,8 @@ export const MessageInput: React.FC<MessageInputProps> = ({
         onKeyDown={handleKeyDown}
         onSelect={handleSelectionChange}
         onClick={handleSelectionChange}
+        onCompositionStart={handleCompositionStart}
+        onCompositionEnd={handleCompositionEnd}
         disabled={disabled}
         placeholder="在这里输入您的消息..."
         rows={1}
