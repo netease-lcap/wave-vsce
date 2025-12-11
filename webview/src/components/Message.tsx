@@ -209,15 +209,10 @@ export const Message: React.FC<MessageProps> = (props) => {
   const subagentBlocks = message.blocks?.filter(block => block.type === 'subagent') || [];
   const content = renderContent();
 
-  // If hideContent is true and there are no tool/subagent blocks, don't render anything
-  if (props.hideContent && toolBlocks.length === 0 && subagentBlocks.length === 0) {
-    return null;
-  }
-
   return (
     <div className={getMessageClassName()}>
-      {/* Only render content div if there's actual content and hideContent is not true */}
-      {!props.hideContent && content.trim() && (
+      {/* Render content div if there's actual content */}
+      {content.trim() && (
         <div 
           className="message-content markdown-content"
           dangerouslySetInnerHTML={{ 

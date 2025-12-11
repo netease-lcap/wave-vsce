@@ -13,7 +13,6 @@ export const SubagentDisplay: React.FC<SubagentDisplayProps> = ({ subagentBlock,
   const subagentId = subagentBlock.subagentId;
   const subagentName = subagentBlock.subagentName;
   const status = subagentBlock.status;
-  const configuration = subagentBlock.configuration;
 
   // Get live messages for this specific subagent
   let displayMessages: Message[] = [];
@@ -21,9 +20,12 @@ export const SubagentDisplay: React.FC<SubagentDisplayProps> = ({ subagentBlock,
     displayMessages = subagentMessages.get(subagentId) || [];
   }
 
-  const messageCount = displayMessages.length;
-  // Show last 2 messages, or all if fewer than 2
-  const recentMessages = displayMessages.slice(-2);
+  // Filter messages to only include those with tool blocks, then show last 2
+  const messagesWithTools = displayMessages.filter(message => {
+    const toolBlocks = message.blocks?.filter(block => block.type === 'tool') || [];
+    return toolBlocks.length > 0;
+  });
+  const recentMessages = messagesWithTools.slice(-2);
 
   // Count total tools across all messages
   const toolsCount = displayMessages.reduce((count, message) => {
@@ -66,11 +68,21 @@ export const SubagentDisplay: React.FC<SubagentDisplayProps> = ({ subagentBlock,
 
       {recentMessages.length > 0 ? (
         <div className="subagent-messages">
-          {recentMessages.map((message, index) => (
-            <div key={index} className="subagent-message-wrapper">
-              <MessageComponent message={message} isStreaming={false} hideContent={true} />
-            </div>
-          ))}
+          {recentMessages.map((message, index) => {
+            // Create a new message containing only tool blocks
+            const toolBlocks = message.blocks?.filter(block => block.type === 'tool') || [];
+            
+            const toolOnlyMessage = {
+              ...message,
+              blocks: toolBlocks
+            };
+            
+            return (
+              <div key={index} className="subagent-message-wrapper">
+                <MessageComponent message={toolOnlyMessage} isStreaming={false} />
+              </div>
+            );
+          })}
         </div>
       ) : (
         <div className="subagent-status-area">

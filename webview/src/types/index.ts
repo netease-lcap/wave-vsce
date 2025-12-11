@@ -84,7 +84,6 @@ export interface MessageProps {
   message: Message;
   isStreaming?: boolean;
   subagentMessages?: Map<string, Message[]>;
-  hideContent?: boolean; // New prop to control content visibility
 }
 
 export interface MessageInputProps {
