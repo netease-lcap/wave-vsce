@@ -92,6 +92,80 @@ export const Message: React.FC<MessageProps> = ({ message, isStreaming = false }
     return contentParts.join('');
   };
 
+  const renderBashIO = (toolBlock: ToolBlock) => {
+    const stage = toolBlock.stage;
+    
+    // Parse the command from parameters
+    let command = '';
+    let hasValidCommand = false;
+    try {
+      if (toolBlock.parameters) {
+        const params = JSON.parse(toolBlock.parameters);
+        command = params.command || '';
+        hasValidCommand = !!command;
+      }
+    } catch {
+      // If parsing fails, use compactParams or fallback
+      command = toolBlock.compactParams || '';
+      hasValidCommand = !!toolBlock.compactParams;
+    }
+
+    // Only render bash-specific content if we have a valid command and appropriate stage
+    if ((stage === 'running' || stage === 'end') && hasValidCommand) {
+      if (stage === 'running') {
+        // Show only input during execution
+        return (
+          <div className="bash-command-input">
+            <span className="bash-prompt">$</span>
+            <span className="bash-command">{command}</span>
+          </div>
+        );
+      } else if (stage === 'end') {
+        // Show both input and output after execution in a unified block
+        return (
+          <div className="bash-command-unified">
+            <div className="bash-command-input">
+              <span className="bash-prompt">$</span>
+              <span className="bash-command">{command}</span>
+            </div>
+            <div className="bash-command-output">
+              {toolBlock.result || ''}
+            </div>
+          </div>
+        );
+      }
+    }
+
+    // For all other cases, return null (no additional content)
+    return null;
+  };
+
+  const renderToolBlock = (toolBlock: ToolBlock, index: number) => {
+    // Default tool rendering for all tools (including Bash)
+    const compactInfo = toolBlock.compactParams || '';
+    const toolHeader = (
+      <div key={index} className="tool-block">
+        🛠️ {toolBlock.name || 'Tool'}{compactInfo ? <span className="compact-params"> {compactInfo}</span> : ''}
+      </div>
+    );
+
+    // For Bash tools, add the bash-specific content below the header
+    if (toolBlock.name === 'Bash') {
+      const bashContent = renderBashIO(toolBlock);
+      if (bashContent) {
+        return (
+          <div key={index}>
+            {toolHeader}
+            {bashContent}
+          </div>
+        );
+      }
+    }
+    
+    // For non-Bash tools or Bash tools without special content, just return the header
+    return toolHeader;
+  };
+
   const toolBlocks = message.blocks?.filter(block => block.type === 'tool') || [];
   const diffBlocks = message.blocks?.filter(block => block.type === 'diff') || [];
   const content = renderContent();
@@ -109,15 +183,7 @@ export const Message: React.FC<MessageProps> = ({ message, isStreaming = false }
       )}
       
       {/* Render tool blocks separately */}
-      {toolBlocks.map((block, index) => {
-        const toolBlock = block as ToolBlock;
-        const compactInfo = toolBlock.compactParams || '';
-        return (
-          <div key={index} className="tool-block">
-            🛠️ {toolBlock.name || 'Tool'}{compactInfo ? <span className="compact-params"> {compactInfo}</span> : ''}
-          </div>
-        );
-      })}
+      {toolBlocks.map((block, index) => renderToolBlock(block as ToolBlock, index))}
 
       {/* Render diff blocks separately */}
       {diffBlocks.map((block, index) => (
