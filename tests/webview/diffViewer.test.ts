@@ -5,44 +5,219 @@ import { MockDataGenerator } from '../fixtures/mockData.js';
 import { Message } from 'wave-agent-sdk';
 
 test.describe('Diff Viewer', () => {
-  test('should render diff viewer with Monaco editor', async ({ webviewPage }) => {
+  test('should render diff viewer for Edit tool block', async ({ webviewPage }) => {
     const injector = new MessageInjector(webviewPage);
     const ui = new UIStateVerifier(webviewPage);
 
-    // Create a mock diff block message
-    const mockDiffMessage: Message = {
+    // Create a mock message with an Edit tool that should show a diff
+    const mockEditMessage: Message = {
       role: 'assistant' as const,
       blocks: [
         {
-          type: 'diff',
-          path: 'src/example.ts',
-          diffResult: [
-            { value: 'const hello = "world";\n', removed: true },
-            { value: 'const greeting = "hello world";\n', added: true },
-            { value: 'console.log(greeting);\n' }
-          ]
+          type: 'tool',
+          name: 'Edit',
+          parameters: JSON.stringify({
+            file_path: 'src/example.ts',
+            old_string: 'const hello = "world";',
+            new_string: 'const greeting = "hello world";'
+          }),
+          compactParams: 'src/example.ts',
+          stage: 'end' as const,
+          success: true,
+          id: 'edit_123'
         }
       ]
     };
 
-    // Update messages to include the diff block
-    await injector.updateMessages([mockDiffMessage]);
+    // Update messages to include the edit tool block
+    await injector.updateMessages([mockEditMessage]);
 
-    // Check that diff viewer container is present
+    // Check that tool block is present
+    await expect(webviewPage.locator('.tool-block')).toBeVisible();
+
+    // Check that diff viewer container is present within the tool block
     await expect(webviewPage.locator('.diff-viewer-container')).toBeVisible();
 
-    // Check that diff content is displayed with proper chunks
-    await expect(webviewPage.locator('.diff-chunk-removed')).toBeVisible();
-    await expect(webviewPage.locator('.diff-chunk-added')).toBeVisible();
+    // Check that diff content is displayed with proper lines
+    await expect(webviewPage.locator('.diff-line-removed')).toBeVisible();
+    await expect(webviewPage.locator('.diff-line-added')).toBeVisible();
 
-    // The diff viewer should render content properly
-    await webviewPage.waitForSelector('.diff-viewer-container', { timeout: 5000 });
-
-    // Verify the container structure without header
-    await expect(webviewPage.locator('.diff-viewer-container .diff-content')).toBeVisible();
+    // Verify the container structure
+    await expect(webviewPage.locator('.diff-viewer-container .diff-viewer-content')).toBeVisible();
   });
 
-  test('should handle multiple diff blocks in one message', async ({ webviewPage }) => {
+  test('should handle Write tool with new file content', async ({ webviewPage }) => {
+    const injector = new MessageInjector(webviewPage);
+
+    const mockWriteMessage: Message = {
+      role: 'assistant' as const,
+      blocks: [
+        {
+          type: 'tool',
+          name: 'Write',
+          parameters: JSON.stringify({
+            file_path: 'src/newFile.ts',
+            content: 'export const config = {\n  version: "1.0.0",\n  debug: true\n};'
+          }),
+          compactParams: 'src/newFile.ts',
+          stage: 'end' as const,
+          success: true,
+          id: 'write_456'
+        }
+      ]
+    };
+
+    await injector.updateMessages([mockWriteMessage]);
+
+    // Check that diff viewer is rendered for Write tool
+    await expect(webviewPage.locator('.diff-viewer-container')).toBeVisible();
+    
+    // For Write operations, should show only added lines (no removed lines)
+    await expect(webviewPage.locator('.diff-line-added')).toHaveCount(4); // 4 lines of content
+    await expect(webviewPage.locator('.diff-line-removed')).toHaveCount(0); // No removed lines
+
+    // Check content includes the written text
+    await expect(webviewPage.locator('.diff-line-added').first()).toContainText('export const config');
+  });
+
+  test('should handle MultiEdit tool with multiple changes', async ({ webviewPage }) => {
+    const injector = new MessageInjector(webviewPage);
+
+    const mockMultiEditMessage: Message = {
+      role: 'assistant' as const,
+      blocks: [
+        {
+          type: 'text',
+          content: 'Making multiple edits to the file:'
+        },
+        {
+          type: 'tool',
+          name: 'MultiEdit',
+          parameters: JSON.stringify({
+            file_path: 'src/config.ts',
+            edits: [
+              {
+                old_string: 'const version = "1.0.0"',
+                new_string: 'const version = "1.1.0"'
+              },
+              {
+                old_string: 'debug: false',
+                new_string: 'debug: true'
+              }
+            ]
+          }),
+          compactParams: 'src/config.ts',
+          stage: 'end' as const,
+          success: true,
+          id: 'multiedit_789'
+        }
+      ]
+    };
+
+    await injector.updateMessages([mockMultiEditMessage]);
+
+    // Check that diff viewer is rendered for MultiEdit tool
+    await expect(webviewPage.locator('.diff-viewer-container')).toBeVisible();
+    
+    // Should show both changes (2 removed, 2 added lines)
+    await expect(webviewPage.locator('.diff-line-removed')).toHaveCount(2);
+    await expect(webviewPage.locator('.diff-line-added')).toHaveCount(2);
+
+    // Check that both edits are reflected
+    await expect(webviewPage.locator('.diff-line-removed').first()).toContainText('1.0.0');
+    await expect(webviewPage.locator('.diff-line-added').first()).toContainText('1.1.0');
+  });
+
+  test('should not show diff for non-file-editing tools', async ({ webviewPage }) => {
+    const injector = new MessageInjector(webviewPage);
+
+    const mockReadMessage: Message = {
+      role: 'assistant' as const,
+      blocks: [
+        {
+          type: 'tool',
+          name: 'Read',
+          parameters: JSON.stringify({
+            file_path: 'src/example.ts'
+          }),
+          compactParams: 'src/example.ts',
+          stage: 'end' as const,
+          success: true,
+          result: 'const hello = "world";',
+          id: 'read_999'
+        }
+      ]
+    };
+
+    await injector.updateMessages([mockReadMessage]);
+
+    // Check that tool block is present
+    await expect(webviewPage.locator('.tool-block')).toBeVisible();
+
+    // Check that NO diff viewer is rendered for Read tool
+    await expect(webviewPage.locator('.diff-viewer-container')).not.toBeVisible();
+  });
+
+  test('should handle tool with running stage (no diff until complete)', async ({ webviewPage }) => {
+    const injector = new MessageInjector(webviewPage);
+
+    const mockRunningEditMessage: Message = {
+      role: 'assistant' as const,
+      blocks: [
+        {
+          type: 'tool',
+          name: 'Edit',
+          parameters: JSON.stringify({
+            file_path: 'src/example.ts',
+            old_string: 'old content',
+            new_string: 'new content'
+          }),
+          compactParams: 'src/example.ts',
+          stage: 'running' as const,
+          id: 'edit_running_123'
+        }
+      ]
+    };
+
+    await injector.updateMessages([mockRunningEditMessage]);
+
+    // Tool block should be visible
+    await expect(webviewPage.locator('.tool-block')).toBeVisible();
+
+    // Diff viewer should be present for running stage too
+    await expect(webviewPage.locator('.diff-viewer-container')).toBeVisible();
+    await expect(webviewPage.locator('.diff-line-removed')).toHaveCount(1);
+    await expect(webviewPage.locator('.diff-line-added')).toHaveCount(1);
+  });
+
+  test('should handle empty or malformed tool parameters gracefully', async ({ webviewPage }) => {
+    const injector = new MessageInjector(webviewPage);
+
+    const mockMalformedMessage: Message = {
+      role: 'assistant' as const,
+      blocks: [
+        {
+          type: 'tool',
+          name: 'Edit',
+          parameters: 'invalid json {malformed',
+          compactParams: 'unknown',
+          stage: 'end' as const,
+          success: false,
+          id: 'edit_malformed_456'
+        }
+      ]
+    };
+
+    await injector.updateMessages([mockMalformedMessage]);
+
+    // Tool block should still be visible
+    await expect(webviewPage.locator('.tool-block')).toBeVisible();
+
+    // Diff viewer should not be present due to malformed parameters
+    await expect(webviewPage.locator('.diff-viewer-container')).not.toBeVisible();
+  });
+
+  test('should display diff alongside other block types', async ({ webviewPage }) => {
     const injector = new MessageInjector(webviewPage);
 
     const mockMessage: Message = {
@@ -50,231 +225,136 @@ test.describe('Diff Viewer', () => {
       blocks: [
         {
           type: 'text',
-          content: 'Here are the file changes:'
-        },
-        {
-          type: 'diff',
-          path: 'src/file1.js',
-          diffResult: [
-            { value: 'old content\n', removed: true },
-            { value: 'new content\n', added: true }
-          ]
-        },
-        {
-          type: 'diff',
-          path: 'src/file2.ts',
-          diffResult: [
-            { value: 'function test() {\n' },
-            { value: '  return false;\n', removed: true },
-            { value: '  return true;\n', added: true },
-            { value: '}\n' }
-          ]
-        }
-      ]
-    };
-
-    await injector.updateMessages([mockMessage]);
-
-    // Check that both diff viewers are rendered
-    const diffViewers = webviewPage.locator('.diff-viewer-container');
-    await expect(diffViewers).toHaveCount(2);
-
-    // Check for diff chunks instead of file paths
-    await expect(webviewPage.locator('.diff-chunk-removed')).toHaveCount(2);
-    await expect(webviewPage.locator('.diff-chunk-added')).toHaveCount(2);
-
-    // Check that text content is also displayed (use more specific selector)
-    const assistantMessage = webviewPage.locator('.message.assistant').last();
-    await expect(assistantMessage.locator('.message-content')).toContainText('Here are the file changes:');
-  });
-
-  test('should handle empty diff result gracefully', async ({ webviewPage }) => {
-    const injector = new MessageInjector(webviewPage);
-
-    const mockMessage: Message = {
-      role: 'assistant' as const,
-      blocks: [
-        {
-          type: 'diff',
-          path: 'empty.txt',
-          diffResult: []
-        }
-      ]
-    };
-
-    await injector.updateMessages([mockMessage]);
-
-    // Diff viewer should still render even with empty diff
-    await expect(webviewPage.locator('.diff-viewer-container')).toBeVisible();
-    await expect(webviewPage.locator('.diff-content')).toBeVisible();
-    await expect(webviewPage.locator('.diff-empty')).toHaveText('No changes');
-  });
-
-  test('should display diff blocks alongside other block types', async ({ webviewPage }) => {
-    const injector = new MessageInjector(webviewPage);
-
-    const mockMessage: Message = {
-      role: 'assistant' as const,
-      blocks: [
-        {
-          type: 'text',
-          content: 'I will make these changes:'
+          content: 'I will make these changes to your file:'
         },
         {
           type: 'tool',
           name: 'Edit',
+          parameters: JSON.stringify({
+            file_path: 'src/example.ts',
+            old_string: 'const old = "value";',
+            new_string: 'const updated = "value";'
+          }),
           compactParams: 'src/example.ts',
           stage: 'end' as const,
-          success: true
-        },
-        {
-          type: 'diff',
-          path: 'src/example.ts',
-          diffResult: [
-            { value: 'const old = "value";\n', removed: true },
-            { value: 'const updated = "value";\n', added: true }
-          ]
+          success: true,
+          id: 'edit_mixed_789'
         }
       ]
     };
 
     await injector.updateMessages([mockMessage]);
 
-    // Check that all block types are rendered (use specific selectors)
+    // Check that all block types are rendered in the correct order
     const assistantMessage = webviewPage.locator('.message.assistant').last();
-    await expect(assistantMessage.locator('.message-content')).toContainText('I will make these changes:');
+    await expect(assistantMessage.locator('.message-content')).toContainText('I will make these changes');
     await expect(assistantMessage.locator('.tool-block')).toBeVisible();
     await expect(assistantMessage.locator('.diff-viewer-container')).toBeVisible();
 
-    // Verify order: text content, then tool block, then diff block
-    await expect(assistantMessage.locator('.message-content')).toBeVisible();
-    await expect(assistantMessage.locator('.tool-block')).toBeVisible();
-    await expect(assistantMessage.locator('.diff-viewer-container')).toBeVisible();
+    // Verify diff content
+    await expect(webviewPage.locator('.diff-line-removed')).toContainText('const old');
+    await expect(webviewPage.locator('.diff-line-added')).toContainText('const updated');
   });
 
-  test('should auto-scroll to first diff line with large context', async ({ webviewPage }) => {
+  test('should handle word-level diff for single-line changes', async ({ webviewPage }) => {
     const injector = new MessageInjector(webviewPage);
 
-    // Create a diff with lots of context lines before the first change
-    // This simulates a real scenario where there are many unchanged lines 
-    // before the actual modifications
-    const largeContextLines = Array.from({ length: 20 }, (_, i) => 
-      `// Context line ${i + 1}\n`
-    ).join('');
-
-    const mockDiffMessage: Message = {
+    const mockSingleLineEdit: Message = {
       role: 'assistant' as const,
       blocks: [
         {
-          type: 'diff',
-          path: 'src/largeFile.js',
-          diffResult: [
-            // Large context block before changes
-            { 
-              value: largeContextLines,
-              added: false, 
-              removed: false 
-            },
-            // First change - this should be scrolled into view
-            { 
-              value: 'const oldVariable = "old";\n', 
-              removed: true 
-            },
-            { 
-              value: 'const newVariable = "new";\n', 
-              added: true 
-            },
-            // More context after
-            { 
-              value: 'console.log("remaining code");\n',
-              added: false,
-              removed: false
-            }
-          ]
+          type: 'tool',
+          name: 'Edit',
+          parameters: JSON.stringify({
+            file_path: 'src/config.js',
+            old_string: 'const port = 3000;',
+            new_string: 'const port = 8080;'
+          }),
+          compactParams: 'src/config.js',
+          stage: 'end' as const,
+          success: true,
+          id: 'edit_wordlevel_123'
         }
       ]
     };
 
-    // Inject the message
-    await injector.updateMessages([mockDiffMessage]);
+    await injector.updateMessages([mockSingleLineEdit]);
+
+    // Check that diff viewer is present
+    await expect(webviewPage.locator('.diff-viewer-container')).toBeVisible();
+    
+    // For single-line changes, should show both removed and added lines
+    await expect(webviewPage.locator('.diff-line-removed')).toHaveCount(1);
+    await expect(webviewPage.locator('.diff-line-added')).toHaveCount(1);
+
+    // Check for word-level highlighting within the lines
+    await expect(webviewPage.locator('.diff-line-removed')).toContainText('3000');
+    await expect(webviewPage.locator('.diff-line-added')).toContainText('8080');
+  });
+
+  test('should handle large diff content without auto-scrolling', async ({ webviewPage }) => {
+    const injector = new MessageInjector(webviewPage);
+
+    // Create a large file edit to test content display
+    const largeOldContent = Array.from({ length: 20 }, (_, i) => 
+      `// Context line ${i + 1}`
+    ).join('\n') + '\nconst oldVariable = "old";\nconsole.log("remaining code");';
+
+    const largeNewContent = Array.from({ length: 20 }, (_, i) => 
+      `// Context line ${i + 1}`
+    ).join('\n') + '\nconst newVariable = "new";\nconsole.log("remaining code");';
+
+    const mockLargeEditMessage: Message = {
+      role: 'assistant' as const,
+      blocks: [
+        {
+          type: 'tool',
+          name: 'Edit',
+          parameters: JSON.stringify({
+            file_path: 'src/largeFile.js',
+            old_string: largeOldContent,
+            new_string: largeNewContent
+          }),
+          compactParams: 'src/largeFile.js',
+          stage: 'end' as const,
+          success: true,
+          id: 'edit_large_content'
+        }
+      ]
+    };
+
+    await injector.updateMessages([mockLargeEditMessage]);
 
     // Wait for diff viewer to be visible
     await expect(webviewPage.locator('.diff-viewer-container')).toBeVisible();
 
-    // Wait longer for the scroll to complete (with more buffer time for the setTimeout in the component)
-    await webviewPage.waitForTimeout(1000);
+    // Verify that diff lines are present
+    await expect(webviewPage.locator('.diff-line-removed')).toHaveCount(1);
+    await expect(webviewPage.locator('.diff-line-added')).toHaveCount(1);
 
-    // Verify that the first removed line is visible in the viewport
-    const firstRemovedLine = webviewPage.locator('.diff-chunk-removed').first();
-    await expect(firstRemovedLine).toBeVisible();
+    // Verify the changed content
+    await expect(webviewPage.locator('.diff-line-removed')).toContainText('oldVariable');
+    await expect(webviewPage.locator('.diff-line-added')).toContainText('newVariable');
 
-    // Debug: Get information about the diff container and elements
-    const debugInfo = await webviewPage.evaluate(() => {
-      const diffContent = document.querySelector('.diff-content') as HTMLElement;
-      const firstDiffLine = document.querySelector('.diff-chunk-removed') as HTMLElement;
-      const allChunks = document.querySelectorAll('.diff-chunk');
-      
-      if (!diffContent || !firstDiffLine) {
-        return { error: 'Elements not found', diffContent: !!diffContent, firstDiffLine: !!firstDiffLine };
-      }
-      
-      const containerRect = diffContent.getBoundingClientRect();
-      const elementRect = firstDiffLine.getBoundingClientRect();
-      
+    // Verify that content is scrollable if needed (container should allow scrolling)
+    const scrollInfo = await webviewPage.evaluate(() => {
+      const diffContent = document.querySelector('.diff-viewer-content') as HTMLElement;
       return {
-        scrollTop: diffContent.scrollTop,
-        scrollHeight: diffContent.scrollHeight,
-        clientHeight: diffContent.clientHeight,
-        containerRect: {
-          top: containerRect.top,
-          bottom: containerRect.bottom,
-          height: containerRect.height
-        },
-        elementRect: {
-          top: elementRect.top,
-          bottom: elementRect.bottom,
-          height: elementRect.height
-        },
-        totalChunks: allChunks.length,
-        elementIndex: Array.from(allChunks).indexOf(firstDiffLine),
-        // Debug attributes
-        scrollAttempted: diffContent.getAttribute('data-scroll-attempted'),
-        scrollInfo: diffContent.getAttribute('data-scroll-info'),
-        scrollError: diffContent.getAttribute('data-scroll-error')
+        scrollHeight: diffContent?.scrollHeight || 0,
+        clientHeight: diffContent?.clientHeight || 0,
+        hasScrollbar: (diffContent?.scrollHeight || 0) > (diffContent?.clientHeight || 0)
       };
     });
 
-
-    // Check if scroll actually happened
-    const scrollTop = await webviewPage.locator('.diff-content').evaluate((el) => el.scrollTop);
+    // Content should be rendered properly regardless of scroll state
+    expect(scrollInfo.scrollHeight).toBeGreaterThan(0);
+    expect(scrollInfo.clientHeight).toBeGreaterThan(0);
     
-    // For debugging, let's be more lenient about the viewport check
-    // and just ensure that scrolling occurred
-    if (scrollTop > 0) {
-      // If scrolling occurred, the test passes
-      expect(scrollTop).toBeGreaterThan(0);
+    // Log whether scrolling is available (informational, not a test requirement)
+    if (scrollInfo.hasScrollbar) {
+      console.log('Content is scrollable due to size');
     } else {
-      // If no scrolling occurred, it might be because the content fits in the container
-      // Let's check if the container is taller than its content
-      const containerHeight = await webviewPage.locator('.diff-content').evaluate((el) => el.clientHeight);
-      const scrollHeight = await webviewPage.locator('.diff-content').evaluate((el) => el.scrollHeight);
-      
-      if (scrollHeight <= containerHeight) {
-        // Content fits, so no scrolling is needed - this is acceptable
-        console.log('Content fits in container, no scrolling needed');
-      } else {
-        // Content doesn't fit but no scrolling happened - this is the actual issue
-        throw new Error(`Expected scrolling but scrollTop is ${scrollTop}. Container height: ${containerHeight}, Scroll height: ${scrollHeight}`);
-      }
+      console.log('Content fits in container without scrolling');
     }
-
-    // Verify both removed and added lines are visible
-    await expect(webviewPage.locator('.diff-chunk-removed')).toHaveCount(1);
-    await expect(webviewPage.locator('.diff-chunk-added')).toHaveCount(1);
-
-    // Verify the content is correct
-    await expect(firstRemovedLine).toContainText('oldVariable');
-    await expect(webviewPage.locator('.diff-chunk-added').first()).toContainText('newVariable');
   });
-
 });

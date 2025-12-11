@@ -102,8 +102,81 @@ export class MockDataGenerator {
     }
 
     /**
-     * Create a conversation with multiple messages
+     * Create an assistant message with a file editing tool (Edit, Write, MultiEdit)
+     * that should trigger diff display
      */
+    static createAssistantMessageWithFileEdit(
+        textContent: string,
+        toolName: 'Edit' | 'Write' | 'MultiEdit',
+        filePath: string,
+        editParams: any,
+        stage: 'running' | 'end' = 'end'
+    ): Message {
+        const blocks: MessageBlock[] = [];
+
+        if (textContent) {
+            blocks.push({
+                type: "text",
+                content: textContent
+            } as TextBlock);
+        }
+
+        const toolBlock: ToolBlock = {
+            type: "tool",
+            name: toolName,
+            parameters: JSON.stringify({
+                file_path: filePath,
+                ...editParams
+            }),
+            compactParams: filePath,
+            stage: stage,
+            success: stage === 'end' ? true : undefined,
+            id: `${toolName.toLowerCase()}_${Date.now()}`
+        };
+
+        blocks.push(toolBlock);
+
+        return {
+            role: "assistant",
+            blocks: blocks
+        };
+    }
+
+    /**
+     * Create a simple Edit tool message
+     */
+    static createEditToolMessage(filePath: string, oldString: string, newString: string): Message {
+        return this.createAssistantMessageWithFileEdit(
+            `Editing ${filePath}:`,
+            'Edit',
+            filePath,
+            { old_string: oldString, new_string: newString }
+        );
+    }
+
+    /**
+     * Create a simple Write tool message
+     */
+    static createWriteToolMessage(filePath: string, content: string): Message {
+        return this.createAssistantMessageWithFileEdit(
+            `Writing new file ${filePath}:`,
+            'Write',
+            filePath,
+            { content: content }
+        );
+    }
+
+    /**
+     * Create a MultiEdit tool message
+     */
+    static createMultiEditToolMessage(filePath: string, edits: Array<{old_string: string, new_string: string}>): Message {
+        return this.createAssistantMessageWithFileEdit(
+            `Making multiple edits to ${filePath}:`,
+            'MultiEdit',
+            filePath,
+            { edits: edits }
+        );
+    }
     static createSampleConversation(): Message[] {
         return [
             this.createUserMessage("Hello, can you help me with my project?"),

@@ -1,98 +1,232 @@
-import React, { useMemo, useEffect, useRef } from 'react';
-import type { DiffBlock } from '../types';
+import React, { useMemo } from 'react';
+import { diffLines, diffWords } from 'diff';
+import { transformToolBlockToChanges } from '../utils/diffTransform';
+import type { ToolBlock } from '../types';
+import './DiffViewer.css';
 
 interface DiffViewerProps {
-  diffBlock: DiffBlock;
+  toolBlock: ToolBlock;
 }
 
 /**
- * Process diff result to render diff chunks with proper styling
- * Each diffResult entry can contain multiple lines in the value field
+ * DiffViewer component that extracts and displays diffs from tool blocks
+ * Uses transformToolBlockToChanges from wave-agent-sdk to get file changes
  */
-const processDiffChunks = (diffResult: Array<{ value: string; added?: boolean; removed?: boolean; }>) => {
-  return diffResult.map((chunk, index) => {
-    let className = 'diff-chunk';
-    let prefix = ' ';
+export const DiffViewer: React.FC<DiffViewerProps> = ({ toolBlock }) => {
 
-    if (chunk.added) {
-      className += ' diff-chunk-added';
-      prefix = '+';
-    } else if (chunk.removed) {
-      className += ' diff-chunk-removed';
-      prefix = '-';
+  // Diff detection and transformation
+  const changes = useMemo(() => {
+    try {
+      return transformToolBlockToChanges(toolBlock);
+    } catch (error) {
+      console.warn("Error transforming tool block to changes:", error);
+      return [];
     }
+  }, [toolBlock]);
 
-    // Keep the content as-is, including newlines
-    const content = chunk.value;
+  const showDiff =
+    changes.length > 0 &&
+    ["running", "end"].includes(toolBlock.stage) &&
+    toolBlock.name &&
+    ["Write", "Edit", "MultiEdit"].includes(toolBlock.name);
 
-    return {
-      className,
-      prefix,
-      content,
-      key: index
-    };
-  });
-};
+  // Render word-level diff for line-by-line comparison
+  const renderWordLevelDiff = (
+    oldLine: string,
+    newLine: string,
+    keyPrefix: string,
+  ) => {
+    try {
+      const wordChanges = diffWords(oldLine, newLine);
 
-export const DiffViewer: React.FC<DiffViewerProps> = ({ diffBlock }) => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const contentRef = useRef<HTMLDivElement>(null);
+      const removedParts: React.ReactNode[] = [];
+      const addedParts: React.ReactNode[] = [];
 
-  // Process diff data to get styled chunks
-  const diffChunks = useMemo(() => {
-    return processDiffChunks(diffBlock.diffResult);
-  }, [diffBlock.diffResult]);
+      wordChanges.forEach((part, index) => {
+        if (part.removed) {
+          removedParts.push(
+            <span
+              key={`removed-${keyPrefix}-${index}`}
+              className="diff-word-removed"
+            >
+              {part.value}
+            </span>
+          );
+        } else if (part.added) {
+          addedParts.push(
+            <span
+              key={`added-${keyPrefix}-${index}`}
+              className="diff-word-added"
+            >
+              {part.value}
+            </span>
+          );
+        } else {
+          // Unchanged parts
+          removedParts.push(
+            <span key={`removed-unchanged-${keyPrefix}-${index}`} className="diff-word-unchanged">
+              {part.value}
+            </span>
+          );
+          addedParts.push(
+            <span key={`added-unchanged-${keyPrefix}-${index}`} className="diff-word-unchanged">
+              {part.value}
+            </span>
+          );
+        }
+      });
 
-  // Find the first diff line (added or removed) for scrolling
-  const firstDiffIndex = useMemo(() => {
-    return diffChunks.findIndex(chunk => 
-      chunk.className.includes('diff-chunk-added') || 
-      chunk.className.includes('diff-chunk-removed')
-    );
-  }, [diffChunks]);
-
-  // Auto-scroll to first diff line after component mounts
-  useEffect(() => {
-    if (firstDiffIndex >= 0 && contentRef.current) {
-      const diffContentContainer = contentRef.current;
-      const firstDiffElement = diffContentContainer.querySelector(
-        `.diff-chunk:nth-child(${firstDiffIndex + 1})`
-      ) as HTMLElement;
-      
-      if (firstDiffElement) {
-        // Use setTimeout to ensure the element is rendered
-        setTimeout(() => {
-          // Simple approach: scroll the element into view within its container
-          // Get the position of the element relative to the scrollable container
-          const containerRect = diffContentContainer.getBoundingClientRect();
-          const elementRect = firstDiffElement.getBoundingClientRect();
-          
-          // Calculate how much to scroll to bring the element into view
-          const relativeTop = elementRect.top - containerRect.top;
-          const currentScrollTop = diffContentContainer.scrollTop;
-          
-          // Scroll to position the diff line near the top of the container
-          const newScrollTop = currentScrollTop + relativeTop - 20; // 20px from top
-          
-          diffContentContainer.scrollTo({
-            top: Math.max(0, newScrollTop),
-            behavior: 'smooth'
-          });
-        }, 100);
-      }
+      return { removedParts, addedParts };
+    } catch (error) {
+      console.warn("Error rendering word-level diff:", error);
+      // Fallback to simple line display
+      return {
+        removedParts: [
+          <span key={`fallback-removed-${keyPrefix}`} className="diff-word-unchanged">
+            {oldLine}
+          </span>
+        ],
+        addedParts: [
+          <span key={`fallback-added-${keyPrefix}`} className="diff-word-unchanged">
+            {newLine}
+          </span>
+        ],
+      };
     }
-  }, [firstDiffIndex]);
+  };
+
+  // Render expanded diff display using diffLines with word-level support
+  const renderExpandedDiff = () => {
+    try {
+      if (changes.length === 0) return null;
+
+      return (
+        <div className="diff-changes">
+          {changes.map((change, changeIndex) => {
+            try {
+              const lineDiffs = diffLines(
+                change.oldContent || "",
+                change.newContent || "",
+              );
+
+              // For simple single-line changes, use word-level diff
+              const isSingleLineChange =
+                !change.oldContent.includes("\n") &&
+                !change.newContent.includes("\n") &&
+                change.oldContent.trim() !== "" &&
+                change.newContent.trim() !== "";
+
+              if (isSingleLineChange) {
+                const { removedParts, addedParts } = renderWordLevelDiff(
+                  change.oldContent,
+                  change.newContent,
+                  `change-${changeIndex}`,
+                );
+
+                return (
+                  <div key={changeIndex} className="diff-change">
+                    <div className="diff-line diff-line-removed">
+                      <span className="diff-prefix">-</span>
+                      <span className="diff-content">{removedParts}</span>
+                    </div>
+                    <div className="diff-line diff-line-added">
+                      <span className="diff-prefix">+</span>
+                      <span className="diff-content">{addedParts}</span>
+                    </div>
+                  </div>
+                );
+              }
+
+              // For multi-line changes, use line-level diff
+              return (
+                <div key={changeIndex} className="diff-change">
+                  {lineDiffs.map((part, partIndex) => {
+                    if (part.added) {
+                      return part.value
+                        .split("\n")
+                        .filter((line) => line !== "")
+                        .map((line, lineIndex) => (
+                          <div
+                            key={`add-${changeIndex}-${partIndex}-${lineIndex}`}
+                            className="diff-line diff-line-added"
+                          >
+                            <span className="diff-prefix">+</span>
+                            <span className="diff-content">{line}</span>
+                          </div>
+                        ));
+                    } else if (part.removed) {
+                      return part.value
+                        .split("\n")
+                        .filter((line) => line !== "")
+                        .map((line, lineIndex) => (
+                          <div
+                            key={`remove-${changeIndex}-${partIndex}-${lineIndex}`}
+                            className="diff-line diff-line-removed"
+                          >
+                            <span className="diff-prefix">-</span>
+                            <span className="diff-content">{line}</span>
+                          </div>
+                        ));
+                    } else {
+                      // Context lines - show unchanged content
+                      return part.value
+                        .split("\n")
+                        .filter((line) => line !== "")
+                        .map((line, lineIndex) => (
+                          <div
+                            key={`context-${changeIndex}-${partIndex}-${lineIndex}`}
+                            className="diff-line diff-line-context"
+                          >
+                            <span className="diff-prefix"> </span>
+                            <span className="diff-content">{line}</span>
+                          </div>
+                        ));
+                    }
+                  })}
+                </div>
+              );
+            } catch (error) {
+              console.warn(
+                `Error rendering diff for change ${changeIndex}:`,
+                error,
+              );
+              // Fallback to simple display
+              return (
+                <div key={changeIndex} className="diff-change">
+                  <div className="diff-line diff-line-removed">
+                    <span className="diff-prefix">-</span>
+                    <span className="diff-content">{change.oldContent || ""}</span>
+                  </div>
+                  <div className="diff-line diff-line-added">
+                    <span className="diff-prefix">+</span>
+                    <span className="diff-content">{change.newContent || ""}</span>
+                  </div>
+                </div>
+              );
+            }
+          })}
+        </div>
+      );
+    } catch (error) {
+      console.warn("Error rendering expanded diff:", error);
+      return (
+        <div className="diff-error">
+          <span>Error rendering diff display</span>
+        </div>
+      );
+    }
+  };
+
+  // Don't render anything if no diff should be shown
+  if (!showDiff) {
+    return null;
+  }
 
   return (
-    <div className="diff-viewer-container" ref={containerRef}>
-      <div className="diff-content" ref={contentRef}>
-        {diffChunks.map((chunk) => (
-          <div key={chunk.key} className={chunk.className}>
-            <span className="diff-chunk-prefix">{chunk.prefix}</span>
-            <span className="diff-chunk-content">{chunk.content}</span>
-          </div>
-        ))}
-        {diffChunks.length === 0 && (
+    <div className="diff-viewer-container">
+      <div className="diff-viewer-content">
+        {renderExpandedDiff()}
+        {changes.length === 0 && (
           <div className="diff-empty">No changes</div>
         )}
       </div>

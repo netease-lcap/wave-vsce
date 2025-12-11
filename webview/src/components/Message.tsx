@@ -1,7 +1,7 @@
 import React from 'react';
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
-import type { MessageProps, TextBlock, ErrorBlock, ToolBlock, DiffBlock, SubagentBlock } from '../types';
+import type { MessageProps, TextBlock, ErrorBlock, ToolBlock, SubagentBlock } from '../types';
 import { DiffViewer } from './DiffViewer';
 import { TodoList } from './TodoList';
 import { SubagentDisplay } from './SubagentDisplay';
@@ -179,6 +179,16 @@ export const Message: React.FC<MessageProps> = (props) => {
       );
     }
     
+    // For file editing tools, show diff below the header
+    if (toolBlock.name && ['Write', 'Edit', 'MultiEdit'].includes(toolBlock.name)) {
+      return (
+        <div key={index}>
+          {toolHeader}
+          <DiffViewer toolBlock={toolBlock} />
+        </div>
+      );
+    }
+    
     // For other tools without special content, just return the header
     return toolHeader;
   };
@@ -195,7 +205,6 @@ export const Message: React.FC<MessageProps> = (props) => {
   };
 
   const toolBlocks = message.blocks?.filter(block => block.type === 'tool') || [];
-  const diffBlocks = message.blocks?.filter(block => block.type === 'diff') || [];
   const subagentBlocks = message.blocks?.filter(block => block.type === 'subagent') || [];
   const content = renderContent();
 
@@ -216,11 +225,6 @@ export const Message: React.FC<MessageProps> = (props) => {
 
       {/* Render subagent blocks separately */}
       {subagentBlocks.map((block, index) => renderSubagentBlock(block as SubagentBlock, index))}
-
-      {/* Render diff blocks separately */}
-      {diffBlocks.map((block, index) => (
-        <DiffViewer key={`diff-${index}`} diffBlock={block as DiffBlock} />
-      ))}
     </div>
   );
 };

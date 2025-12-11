@@ -6,11 +6,11 @@
  */
 
 // Import message structures and session types from wave-agent-sdk
-import type { Message, MessageBlock, TextBlock, ErrorBlock, ToolBlock, DiffBlock, SubagentBlock } from 'wave-agent-sdk';
+import type { Message, MessageBlock, TextBlock, ErrorBlock, ToolBlock, SubagentBlock } from 'wave-agent-sdk';
 import type { SessionMetadata, SessionData } from 'wave-agent-sdk';
 
 // Export the agent-sdk types for use in components
-export type { Message, MessageBlock, TextBlock, ErrorBlock, ToolBlock, DiffBlock, SubagentBlock, SessionMetadata, SessionData };
+export type { Message, MessageBlock, TextBlock, ErrorBlock, ToolBlock, SubagentBlock, SessionMetadata, SessionData };
 
 // Slash command types
 export interface SlashCommand {

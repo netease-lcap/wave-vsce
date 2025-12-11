@@ -49,6 +49,7 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.40.0",
+    "@types/diff": "^7.0.2",
     "@types/node": "18.x",
     "@types/react": "^18.0.0",
     "@types/react-dom": "^18.0.0",
@@ -66,6 +67,7 @@
     "@types/dompurify": "^3.0.5",
     "@types/marked": "^5.0.2",
     "@vscode/codicons": "^0.0.43",
+    "diff": "^8.0.2",
     "dompurify": "^3.3.0",
     "marked": "^9.1.6",
     "wave-agent-sdk": "file:wave-agent-sdk-0.0.8.tgz"
