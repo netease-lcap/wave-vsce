@@ -9,11 +9,12 @@
     "url": "ssh://git@g.hz.netease.com:22222/vusion/wave-vsce.git"
   },
   "engines": {
-    "vscode": "^1.74.0"
+    "vscode": "^1.95.0"
   },
   "categories": [
     "Other"
   ],
+  "main": "./dist/extension.js",
   "contributes": {
     "commands": [
       {
@@ -46,7 +47,7 @@
     "@types/node": "18.x",
     "@types/react": "^18.0.0",
     "@types/react-dom": "^18.0.0",
-    "@types/vscode": "^1.74.0",
+    "@types/vscode": "^1.95.0",
     "css-loader": "^6.8.1",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
