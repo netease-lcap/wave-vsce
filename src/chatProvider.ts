@@ -748,13 +748,13 @@ export class ChatProvider {
             // Get slash commands from the agent
             const allCommands = this.agent.getSlashCommands();
 
-            // Filter commands based on filter text
+            // Filter commands based on filter text (only by id and name, not description)
             let filteredCommands = allCommands;
             if (filterText && filterText.trim().length > 0) {
                 const filter = filterText.toLowerCase();
                 filteredCommands = allCommands.filter(command =>
-                    command.name.toLowerCase().includes(filter) ||
-                    command.description.toLowerCase().includes(filter)
+                    command.id.toLowerCase().includes(filter) ||
+                    command.name.toLowerCase().includes(filter)
                 );
             }
 
