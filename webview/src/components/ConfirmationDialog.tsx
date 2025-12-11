@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import type { ConfirmationDialogProps } from '../types';
 import '../styles/ConfirmationDialog.css';
 
@@ -7,6 +7,15 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
   onConfirm,
   onReject,
 }) => {
+  const applyButtonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    // Focus on the Apply button when dialog opens
+    if (applyButtonRef.current) {
+      applyButtonRef.current.focus();
+    }
+  }, [confirmation.confirmationId]);
+
   const handleConfirm = () => {
     onConfirm(confirmation.confirmationId);
   };
@@ -27,6 +36,7 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
       </div>
       <div className="confirmation-actions">
         <button
+          ref={applyButtonRef}
           className="confirmation-btn confirmation-btn-apply"
           onClick={handleConfirm}
         >
