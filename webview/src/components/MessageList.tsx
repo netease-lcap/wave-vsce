@@ -15,7 +15,7 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, streamingMes
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom when messages change or streaming updates
+  // Auto-scroll to bottom when messages change, streaming updates, or subagent messages update
   useEffect(() => {
     const scrollToBottom = () => {
       if (!containerRef.current || !messagesEndRef.current) return;
@@ -32,7 +32,7 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, streamingMes
     // Small delay to ensure DOM is updated
     const timeoutId = setTimeout(scrollToBottom, 10);
     return () => clearTimeout(timeoutId);
-  }, [messages, streamingMessageIndex]);
+  }, [messages, streamingMessageIndex, subagentMessages]);
 
   return (
     <div 
