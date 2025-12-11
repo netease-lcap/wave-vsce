@@ -25,6 +25,12 @@ export const SubagentDisplay: React.FC<SubagentDisplayProps> = ({ subagentBlock,
   // Show last 2 messages, or all if fewer than 2
   const recentMessages = displayMessages.slice(-2);
 
+  // Count total tools across all messages
+  const toolsCount = displayMessages.reduce((count, message) => {
+    const toolBlocks = message.blocks?.filter(block => block.type === 'tool') || [];
+    return count + toolBlocks.length;
+  }, 0);
+
   // Status display logic
   const getStatusInfo = () => {
     switch (status) {
@@ -47,23 +53,22 @@ export const SubagentDisplay: React.FC<SubagentDisplayProps> = ({ subagentBlock,
     <div className="subagent-display">
       <div className="subagent-info">
         <div className="subagent-header">
-          <span className="subagent-type">🤖 {subagentName}</span>
-          <span className="subagent-status" style={{ color: statusInfo.color }}>
-            {statusInfo.icon} {statusInfo.text}
-          </span>
+          <div>
+            <span className="subagent-type">🤖 {subagentName}</span>
+            <span className="subagent-status" style={{ color: statusInfo.color }}>
+              {statusInfo.icon} {statusInfo.text}
+            </span>
+          </div>
+          <span className="tools-count">{toolsCount} tools</span>
+          
         </div>
       </div>
 
       {recentMessages.length > 0 ? (
         <div className="subagent-messages">
-          <div className="subagent-messages-header">
-            <span className="messages-label">
-              {messageCount > 2 ? `最新 ${recentMessages.length} 条，共 ${messageCount} 条消息:` : '消息:'}
-            </span>
-          </div>
           {recentMessages.map((message, index) => (
             <div key={index} className="subagent-message-wrapper">
-              <MessageComponent message={message} isStreaming={false} />
+              <MessageComponent message={message} isStreaming={false} hideContent={true} />
             </div>
           ))}
         </div>

@@ -28,6 +28,12 @@
   font-size: 12px;
 }
 
+.tools-count {
+  color: var(--vscode-descriptionForeground);
+  font-size: 10px;
+  margin-left: 4px;
+}
+
 .subagent-status {
   font-size: 10px;
   font-weight: 500;
@@ -41,19 +47,6 @@
   margin-top: 8px;
   padding-top: 6px;
   padding-bottom: 4px;
-}
-
-.subagent-messages-header {
-  margin-bottom: 6px;
-  padding-left: 4px;
-}
-
-.messages-label {
-  font-weight: 600;
-  color: var(--vscode-foreground);
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
 }
 
 /* Individual Subagent Message Wrapper */

@@ -37,6 +37,9 @@ test.describe('SubagentBlock Display in Messages', () => {
     // Check subagent name and status
     await expect(subagentDisplay.locator('.subagent-type')).toContainText('🤖 Explore');
     await expect(subagentDisplay.locator('.subagent-header .subagent-status')).toContainText('⚡ 运行中');
+    
+    // Initially should show 0 tools
+    await expect(subagentDisplay.locator('.tools-count')).toContainText('0 tools');
 
     // Initially should have no messages displayed
     await expect(subagentDisplay.locator('.status-indicator')).toContainText('⏳ 处理中...');
@@ -51,8 +54,11 @@ test.describe('SubagentBlock Display in Messages', () => {
             role: 'assistant',
             blocks: [
               {
-                type: 'text',
-                content: 'Starting codebase exploration...'
+                type: 'tool',
+                name: 'Glob',
+                stage: 'end',
+                parameters: JSON.stringify({ pattern: '**/*.ts' }),
+                result: 'Found 15 TypeScript files'
               }
             ]
           },
@@ -60,8 +66,11 @@ test.describe('SubagentBlock Display in Messages', () => {
             role: 'assistant', 
             blocks: [
               {
-                type: 'text',
-                content: 'Found 15 TypeScript files in the project structure.'
+                type: 'tool',
+                name: 'Read',
+                stage: 'end', 
+                parameters: JSON.stringify({ file_path: '/src/index.ts' }),
+                result: 'File content loaded successfully'
               }
             ]
           }
@@ -72,11 +81,20 @@ test.describe('SubagentBlock Display in Messages', () => {
     // Wait for the UI to update
     await webviewPage.waitForTimeout(100);
 
-    // Should now show live messages
+    // Should now show live messages (only tool blocks, content should be hidden)
     const messageWrappers = subagentDisplay.locator('.subagent-message-wrapper');
     await expect(messageWrappers).toHaveCount(2);
-    await expect(messageWrappers.first().locator('.message-content')).toContainText('Starting codebase exploration');
-    await expect(messageWrappers.last().locator('.message-content')).toContainText('Found 15 TypeScript files');
+    
+    // Should show tools count in header
+    await expect(subagentDisplay.locator('.tools-count')).toContainText('2 tools');
+    
+    // Content should be hidden, but messages should still be present
+    await expect(messageWrappers.first()).toBeVisible();
+    await expect(messageWrappers.last()).toBeVisible();
+    
+    // Verify that message content is not rendered (hidden)
+    await expect(messageWrappers.first().locator('.message-content')).not.toBeVisible();
+    await expect(messageWrappers.last().locator('.message-content')).not.toBeVisible();
 
     // The status indicator should be gone since we have messages
     await expect(subagentDisplay.locator('.status-indicator')).not.toBeVisible();
@@ -172,8 +190,11 @@ test.describe('SubagentBlock Display in Messages', () => {
     const manyMessages = Array.from({ length: 5 }, (_, i) => ({
       role: 'assistant' as const,
       blocks: [{ 
-        type: 'text' as const, 
-        content: `Step ${i + 1}: This is a detailed message about step ${i + 1}` 
+        type: 'tool' as const,
+        name: 'Bash',
+        stage: 'end' as const,
+        parameters: JSON.stringify({ command: `echo "Step ${i + 1}"` }),
+        result: `Step ${i + 1}: This is a detailed message about step ${i + 1}`
       }]
     }));
 
@@ -190,16 +211,16 @@ test.describe('SubagentBlock Display in Messages', () => {
     const subagentDisplay = webviewPage.locator('.subagent-display').first();
     await expect(subagentDisplay).toBeVisible();
 
-    // Should show total count in the messages header
-    await expect(subagentDisplay.locator('.messages-label')).toContainText('最新 2 条，共 5 条消息:');
+    // Should show tools count in header
+    await expect(subagentDisplay.locator('.tools-count')).toContainText('5 tools');
 
     // Should only render 2 message wrappers (steps 4, 5)
     const messageWrappers = subagentDisplay.locator('.subagent-message-wrapper');
     await expect(messageWrappers).toHaveCount(2);
     
-    // Check that it shows the last 2 messages
-    await expect(messageWrappers.first().locator('.message-content')).toContainText('Step 4:');
-    await expect(messageWrappers.last().locator('.message-content')).toContainText('Step 5:');
+    // Check that it shows the last 2 messages (tool blocks only, content hidden)
+    await expect(messageWrappers.first()).toBeVisible();
+    await expect(messageWrappers.last()).toBeVisible();
   });
 
   test('should handle subagent messages with complex content', async ({ webviewPage }) => {
@@ -256,9 +277,12 @@ test.describe('SubagentBlock Display in Messages', () => {
     const subagentDisplay = webviewPage.locator('.subagent-display').first();
     await expect(subagentDisplay).toBeVisible();
 
-    // Check that nested tool blocks are rendered correctly
+    // Check that nested tool blocks are rendered correctly (content should be hidden)
     const messageWrapper = subagentDisplay.locator('.subagent-message-wrapper').first();
-    await expect(messageWrapper.locator('.message-content')).toContainText('Let me analyze the file structure');
+    await expect(messageWrapper).toBeVisible();
+    
+    // Content should be hidden, but the message wrapper should be present
+    await expect(messageWrapper.locator('.message-content')).not.toBeVisible();
     
     // Check that the nested tool block is rendered
     const nestedToolBlock = messageWrapper.locator('.tool-block');

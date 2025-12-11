@@ -201,8 +201,8 @@ export const Message: React.FC<MessageProps> = (props) => {
 
   return (
     <div className={getMessageClassName()}>
-      {/* Only render content div if there's actual content */}
-      {content.trim() && (
+      {/* Only render content div if there's actual content and hideContent is not true */}
+      {!props.hideContent && content.trim() && (
         <div 
           className="message-content markdown-content"
           dangerouslySetInnerHTML={{ 
