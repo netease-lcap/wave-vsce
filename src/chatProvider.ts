@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
+import { glob } from 'glob';
 import { Agent, Message, listSessions, SessionMetadata, type PermissionDecision, type ToolPermissionContext, AgentCallbacks } from 'wave-agent-sdk';
 
 export class ChatProvider {
@@ -365,11 +366,22 @@ export class ChatProvider {
         try {
             const allItems: any[] = [];
 
-            // 1. Get files (existing logic)
+            // 1. Get files using vscode.workspace.findFiles with filterText as glob pattern
+            let filePattern = '**/*'; // Default pattern
+            if (filterText && filterText.trim()) {
+                // Use filterText as glob pattern for file searching
+                // If filterText doesn't contain wildcards, wrap it with wildcards
+                if (!filterText.includes('*') && !filterText.includes('?')) {
+                    filePattern = `**/*${filterText}*`;
+                } else {
+                    filePattern = filterText;
+                }
+            }
+
             const files = await vscode.workspace.findFiles(
-                '**/*',  // Include all files
+                filePattern,  // Use filterText-based pattern
                 '{**/node_modules/**,**/.git/**,**/dist/**,**/build/**,**/.vscode/**}', // Exclude common folders
-                100  // Limit to 100 files for performance
+                15  // Limit to 15 files for better performance and UX
             );
 
             // Convert files to FileItem format
@@ -391,26 +403,16 @@ export class ChatProvider {
                 };
             });
 
-            // 2. Get directories (NEW LOGIC)
-            const directories = await this.findWorkspaceDirectories(workspaceFolder);
+            // 2. Get directories using glob package
+            const directories = await this.findWorkspaceDirectories(workspaceFolder, filterText);
 
             // Combine files and directories
             allItems.push(...fileItems, ...directories);
 
-            // 3. Filter based on user input
-            const filteredItems = allItems.filter(item => {
-                if (!filterText) return true;
-                const lowerFilter = filterText.toLowerCase();
-                return (
-                    item.name.toLowerCase().includes(lowerFilter) ||
-                    item.relativePath.toLowerCase().includes(lowerFilter)
-                );
-            });
-
-            // 4. Sort by relevance
-            filteredItems.sort((a, b) => {
-                const aNameMatch = a.name.toLowerCase().startsWith(filterText.toLowerCase());
-                const bNameMatch = b.name.toLowerCase().startsWith(filterText.toLowerCase());
+            // 3. Sort by relevance
+            allItems.sort((a, b) => {
+                const aNameMatch = a.name.toLowerCase().startsWith((filterText || '').toLowerCase());
+                const bNameMatch = b.name.toLowerCase().startsWith((filterText || '').toLowerCase());
 
                 if (aNameMatch && !bNameMatch) return -1;
                 if (!aNameMatch && bNameMatch) return 1;
@@ -422,70 +424,67 @@ export class ChatProvider {
                 return a.name.localeCompare(b.name);
             });
 
-            return filteredItems.slice(0, 50); // Limit total results
+            return allItems.slice(0, 20); // Limit total results to 20 for better UX
         } catch (error) {
             console.error('搜索工作区文件失败:', error);
             return [];
         }
     }
 
-    // NEW METHOD: Find directories
-    private async findWorkspaceDirectories(workspaceFolder: vscode.WorkspaceFolder): Promise<any[]> {
-        const directories: any[] = [];
-        const maxDepth = 3; // Limit depth to avoid scanning too deep
-
-        await this.scanDirectoryRecursively(workspaceFolder.uri, '', directories, 0, maxDepth);
-
-        return directories;
-    }
-
-    // NEW METHOD: Recursively scan for directories
-    private async scanDirectoryRecursively(
-        uri: vscode.Uri,
-        relativePath: string,
-        directories: any[],
-        currentDepth: number,
-        maxDepth: number
-    ): Promise<void> {
-        if (currentDepth >= maxDepth) return;
-
+    // Find directories using glob package
+    private async findWorkspaceDirectories(workspaceFolder: vscode.WorkspaceFolder, filterText: string): Promise<any[]> {
         try {
-            const entries = await vscode.workspace.fs.readDirectory(uri);
-
-            for (const [name, type] of entries) {
-                if (type === vscode.FileType.Directory) {
-                    // Skip common folders to ignore
-                    if (['node_modules', '.git', 'dist', 'build', '.vscode'].includes(name)) {
-                        continue;
-                    }
-
-                    const dirRelativePath = relativePath ? `${relativePath}/${name}` : name;
-                    const dirUri = vscode.Uri.joinPath(uri, name);
-
-                    directories.push({
-                        path: dirUri.fsPath,
-                        relativePath: dirRelativePath,
-                        name: name,
-                        extension: '',
-                        icon: 'codicon-folder',
-                        isDirectory: true
-                    });
-
-                    // Recurse into subdirectory
-                    await this.scanDirectoryRecursively(
-                        dirUri,
-                        dirRelativePath,
-                        directories,
-                        currentDepth + 1,
-                        maxDepth
-                    );
+            const workspacePath = workspaceFolder.uri.fsPath;
+            
+            // Create glob pattern for directories
+            let dirPattern = '**/*/'; // Default pattern for directories
+            if (filterText && filterText.trim()) {
+                // Create pattern that matches directories containing filterText
+                if (!filterText.includes('*') && !filterText.includes('?')) {
+                    dirPattern = `**/*${filterText}*/`;
+                } else {
+                    dirPattern = filterText.endsWith('/') ? filterText : `${filterText}/`;
                 }
             }
+
+            // Use glob to find directories
+            const globOptions = {
+                cwd: workspacePath,
+                onlyDirectories: true,
+                ignore: [
+                    'node_modules/**',
+                    '.git/**',
+                    'dist/**',
+                    'build/**',
+                    '.vscode/**'
+                ],
+                maxDepth: 3 // Limit depth to avoid scanning too deep
+            };
+
+            const dirPaths = await glob(dirPattern, globOptions);
+            
+            // Convert to FileItem format
+            return dirPaths.map(relativePath => {
+                const fullPath = path.join(workspacePath, relativePath);
+                const pathSegments = relativePath.split(path.sep);
+                const name = pathSegments[pathSegments.length - 1] || pathSegments[pathSegments.length - 2]; // Handle trailing slash
+                
+                return {
+                    path: fullPath,
+                    relativePath: relativePath.replace(/\/$/, ''), // Remove trailing slash
+                    name: name,
+                    extension: '',
+                    icon: 'codicon-folder',
+                    isDirectory: true
+                };
+            });
         } catch (error) {
-            // Ignore permission errors, etc.
-            console.warn('无法扫描目录:', uri.fsPath, error);
+            console.error('使用 glob 搜索目录失败:', error);
+            return [];
         }
     }
+
+
 
     private getFileIcon(extension: string): string {
         // Simplified: only return 'codicon-file'
