@@ -11,6 +11,11 @@
   "engines": {
     "vscode": "^1.95.0"
   },
+  "files": [
+    "dist/",
+    "webview/dist/",
+    "LICENSE"
+  ],
   "categories": [
     "Other"
   ],
