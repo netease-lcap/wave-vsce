@@ -181,6 +181,8 @@ body {
     line-height: 1.4;
     border-radius: 4px;
     border: 1px solid var(--vscode-textBlockQuote-border);
+    max-height: 200px;
+    overflow-y: auto;
 }
 
 .bash-prompt {
