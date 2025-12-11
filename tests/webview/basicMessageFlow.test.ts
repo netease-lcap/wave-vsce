@@ -27,8 +27,8 @@ test.describe('Basic Message Flow', () => {
             text: 'Hello, can you help me?'
         });
 
-        // Verify input field is cleared and disabled (waiting for response)
-        await ui.verifyInputState(true, true); // Empty and disabled
+        // Verify input field is cleared but enabled (can send more messages while streaming)
+        await ui.verifyInputState(true, false); // Empty but enabled
 
         // Simulate assistant response
         const messages = [

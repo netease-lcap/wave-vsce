@@ -38,14 +38,12 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
     case 'START_STREAMING':
       return {
         ...state,
-        isStreaming: true,
-        inputDisabled: true
+        isStreaming: true
       };
     case 'END_STREAMING':
       return {
         ...state,
-        isStreaming: false,
-        inputDisabled: false
+        isStreaming: false
       };
     case 'SET_INPUT_DISABLED':
       return {
@@ -194,7 +192,6 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
       type: 'SET_MESSAGES', 
       payload: [...state.messages, userMessage] 
     });
-    dispatch({ type: 'SET_INPUT_DISABLED', payload: true });
 
     // Send to extension
     vscode.postMessage({

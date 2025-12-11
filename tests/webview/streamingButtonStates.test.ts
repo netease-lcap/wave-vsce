@@ -19,8 +19,8 @@ test.describe('Streaming Button States', () => {
         await ui.verifyClearChatButtonEnabled(false);
         await ui.verifyAbortButtonVisible(true);
 
-        // Verify input is also disabled during streaming
-        await ui.verifyInputState(false, true); // Not empty, but disabled
+        // Verify input is enabled during streaming (allows multiple messages)
+        await ui.verifyInputState(false, false); // Not empty, and enabled
     });
 
     test('should re-enable header buttons after streaming ends', async ({ webviewPage }) => {
