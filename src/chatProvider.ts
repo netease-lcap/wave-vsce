@@ -439,6 +439,12 @@ export class ChatProvider implements vscode.WebviewViewProvider {
             case 'updateConfiguration':
                 await this.handleUpdateConfiguration(message.configurationData, actualViewType, windowId);
                 break;
+            case 'uploadFilesToArtifacts':
+                await this.handleUploadFilesToArtifacts(message.files, actualViewType, windowId);
+                break;
+            case 'showError':
+                vscode.window.showErrorMessage(message.message);
+                break;
             case 'webviewReady':
                 await this.handleWebviewReady(actualViewType, windowId);
                 break;
@@ -632,6 +638,94 @@ export class ChatProvider implements vscode.WebviewViewProvider {
                 command: 'fileSuggestionsError',
                 error: '获取文件建议失败: ' + error,
                 requestId: requestId
+            }, actualViewType, windowId);
+        }
+    }
+
+    private async handleUploadFilesToArtifacts(files: any[], viewType?: 'sidebar' | 'tab' | 'window', windowId?: string) {
+        const actualViewType = viewType || 'tab';
+        try {
+            console.log(`处理 ${actualViewType} 文件上传请求:`, files.length, '个文件', windowId ? `窗口ID: ${windowId}` : '');
+
+            const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+            if (!workspaceFolder) {
+                this.postMessageToWebview({
+                    command: 'uploadError',
+                    error: '没有打开的工作区'
+                }, actualViewType, windowId);
+                return;
+            }
+
+            // Create .wave/artifacts directory if it doesn't exist
+            const artifactsDir = path.join(workspaceFolder.uri.fsPath, '.wave', 'artifacts');
+            if (!fs.existsSync(artifactsDir)) {
+                fs.mkdirSync(artifactsDir, { recursive: true });
+            }
+
+            const uploadedFiles: string[] = [];
+            const errors: string[] = [];
+
+            for (const file of files) {
+                try {
+                    const fileName = file.name;
+                    const filePath = path.join(artifactsDir, fileName);
+                    
+                    // Handle potential file name conflicts
+                    let finalPath = filePath;
+                    let counter = 1;
+                    while (fs.existsSync(finalPath)) {
+                        const ext = path.extname(fileName);
+                        const baseName = path.basename(fileName, ext);
+                        finalPath = path.join(artifactsDir, `${baseName}_${counter}${ext}`);
+                        counter++;
+                    }
+
+                    // Convert ArrayBuffer to Buffer for writing
+                    const buffer = Buffer.from(file.data);
+                    fs.writeFileSync(finalPath, buffer);
+                    
+                    const relativePath = path.relative(workspaceFolder.uri.fsPath, finalPath);
+                    uploadedFiles.push(relativePath);
+                    
+                    console.log(`成功上传文件: ${relativePath}`);
+                } catch (error) {
+                    console.error(`上传文件 ${file.name} 失败:`, error);
+                    errors.push(`${file.name}: ${error}`);
+                }
+            }
+
+            // Send response back to webview
+            if (uploadedFiles.length > 0) {
+                this.postMessageToWebview({
+                    command: 'uploadSuccess',
+                    uploadedFiles: uploadedFiles,
+                    message: `成功上传 ${uploadedFiles.length} 个文件到 .wave/artifacts`
+                }, actualViewType, windowId);
+
+                // Show success notification
+                vscode.window.showInformationMessage(
+                    `成功上传 ${uploadedFiles.length} 个文件到 .wave/artifacts`
+                );
+            }
+
+            if (errors.length > 0) {
+                this.postMessageToWebview({
+                    command: 'uploadError',
+                    errors: errors,
+                    message: `部分文件上传失败: ${errors.length} 个错误`
+                }, actualViewType, windowId);
+
+                // Show error notification
+                vscode.window.showErrorMessage(
+                    `部分文件上传失败: ${errors.length} 个错误`
+                );
+            }
+
+        } catch (error) {
+            console.error(`文件上传处理失败:`, error);
+            this.postMessageToWebview({
+                command: 'uploadError',
+                error: '文件上传处理失败: ' + error,
             }, actualViewType, windowId);
         }
     }

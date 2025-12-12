@@ -103,8 +103,13 @@ test.describe('File Mention Feature (@)', () => {
     const suggestionItems = webviewPage.locator('.suggestion-item');
     const itemCount = await suggestionItems.count();
 
-    // Expect to see the suggestions we injected (1 folder + 2 files)
-    expect(itemCount).toBe(3);
+    // Expect to see the suggestions we injected (1 folder + 2 files) + 1 upload option = 4
+    expect(itemCount).toBe(4);
+
+    // Verify the first item is the upload option when no filter text
+    const firstSuggestion = suggestionItems.first();
+    await expect(firstSuggestion).toContainText('上传本地文件');
+    await expect(firstSuggestion).toHaveClass(/upload-option/);
   });
 
   test('should filter files as user types after @', async ({ webviewPage }) => {
@@ -155,7 +160,7 @@ test.describe('File Mention Feature (@)', () => {
 
 
 
-    // Should only show filtered results
+    // Should only show filtered results (no upload option when there's filter text)
     const suggestionItems = webviewPage.locator('.suggestion-item');
     const itemCount = await suggestionItems.count();
     expect(itemCount).toBe(1);

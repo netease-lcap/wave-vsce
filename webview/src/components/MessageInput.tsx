@@ -61,6 +61,14 @@ export const MessageInput: React.FC<MessageInputProps> = ({
   const [isLoadingSlashCommands, setIsLoadingSlashCommands] = useState(false);
   const [isComposing, setIsComposing] = useState(false);
   const [attachedImages, setAttachedImages] = useState<AttachedImage[]>([]);
+  
+  // Store the atMention state when file upload is triggered
+  const [uploadAtMentionState, setUploadAtMentionState] = useState<AtMentionState>({ 
+    isActive: false, 
+    filterText: '', 
+    startPos: 0, 
+    endPos: 0 
+  });
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const configButtonRef = useRef<HTMLDivElement>(null);
@@ -244,6 +252,39 @@ export const MessageInput: React.FC<MessageInputProps> = ({
     }
   }, [slashCommand.isActive, slashCommand.filterText, requestSlashCommands]);
 
+  // Handle inserting uploaded file paths into the input
+  const insertUploadedFilePaths = useCallback((uploadedFiles: string[]) => {
+    if (!textareaRef.current || uploadedFiles.length === 0) return;
+
+    // Create file paths string (space-separated for multiple files)
+    const filePaths = uploadedFiles.join(' ');
+    
+    // Use the saved atMention state from when upload was triggered, not the current one
+    // This prevents issues caused by focus loss during file selection dialog
+    const savedAtMention = uploadAtMentionState.isActive ? uploadAtMentionState : atMention;
+    
+    // Replace the entire @ mention (including the @ symbol) with file paths
+    // This matches the behavior of regular file selection
+    const newMessage = message.slice(0, savedAtMention.startPos) +
+                      filePaths +
+                      message.slice(savedAtMention.endPos);
+
+    setMessage(newMessage);
+
+    // Focus back to textarea and set cursor position after inserted paths
+    setTimeout(() => {
+      if (textareaRef.current) {
+        textareaRef.current.focus();
+        const newCursorPos = savedAtMention.startPos + filePaths.length;
+        textareaRef.current.setSelectionRange(newCursorPos, newCursorPos);
+      }
+    }, 0);
+
+    // Close dropdown and clear saved state
+    closeDropdown();
+    setUploadAtMentionState({ isActive: false, filterText: '', startPos: 0, endPos: 0 });
+  }, [message, atMention, uploadAtMentionState, closeDropdown]);
+
   // Listen for file suggestions response from extension
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
@@ -253,7 +294,9 @@ export const MessageInput: React.FC<MessageInputProps> = ({
         // Only process if this is the latest request
         if (message.requestId === requestIdRef.current) {
           setSuggestions(message.suggestions || []);
-          setSelectedIndex(0);
+          // Set initial selected index: -1 if no filter text (upload option), 0 otherwise
+          const hasFilterText = message.filterText && message.filterText.trim();
+          setSelectedIndex(hasFilterText ? 0 : -1);
           setIsLoadingSuggestions(false);
         }
       } else if (message.command === 'fileSuggestionsError') {
@@ -270,16 +313,32 @@ export const MessageInput: React.FC<MessageInputProps> = ({
         setSlashCommands([]);
         setIsLoadingSlashCommands(false);
         console.error('指令错误:', message.error);
+      } else if (message.command === 'uploadSuccess') {
+        console.log('文件上传成功:', message.uploadedFiles);
+        
+        // Insert uploaded file paths into the input after the @ symbol
+        if (message.uploadedFiles && message.uploadedFiles.length > 0) {
+          insertUploadedFilePaths(message.uploadedFiles);
+        }
+      } else if (message.command === 'uploadError') {
+        console.error('文件上传失败:', message.error);
+        // Could show an error notification here if needed
       }
     };
 
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
-  }, []);
+  }, [insertUploadedFilePaths]);
 
   // Handle file selection
   const handleFileSelect = useCallback((file: FileItem) => {
     if (!textareaRef.current) return;
+
+    // Handle upload option selection
+    if (file.isUploadOption) {
+      handleFileUpload();
+      return;
+    }
 
     const newMessage = message.slice(0, atMention.startPos) +
                       file.relativePath +
@@ -297,6 +356,74 @@ export const MessageInput: React.FC<MessageInputProps> = ({
       }
     }, 0);
   }, [message, atMention.startPos, atMention.endPos, closeDropdown]);
+
+  // Handle file upload
+  const handleFileUpload = useCallback(() => {
+    // Save the current atMention state before file dialog opens
+    setUploadAtMentionState(atMention);
+    
+    // Create a hidden file input element
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.multiple = true; // Support multiple file selection
+    fileInput.style.display = 'none';
+    
+    fileInput.onchange = (event) => {
+      const files = (event.target as HTMLInputElement).files;
+      if (files && files.length > 0) {
+        // Send files to backend for upload
+        const fileArray = Array.from(files);
+        vscode.postMessage({
+          command: 'uploadFiles',
+          files: fileArray.map(file => ({
+            name: file.name,
+            size: file.size,
+            type: file.type
+          }))
+        });
+        
+        // Read files as base64 for upload
+        const readers = fileArray.map(file => {
+          return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => {
+              resolve({
+                name: file.name,
+                size: file.size,
+                type: file.type,
+                data: reader.result
+              });
+            };
+            reader.onerror = reject;
+            reader.readAsArrayBuffer(file);
+          });
+        });
+        
+        Promise.all(readers).then(fileDataArray => {
+          vscode.postMessage({
+            command: 'uploadFilesToArtifacts',
+            files: fileDataArray
+          });
+        }).catch(error => {
+          console.error('Error reading files:', error);
+          vscode.postMessage({
+            command: 'showError',
+            message: '读取文件失败: ' + error.message
+          });
+        });
+      }
+      
+      // Cleanup
+      document.body.removeChild(fileInput);
+    };
+    
+    // Trigger file selection dialog
+    document.body.appendChild(fileInput);
+    fileInput.click();
+    
+    // Close the dropdown after triggering upload
+    closeDropdown();
+  }, [atMention, vscode, closeDropdown]);
 
   // Handle 指令 selection
   const handleSlashCommandSelect = useCallback((command: SlashCommand) => {
@@ -360,19 +487,27 @@ export const MessageInput: React.FC<MessageInputProps> = ({
     }
 
     // Handle dropdown navigation
-    if (atMention.isActive && suggestions.length > 0) {
+    if (atMention.isActive && (suggestions.length > 0 || !atMention.filterText)) {
+      const hasUploadOption = !atMention.filterText;
+      const totalItems = suggestions.length;
+      const minIndex = hasUploadOption ? -1 : 0;
+      const maxIndex = suggestions.length - 1;
+
       switch (event.key) {
         case 'ArrowUp':
           event.preventDefault();
-          setSelectedIndex(prev => Math.max(0, prev - 1));
+          setSelectedIndex(prev => Math.max(minIndex, prev - 1));
           return;
         case 'ArrowDown':
           event.preventDefault();
-          setSelectedIndex(prev => Math.min(suggestions.length - 1, prev + 1));
+          setSelectedIndex(prev => Math.min(maxIndex, prev + 1));
           return;
         case 'Enter':
           event.preventDefault();
-          if (suggestions[selectedIndex]) {
+          if (hasUploadOption && selectedIndex === -1) {
+            // Handle upload option
+            handleFileUpload();
+          } else if (suggestions[selectedIndex]) {
             handleFileSelect(suggestions[selectedIndex]);
           }
           return;
@@ -388,7 +523,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
       event.preventDefault();
       handleSend();
     }
-  }, [slashCommand.isActive, slashCommands, selectedSlashIndex, handleSlashCommandSelect, closeSlashCommandPopup, atMention.isActive, suggestions, selectedIndex, handleFileSelect, closeDropdown, handleSend, isComposing]);
+  }, [slashCommand.isActive, slashCommands, selectedSlashIndex, handleSlashCommandSelect, closeSlashCommandPopup, atMention.isActive, atMention.filterText, suggestions, selectedIndex, handleFileSelect, handleFileUpload, closeDropdown, handleSend, isComposing]);
 
   const handleInput = useCallback((event: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newValue = event.target.value;

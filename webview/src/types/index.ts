@@ -37,6 +37,8 @@ export interface FileItem {
   icon: string;
   /** Flag to distinguish files vs directories */
   isDirectory: boolean;
+  /** Flag to identify if this is the upload local files option */
+  isUploadOption?: boolean;
 }
 
 /**
@@ -67,6 +69,34 @@ export interface WebviewMessage {
   command: string;
   /** Additional command parameters */
   [key: string]: any;
+}
+
+// File upload related message types
+
+/**
+ * File data for upload
+ */
+export interface UploadFileData {
+  /** File name */
+  name: string;
+  /** File size in bytes */
+  size: number;
+  /** MIME type */
+  type: string;
+  /** File content as ArrayBuffer */
+  data: ArrayBuffer;
+}
+
+/**
+ * Basic file info for upload request
+ */
+export interface UploadFileInfo {
+  /** File name */
+  name: string;
+  /** File size in bytes */
+  size: number;
+  /** MIME type */
+  type: string;
 }
 
 // Component props
