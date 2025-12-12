@@ -30,6 +30,11 @@ function parseToolParameters(toolBlock: ToolBlock): unknown {
  * Transform Write tool parameters to changes
  */
 export function transformWriteParameters(parameters: WriteToolParameters): Change[] {
+  // Validate required parameters
+  if (!parameters || typeof parameters.content !== 'string') {
+    return [];
+  }
+  
   return [
     {
       oldContent: "", // No previous content for write operations
@@ -42,6 +47,13 @@ export function transformWriteParameters(parameters: WriteToolParameters): Chang
  * Transform Edit tool parameters to changes
  */
 export function transformEditParameters(parameters: EditToolParameters): Change[] {
+  // Validate required parameters
+  if (!parameters || 
+      typeof parameters.old_string !== 'string' || 
+      typeof parameters.new_string !== 'string') {
+    return [];
+  }
+  
   return [
     {
       oldContent: parameters.old_string,
@@ -54,7 +66,19 @@ export function transformEditParameters(parameters: EditToolParameters): Change[
  * Transform MultiEdit tool parameters to changes
  */
 export function transformMultiEditParameters(parameters: MultiEditToolParameters): Change[] {
-  return parameters.edits.map((edit) => ({
+  // Validate required parameters
+  if (!parameters || !Array.isArray(parameters.edits)) {
+    return [];
+  }
+  
+  // Filter out invalid edits
+  const validEdits = parameters.edits.filter(edit => 
+    edit && 
+    typeof edit.old_string === 'string' && 
+    typeof edit.new_string === 'string'
+  );
+  
+  return validEdits.map((edit) => ({
     oldContent: edit.old_string,
     newContent: edit.new_string,
   }));
