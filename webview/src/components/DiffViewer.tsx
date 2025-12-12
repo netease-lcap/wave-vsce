@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { diffLines, diffWords } from 'diff';
 import { transformToolBlockToChanges } from '../utils/diffTransform';
-import type { ToolBlock } from '../types';
+import type { ToolBlock } from 'wave-agent-sdk';
 import '../styles/DiffViewer.css';
 
 interface DiffViewerProps {
