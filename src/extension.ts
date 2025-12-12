@@ -9,24 +9,42 @@ export function activate(context: vscode.ExtensionContext) {
     // Create a single ChatProvider instance for the extension lifecycle
     chatProvider = new ChatProvider(context);
 
-    // Register the main chat command
-    const openChatCommand = vscode.commands.registerCommand('wave-code.openChat', async () => {
+    // Register sidebar command
+    const openChatSidebarCommand = vscode.commands.registerCommand('wave-code.openChatSidebar', async () => {
+        await openChatWithProgress('sidebar');
+    });
+
+    // Register new tab command (main shortcut)
+    const openChatTabCommand = vscode.commands.registerCommand('wave-code.openChatTab', async () => {
+        await openChatWithProgress('tab');
+    });
+
+    // Register new window command
+    const openChatWindowCommand = vscode.commands.registerCommand('wave-code.openChatWindow', async () => {
+        await openChatWithProgress('window');
+    });
+
+    async function openChatWithProgress(mode: 'sidebar' | 'tab' | 'window') {
         try {
             // Show progress indicator while opening chat
             await vscode.window.withProgress({
                 location: vscode.ProgressLocation.Notification,
-                title: "正在打开 Wave AI 聊天...",
+                title: `正在打开 Wave AI 聊天(${mode === 'sidebar' ? '侧边栏' : mode === 'tab' ? '标签页' : '新窗口'})...`,
                 cancellable: false
             }, async (progress) => {
-                await chatProvider!.createOrShowChatPanel();
+                await chatProvider!.createOrShowChatPanel(mode);
             });
         } catch (error) {
             console.error('打开聊天时出错:', error);
             vscode.window.showErrorMessage('打开聊天失败: ' + error);
         }
-    });
+    }
 
-    context.subscriptions.push(openChatCommand);
+    context.subscriptions.push(
+        openChatSidebarCommand,
+        openChatTabCommand,
+        openChatWindowCommand
+    );
     
     console.log('Wave 聊天命令注册成功');
 }

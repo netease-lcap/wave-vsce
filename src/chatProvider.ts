@@ -5,18 +5,46 @@ import * as os from 'os';
 import { glob } from 'glob';
 import { Agent, Message, listSessions, SessionMetadata, type PermissionDecision, type ToolPermissionContext, AgentCallbacks } from 'wave-agent-sdk';
 
-export class ChatProvider {
+interface ViewInstance {
+    agent: Agent | undefined;
+    messages: Message[];
+    sessionId: string | undefined;
+    pendingConfirmations: Map<string, { resolve: (decision: PermissionDecision) => void; toolName: string; }>;
+}
+
+export class ChatProvider implements vscode.WebviewViewProvider {
     private static readonly viewType = 'waveChatView';
     private panel: vscode.WebviewPanel | undefined;
-    private agent: Agent | undefined;
+    private webviewView: vscode.WebviewView | undefined;
+    private windowPanels: Map<string, vscode.WebviewPanel> = new Map(); // Track window panels by windowId
     private context: vscode.ExtensionContext;
-    private pendingConfirmations: Map<string, { resolve: (decision: PermissionDecision) => void; toolName: string; }> = new Map();
-    private currentMessages: Message[] = [];
-    private currentSessionId: string | undefined;
+    private currentViewMode: 'sidebar' | 'tab' | 'window' | undefined;
+    
+    // Separate instances for each view type
+    private sidebarInstance: ViewInstance = {
+        agent: undefined,
+        messages: [],
+        sessionId: undefined,
+        pendingConfirmations: new Map()
+    };
+    
+    private tabInstance: ViewInstance = {
+        agent: undefined,
+        messages: [],
+        sessionId: undefined,
+        pendingConfirmations: new Map()
+    };
+    
+    private windowInstances: Map<string, ViewInstance> = new Map(); // Each window has its own instance
 
     constructor(context: vscode.ExtensionContext) {
         this.context = context;
         console.log('创建了 ChatProvider');
+        
+        // Register as webview provider for sidebar
+        context.subscriptions.push(
+            vscode.window.registerWebviewViewProvider('waveChat', this)
+        );
         
         // Listen for workspace folder changes (for logging/awareness only)
         // Note: Agent workdir remains unchanged for secondary folder changes due to single workdir limitation
@@ -36,9 +64,96 @@ export class ChatProvider {
         this.context.subscriptions.push(workspaceChangeListener);
     }
 
-    private async initializeAgent(restoreSessionId?: string) {
+    // Implement WebviewViewProvider interface for sidebar
+    public resolveWebviewView(
+        webviewView: vscode.WebviewView,
+        context: vscode.WebviewViewResolveContext,
+        token: vscode.CancellationToken
+    ): void | Thenable<void> {
+        console.log('解析侧边栏webview视图');
+        this.webviewView = webviewView;
+        this.currentViewMode = 'sidebar';
+
+        webviewView.webview.options = {
+            enableScripts: true,
+            localResourceRoots: [this.context.extensionUri]
+        };
+
+        webviewView.webview.html = this.getWebviewContent(webviewView.webview);
+
+        webviewView.webview.onDidReceiveMessage(
+            async (message) => {
+                await this.handleWebviewMessage(message, 'sidebar');
+            },
+            undefined,
+            this.context.subscriptions
+        );
+
+        // Note: We don't handle onDidDispose for sidebar because it should be persistent
+        // The sidebar agent and its conversation should remain active even when the user
+        // switches to other sidebar panels. Only destroy it when the extension deactivates.
+
+        // Set sidebar visible context
+        vscode.commands.executeCommand('setContext', 'waveChatSidebarVisible', true);
+
+        // Initialize sidebar agent if not already done
+        if (!this.sidebarInstance.agent) {
+            this.initializeAgent('sidebar');
+        }
+
+        // Send initial state if we have data
+        if (this.sidebarInstance.messages.length > 0) {
+            this.updateChatMessages(this.sidebarInstance.messages, 'sidebar');
+        }
+    }
+
+    private postMessageToWebview(message: any, viewType?: 'sidebar' | 'tab' | 'window', windowId?: string) {
+        // If specific viewType is provided, only send to that view
+        if (viewType) {
+            console.log(`发送消息到 ${viewType}${windowId ? ` (${windowId})` : ''}:`, message.command);
+            if (viewType === 'sidebar' && this.webviewView) {
+                this.webviewView.webview.postMessage(message);
+            } else if (viewType === 'tab' && this.panel) {
+                this.panel.webview.postMessage(message);
+            } else if (viewType === 'window' && windowId) {
+                const windowPanel = this.windowPanels.get(windowId);
+                if (windowPanel) {
+                    try {
+                        windowPanel.webview.postMessage(message);
+                    } catch (error) {
+                        // Panel might be disposed, ignore error
+                        console.error(`Error sending message to window ${windowId}:`, error);
+                    }
+                } else {
+                    console.warn(`Window panel not found for windowId: ${windowId}`);
+                    console.log('Available window panels:', Array.from(this.windowPanels.keys()));
+                }
+            }
+            return;
+        }
+
+        // Default behavior: send to all active views
+        console.log(`广播消息到所有视图:`, message.command);
+        if (this.panel) {
+            this.panel.webview.postMessage(message);
+        }
+        if (this.webviewView) {
+            this.webviewView.webview.postMessage(message);
+        }
+        // Also send to all window panels
+        this.windowPanels.forEach((panel, windowId) => {
+            try {
+                panel.webview.postMessage(message);
+            } catch (error) {
+                // Panel might be disposed, ignore error
+                console.error(`Error sending message to window ${windowId}:`, error);
+            }
+        });
+    }
+
+    private async initializeAgent(viewType: 'sidebar' | 'tab' | 'window', windowId?: string, restoreSessionId?: string) {
         try {
-            console.log('正在初始化智能体，使用简化的流式处理...');
+            console.log(`正在初始化 ${viewType} 视图的智能体...`, windowId ? `窗口ID: ${windowId}` : '');
             
             // Detect current workspace folder for agent working directory
             const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
@@ -50,69 +165,135 @@ export class ChatProvider {
                 console.log('未检测到工作区文件夹，使用默认工作目录');
             }
             
+            // Get the appropriate instance
+            const instance = this.getViewInstance(viewType, windowId);
+            
             // Only use onMessagesChange as it contains all data including errors
             const callbacks: AgentCallbacks = {
                 onMessagesChange: (messages: Message[]) => {
-                    console.log('消息更新:', messages.length, '条消息');
-                    this.currentMessages = messages;
-                    this.updateChatMessages(messages);
+                    console.log(`${viewType} 消息更新:`, messages.length, '条消息');
+                    instance.messages = messages;
+                    this.updateChatMessages(messages, viewType, windowId);
                 },
                 onSessionIdChange: (sessionId: string) => {
-                    this.currentSessionId = sessionId;
+                    instance.sessionId = sessionId;
                     // Don't await here as callback is synchronous, but handle async work
-                    this.handleSessionIdChange(sessionId).catch(error => {
-                        console.error('❌ 处理会话ID变更时出错:', error);
+                    this.handleSessionIdChange(sessionId, viewType, windowId).catch(error => {
+                        console.error(`❌ 处理 ${viewType} 会话ID变更时出错:`, error);
                     });
                 },
                 onSubagentMessagesChange: (subagentId: string, messages: Message[]) => {
-                    console.log(`子智能体消息更新 [${subagentId}]:`, messages.length, '条消息');
-                    this.updateSubagentMessages(subagentId, messages);
+                    console.log(`${viewType} 子智能体消息更新 [${subagentId}]:`, messages.length, '条消息');
+                    this.updateSubagentMessages(subagentId, messages, viewType, windowId);
                 }
             };
 
-            this.agent = await Agent.create({
+            instance.agent = await Agent.create({
                 callbacks,
                 workdir,
                 restoreSessionId,
                 canUseTool: async (context: ToolPermissionContext): Promise<PermissionDecision> => {
-                    return await this.handleToolPermissionRequest(context);
+                    return await this.handleToolPermissionRequest(context, viewType, windowId);
                 }
             });
             
-            console.log('智能体初始化成功');
+            console.log(`${viewType} 智能体初始化成功`);
             
         } catch (error) {
-            console.error('初始化智能体失败:', error);
-            vscode.window.showErrorMessage('初始化 AI 智能体失败: ' + error);
+            console.error(`初始化 ${viewType} 智能体失败:`, error);
+            vscode.window.showErrorMessage(`初始化 ${viewType} AI 智能体失败: ` + error);
             
-            // Send error to webview
-            if (this.panel) {
-                this.panel.webview.postMessage({
-                    command: 'sessionsError',
-                    error: '初始化智能体失败: ' + error
+            // Send error to specific view
+            this.sendErrorToView(error, viewType, windowId);
+        }
+    }
+
+    private getViewInstance(viewType: 'sidebar' | 'tab' | 'window', windowId?: string): ViewInstance {
+        if (viewType === 'sidebar') {
+            return this.sidebarInstance;
+        } else if (viewType === 'tab') {
+            return this.tabInstance;
+        } else if (viewType === 'window' && windowId) {
+            if (!this.windowInstances.has(windowId)) {
+                this.windowInstances.set(windowId, {
+                    agent: undefined,
+                    messages: [],
+                    sessionId: undefined,
+                    pendingConfirmations: new Map()
                 });
+            }
+            return this.windowInstances.get(windowId)!;
+        } else {
+            throw new Error(`Invalid view type or missing windowId: ${viewType}, ${windowId}`);
+        }
+    }
+
+    /**
+     * Clean up a view instance (agent and state)
+     */
+    private async cleanupViewInstance(instance: ViewInstance, viewName: string): Promise<void> {
+        console.log(`清理 ${viewName} 实例资源...`);
+        
+        if (instance.agent) {
+            console.log(`销毁 ${viewName} agent...`);
+            try {
+                await instance.agent.destroy();
+                console.log(`${viewName} agent 销毁成功`);
+            } catch (error) {
+                console.error(`销毁 ${viewName} agent 时出错:`, error);
+            }
+            instance.agent = undefined;
+        }
+        
+        // Clear instance state
+        instance.messages = [];
+        instance.sessionId = undefined;
+        instance.pendingConfirmations.clear();
+        
+        console.log(`${viewName} 实例资源清理完成`);
+    }
+
+    private sendErrorToView(error: any, viewType: 'sidebar' | 'tab' | 'window', windowId?: string) {
+        const errorMessage = {
+            command: 'sessionsError',
+            error: `初始化${viewType}智能体失败: ` + error
+        };
+
+        if (viewType === 'sidebar' && this.webviewView) {
+            this.webviewView.webview.postMessage(errorMessage);
+        } else if (viewType === 'tab' && this.panel) {
+            this.panel.webview.postMessage(errorMessage);
+        } else if (viewType === 'window' && windowId) {
+            const windowPanel = this.windowPanels.get(windowId);
+            if (windowPanel) {
+                windowPanel.webview.postMessage(errorMessage);
             }
         }
     }
 
-    public async createOrShowChatPanel() {
-        console.log('调用了 createOrShowChatPanel');
-        
-        if (!this.agent) {
-            await this.initializeAgent();
+    public async createOrShowChatPanel(mode: 'sidebar' | 'tab' | 'window' = 'tab') {
+        console.log(`调用了 createOrShowChatPanel，模式: ${mode}`);
+
+        if (mode === 'sidebar') {
+            // Initialize sidebar agent if needed
+            if (!this.sidebarInstance.agent) {
+                await this.initializeAgent('sidebar');
+            }
+            // For sidebar mode, show the sidebar view
+            await vscode.commands.executeCommand('workbench.view.extension.waveChatView');
+            return;
         }
 
-        const columnToShowIn = vscode.window.activeTextEditor
-            ? vscode.window.activeTextEditor.viewColumn
-            : undefined;
-
-        if (this.panel) {
-            this.panel.reveal(columnToShowIn);
-        } else {
-            this.panel = vscode.window.createWebviewPanel(
-                ChatProvider.viewType,
-                'Wave AI 聊天',
-                columnToShowIn || vscode.ViewColumn.One,
+        // For tab and window modes, use webview panels
+        if (mode === 'window') {
+            // Generate unique window ID
+            const windowId = `window_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+            
+            // For window mode, create new panel and then move to new window
+            const newPanel = vscode.window.createWebviewPanel(
+                ChatProvider.viewType + '_window',
+                `CodeChat - 代码智聊`,
+                vscode.ViewColumn.One,
                 {
                     enableScripts: true,
                     localResourceRoots: [this.context.extensionUri],
@@ -120,11 +301,85 @@ export class ChatProvider {
                 }
             );
 
-            this.panel.webview.html = this.getWebviewContent();
+            // Add to window panels map with windowId as key BEFORE setting up message handler
+            this.windowPanels.set(windowId, newPanel);
+            
+            // Set up HTML content BEFORE message handler
+            newPanel.webview.html = this.getWebviewContent(newPanel.webview);
+
+            // Set up message handler
+            newPanel.webview.onDidReceiveMessage(
+                async (message) => {
+                    await this.handleWebviewMessage(message, 'window', windowId);
+                },
+                undefined,
+                this.context.subscriptions
+            );
+
+            newPanel.onDidDispose(
+                () => {
+                    console.log(`窗口面板被关闭 - 销毁 agent 和清理资源，窗口ID: ${windowId}`);
+                    
+                    // Remove from window panels map
+                    this.windowPanels.delete(windowId);
+                    
+                    // Clean up window instance
+                    const instance = this.windowInstances.get(windowId);
+                    if (instance) {
+                        this.cleanupViewInstance(instance, `窗口${windowId}`).then(() => {
+                            this.windowInstances.delete(windowId);
+                        });
+                    } else {
+                        console.log(`窗口 ${windowId} 实例未找到，可能已被清理`);
+                    }
+                },
+                null,
+                this.context.subscriptions
+            );
+            
+            // Initialize window agent AFTER panel setup
+            await this.initializeAgent('window', windowId);
+            
+            // Move the webview to a new window AFTER everything is set up
+            await vscode.commands.executeCommand('workbench.action.moveEditorToNewWindow');
+            
+            return;
+        }
+
+        // For tab mode only
+        if (!this.tabInstance.agent) {
+            await this.initializeAgent('tab');
+        }
+
+        const columnToShowIn = vscode.window.activeTextEditor
+            ? vscode.window.activeTextEditor.viewColumn
+            : undefined;
+
+        if (this.panel) {
+            // For tab mode, reveal existing panel
+            this.panel.reveal(columnToShowIn);
+        } else {
+            // Create new panel for tab mode
+            this.panel = vscode.window.createWebviewPanel(
+                ChatProvider.viewType,
+                'CodeChat - 代码智聊',
+                {
+                    viewColumn: columnToShowIn || vscode.ViewColumn.One,
+                    preserveFocus: false
+                },
+                {
+                    enableScripts: true,
+                    localResourceRoots: [this.context.extensionUri],
+                    retainContextWhenHidden: true
+                }
+            );
+
+            this.currentViewMode = 'tab';
+            this.panel.webview.html = this.getWebviewContent(this.panel.webview);
 
             this.panel.webview.onDidReceiveMessage(
                 async (message) => {
-                    await this.handleWebviewMessage(message);
+                    await this.handleWebviewMessage(message, 'tab');
                 },
                 undefined,
                 this.context.subscriptions
@@ -132,70 +387,83 @@ export class ChatProvider {
 
             this.panel.onDidDispose(
                 () => {
-                    this.panel = undefined;
+                    console.log('标签页面板被关闭 - 销毁 agent 和清理资源');
+                    this.cleanupViewInstance(this.tabInstance, '标签页').then(() => {
+                        this.panel = undefined;
+                        this.currentViewMode = undefined;
+                    });
                 },
                 null,
                 this.context.subscriptions
             );
+
+            // Send initial state to new panel
+            if (this.tabInstance.messages.length > 0) {
+                this.updateChatMessages(this.tabInstance.messages, 'tab');
+            }
         }
     }
 
-    private async handleWebviewMessage(message: any) {
+    private async handleWebviewMessage(message: any, viewType?: 'sidebar' | 'tab' | 'window', windowId?: string) {
+        const actualViewType = viewType || this.currentViewMode || 'tab';
+        console.log(`处理来自 ${actualViewType} 视图的消息:`, message.command, windowId ? `窗口ID: ${windowId}` : '');
+        
         switch (message.command) {
             case 'sendMessage':
-                await this.sendMessageToAgent(message.text, message.images);
+                await this.sendMessageToAgent(message.text, message.images, actualViewType, windowId);
                 break;
             case 'clearChat':
-                await this.clearChat();
+                await this.clearChat(actualViewType, windowId);
                 break;
             case 'abortMessage':
-                await this.abortMessage();
+                await this.abortMessage(actualViewType, windowId);
                 break;
             case 'listSessions':
-                await this.listSessions();
+                await this.listSessions(actualViewType, windowId);
                 break;
             case 'restoreSession':
-                await this.restoreSession(message.sessionId);
+                await this.restoreSession(message.sessionId, actualViewType, windowId);
                 break;
             case 'requestFileSuggestions':
-                await this.handleFileSuggestionsRequest(message.filterText, message.requestId);
+                await this.handleFileSuggestionsRequest(message.filterText, message.requestId, actualViewType, windowId);
                 break;
             case 'requestSlashCommands':
-                await this.handleSlashCommandsRequest(message.filterText);
+                await this.handleSlashCommandsRequest(message.filterText, actualViewType, windowId);
                 break;
             case 'confirmationResponse':
-                await this.handleConfirmationResponse(message.confirmationId, message.approved);
+                await this.handleConfirmationResponse(message.confirmationId, message.approved, actualViewType, windowId);
                 break;
             case 'getConfiguration':
-                await this.handleGetConfiguration();
+                await this.handleGetConfiguration(actualViewType, windowId);
                 break;
             case 'updateConfiguration':
-                await this.handleUpdateConfiguration(message.configurationData);
+                await this.handleUpdateConfiguration(message.configurationData, actualViewType, windowId);
                 break;
             case 'webviewReady':
-                await this.handleWebviewReady();
+                await this.handleWebviewReady(actualViewType, windowId);
                 break;
         }
     }
 
-    private async sendMessageToAgent(text: string, images?: Array<{ data: string; mediaType: string; }>) {
-        if (!this.agent) {
+    private async sendMessageToAgent(text: string, images?: Array<{ data: string; mediaType: string; }>, viewType?: 'sidebar' | 'tab' | 'window', windowId?: string) {
+        const actualViewType = viewType || 'tab';
+        const instance = this.getViewInstance(actualViewType, windowId);
+        
+        if (!instance.agent) {
             vscode.window.showErrorMessage('智能体未初始化');
             return;
         }
 
         try {
-            console.log('发送消息给智能体:', text);
+            console.log(`发送消息给 ${actualViewType} 智能体:`, text, windowId ? `窗口ID: ${windowId}` : '');
             if (images) {
                 console.log('包含图片:', images.length, '张');
             }
             
             // Start streaming before sending message
-            if (this.panel) {
-                this.panel.webview.postMessage({
-                    command: 'startStreaming'
-                });
-            }
+            this.postMessageToWebview({
+                command: 'startStreaming'
+            }, actualViewType, windowId);
             
             // Convert base64 images to SDK format (assuming SDK accepts base64 in path field)
             let processedImages: Array<{ path: string; mimeType: string; }> | undefined;
@@ -206,77 +474,78 @@ export class ChatProvider {
                 }));
             }
             
-            await this.agent.sendMessage(text, processedImages);
-            console.log('智能体 sendMessage 完成');
+            await instance.agent.sendMessage(text, processedImages);
+            console.log(`${actualViewType} 智能体 sendMessage 完成`);
             
             // End streaming after message is complete
-            if (this.panel) {
-                this.panel.webview.postMessage({
-                    command: 'endStreaming'
-                });
-            }
+            this.postMessageToWebview({
+                command: 'endStreaming'
+            }, actualViewType, windowId);
         } catch (error) {
-            console.error('发送消息给智能体时出错:', error);
+            console.error(`发送消息给 ${actualViewType} 智能体时出错:`, error);
             
             // End streaming on error
-            if (this.panel) {
-                this.panel.webview.postMessage({
-                    command: 'endStreaming'
-                });
-            }
+            this.postMessageToWebview({
+                command: 'endStreaming'
+            }, actualViewType, windowId);
             
             vscode.window.showErrorMessage('发送消息失败: ' + error);
         }
     }
 
-    private async abortMessage() {
-        if (!this.agent) {
-            console.log('智能体未初始化，无法中止消息');
+    private async abortMessage(viewType?: 'sidebar' | 'tab' | 'window', windowId?: string) {
+        const actualViewType = viewType || 'tab';
+        const instance = this.getViewInstance(actualViewType, windowId);
+        
+        if (!instance.agent) {
+            console.log(`${actualViewType} 智能体未初始化，无法中止消息`);
             return;
         }
 
         try {
-            console.log('正在中止消息...');
-            this.agent.abortMessage();
-            console.log('消息中止成功');
+            console.log(`正在中止 ${actualViewType} 消息...`);
+            instance.agent.abortMessage();
+            console.log(`${actualViewType} 消息中止成功`);
         } catch (error) {
-            console.error('中止消息时出错:', error);
+            console.error(`中止 ${actualViewType} 消息时出错:`, error);
             vscode.window.showErrorMessage('中止消息失败: ' + error);
         }
     }
 
-    private async clearChat() {
-        if (!this.agent) {
-            console.log('智能体未初始化，无法清除聊天');
+    private async clearChat(viewType?: 'sidebar' | 'tab' | 'window', windowId?: string) {
+        const actualViewType = viewType || 'tab';
+        const instance = this.getViewInstance(actualViewType, windowId);
+        
+        if (!instance.agent) {
+            console.log(`${actualViewType} 智能体未初始化，无法清除聊天`);
             return;
         }
 
         try {
-            console.log('正在清除聊天会话...');
-            await this.agent.sendMessage('/clear');
-            console.log('聊天会话清除成功');
+            console.log(`正在清除 ${actualViewType} 聊天会话...`);
+            await instance.agent.sendMessage('/clear');
+            console.log(`${actualViewType} 聊天会话清除成功`);
         } catch (error) {
-            console.error('清除聊天会话失败:', error);
+            console.error(`清除 ${actualViewType} 聊天会话失败:`, error);
             vscode.window.showErrorMessage('清除聊天失败: ' + error);
         }
     }
 
-    private async listSessions() {
+    private async listSessions(viewType?: 'sidebar' | 'tab' | 'window', windowId?: string) {
+        const actualViewType = viewType || 'tab';
         try {
             const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
             const workdir = workspaceFolder?.uri.fsPath || process.cwd();
 
-            console.log('获取会话列表，工作目录:', workdir);
+            console.log(`获取 ${actualViewType} 会话列表，工作目录:`, workdir);
             const sessions = await listSessions(workdir);
 
-            if (this.panel) {
-                this.panel.webview.postMessage({
-                    command: 'updateSessions',
-                    sessions: sessions
-                });
-            }
+            this.postMessageToWebview({
+                command: 'updateSessions',
+                sessions: sessions
+            }, actualViewType, windowId);
         } catch (error) {
-            console.error('获取会话列表失败:', error);
+            console.error(`获取 ${actualViewType} 会话列表失败:`, error);
 
             // Check if this is a directory not found error (ENOENT)
             const isDirectoryNotFound = error &&
@@ -287,92 +556,83 @@ export class ChatProvider {
             if (isDirectoryNotFound) {
                 // For missing Wave directory, silently handle by sending empty sessions list
                 console.log('Wave sessions directory does not exist yet, showing empty sessions list');
-                if (this.panel) {
-                    this.panel.webview.postMessage({
-                        command: 'updateSessions',
-                        sessions: []
-                    });
-                }
+                this.postMessageToWebview({
+                    command: 'updateSessions',
+                    sessions: []
+                }, actualViewType, windowId);
             } else {
                 // For other errors, show the error to the user
-                if (this.panel) {
-                    this.panel.webview.postMessage({
-                        command: 'sessionsError',
-                        error: '获取会话列表失败: ' + error
-                    });
-                }
+                this.postMessageToWebview({
+                    command: 'sessionsError',
+                    error: '获取会话列表失败: ' + error
+                }, actualViewType, windowId);
             }
         }
     }
 
-    private async restoreSession(sessionId: string) {
+    private async restoreSession(sessionId: string, viewType?: 'sidebar' | 'tab' | 'window', windowId?: string) {
+        const actualViewType = viewType || 'tab';
         if (!sessionId) {
             return;
         }
 
-        if (!this.agent) {
-            console.log('智能体未初始化，无法恢复会话');
+        const instance = this.getViewInstance(actualViewType, windowId);
+        if (!instance.agent) {
+            console.log(`智能体未初始化，无法恢复 ${actualViewType} 会话`);
             return;
         }
 
         try {
-            console.log('恢复会话:', sessionId);
+            console.log(`恢复 ${actualViewType} 会话:`, sessionId);
 
             // Use agent's restoreSession method instead of destroying and recreating
-            await this.agent.restoreSession(sessionId);
-            console.log('会话恢复成功');
+            await instance.agent.restoreSession(sessionId);
+            console.log(`${actualViewType} 会话恢复成功`);
 
         } catch (error) {
-            console.error('恢复会话失败:', error);
+            console.error(`恢复 ${actualViewType} 会话失败:`, error);
             vscode.window.showErrorMessage('恢复会话失败: ' + error);
 
-            if (this.panel) {
-                this.panel.webview.postMessage({
-                    command: 'sessionsError',
-                    error: '恢复会话失败: ' + error
-                });
-            }
+            this.postMessageToWebview({
+                command: 'sessionsError',
+                error: '恢复会话失败: ' + error
+            }, actualViewType, windowId);
         }
     }
 
-    private async handleFileSuggestionsRequest(filterText: string, requestId: string) {
+    private async handleFileSuggestionsRequest(filterText: string, requestId: string, viewType?: 'sidebar' | 'tab' | 'window', windowId?: string) {
+        const actualViewType = viewType || 'tab';
         try {
-            console.log('处理文件建议请求:', filterText, requestId);
+            console.log(`处理 ${actualViewType} 文件建议请求:`, filterText, requestId);
 
             const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
             if (!workspaceFolder) {
-                if (this.panel) {
-                    this.panel.webview.postMessage({
-                        command: 'fileSuggestionsResponse',
-                        suggestions: [],
-                        filterText: filterText,
-                        requestId: requestId
-                    });
-                }
+                this.postMessageToWebview({
+                    command: 'fileSuggestionsResponse',
+                    suggestions: [],
+                    filterText: filterText,
+                    requestId: requestId
+                }, actualViewType, windowId);
                 return;
             }
 
             // Find files in workspace with intelligent filtering
             const files = await this.findWorkspaceFiles(filterText);
 
-            if (this.panel) {
-                this.panel.webview.postMessage({
-                    command: 'fileSuggestionsResponse',
-                    suggestions: files,
-                    filterText: filterText,
-                    requestId: requestId
-                });
-            }
+            this.postMessageToWebview({
+                command: 'fileSuggestionsResponse',
+                suggestions: files,
+                filterText: filterText,
+                requestId: requestId
+            }, actualViewType, windowId);
 
         } catch (error) {
-            console.error('获取文件建议失败:', error);
-            if (this.panel) {
-                this.panel.webview.postMessage({
-                    command: 'fileSuggestionsError',
-                    error: '获取文件建议失败: ' + error,
-                    requestId: requestId
-                });
-            }
+            console.error(`获取 ${actualViewType} 文件建议失败:`, error);
+            this.postMessageToWebview({
+                command: 'fileSuggestionsError',
+                error: '获取文件建议失败: ' + error,
+                requestId: requestId
+            }, actualViewType, windowId);
         }
     }
 
@@ -511,34 +771,33 @@ export class ChatProvider {
         return 'codicon-file';
     }
 
-    private updateChatMessages(messages: Message[]) {
-        console.log('更新聊天消息:', messages.length);
-        if (this.panel) {
-            this.panel.webview.postMessage({
-                command: 'updateMessages',
-                messages: messages // Pass Message objects directly
-            });
-        }
+    private updateChatMessages(messages: Message[], viewType?: 'sidebar' | 'tab' | 'window', windowId?: string) {
+        console.log(`更新 ${viewType || '所有'} 聊天消息:`, messages.length, windowId ? `窗口ID: ${windowId}` : '');
+        this.postMessageToWebview({
+            command: 'updateMessages',
+            messages: messages // Pass Message objects directly
+        }, viewType, windowId);
     }
 
-    private updateSubagentMessages(subagentId: string, messages: Message[]) {
-        console.log(`更新子智能体 [${subagentId}] 消息:`, messages.length);
-        if (this.panel) {
-            this.panel.webview.postMessage({
-                command: 'updateSubagentMessages',
-                subagentId: subagentId,
-                messages: messages
-            });
-        }
+    private updateSubagentMessages(subagentId: string, messages: Message[], viewType?: 'sidebar' | 'tab' | 'window', windowId?: string) {
+        console.log(`更新 ${viewType || '所有'} 子智能体 [${subagentId}] 消息:`, messages.length, windowId ? `窗口ID: ${windowId}` : '');
+        this.postMessageToWebview({
+            command: 'updateSubagentMessages',
+            subagentId: subagentId,
+            messages: messages
+        }, viewType, windowId);
     }
 
-    private async handleToolPermissionRequest(context: ToolPermissionContext): Promise<PermissionDecision> {
-        console.log('handleToolPermissionRequest 被调用:', context.toolName);
+    private async handleToolPermissionRequest(context: ToolPermissionContext, viewType?: 'sidebar' | 'tab' | 'window', windowId?: string): Promise<PermissionDecision> {
+        const actualViewType = viewType || 'tab';
+        const instance = this.getViewInstance(actualViewType, windowId);
+        
+        console.log(`${actualViewType} handleToolPermissionRequest 被调用:`, context.toolName, windowId ? `窗口ID: ${windowId}` : '');
         return new Promise((resolve) => {
             const confirmationId = `confirmation_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
             // Store the resolve function to call later
-            this.pendingConfirmations.set(confirmationId, {
+            instance.pendingConfirmations.set(confirmationId, {
                 resolve,
                 toolName: context.toolName
             });
@@ -554,26 +813,27 @@ export class ChatProvider {
             }
 
             // Send confirmation request to webview
-            if (this.panel) {
-                this.panel.webview.postMessage({
-                    command: 'showConfirmation',
-                    confirmationId: confirmationId,
-                    toolName: context.toolName,
-                    confirmationType: confirmationType,
-                    toolInput: context.toolInput
-                });
-            }
+            this.postMessageToWebview({
+                command: 'showConfirmation',
+                confirmationId: confirmationId,
+                toolName: context.toolName,
+                confirmationType: confirmationType,
+                toolInput: context.toolInput
+            }, actualViewType, windowId);
         });
     }
 
-    private async handleConfirmationResponse(confirmationId: string, approved: boolean) {
-        const pending = this.pendingConfirmations.get(confirmationId);
+    private async handleConfirmationResponse(confirmationId: string, approved: boolean, viewType?: 'sidebar' | 'tab' | 'window', windowId?: string) {
+        const actualViewType = viewType || 'tab';
+        const instance = this.getViewInstance(actualViewType, windowId);
+        
+        const pending = instance.pendingConfirmations.get(confirmationId);
         if (!pending) {
-            console.warn('收到未知确认响应:', confirmationId);
+            console.warn(`收到 ${actualViewType} 未知确认响应:`, confirmationId);
             return;
         }
 
-        this.pendingConfirmations.delete(confirmationId);
+        instance.pendingConfirmations.delete(confirmationId);
 
         if (approved) {
             pending.resolve({ behavior: 'allow' });
@@ -584,34 +844,40 @@ export class ChatProvider {
             });
 
             // When user rejects, abort the current message
-            if (this.agent) {
+            const instance = this.getViewInstance(actualViewType, windowId);
+            if (instance.agent) {
                 try {
-                    this.agent.abortMessage();
-                    console.log('用户拒绝操作，已中止消息');
+                    instance.agent.abortMessage();
+                    console.log(`用户拒绝 ${actualViewType} 操作，已中止消息`);
                 } catch (error) {
-                    console.error('中止消息时出错:', error);
+                    console.error(`中止 ${actualViewType} 消息时出错:`, error);
                 }
             }
         }
     }
 
-    private async handleSessionIdChange(sessionId: string) {
-        console.log('🔄 处理会话ID变更:', sessionId);
-        if (this.panel && this.agent) {
-            console.log('📤 发送updateCurrentSession消息，新session ID:', sessionId);
+    private async handleSessionIdChange(sessionId: string, viewType?: 'sidebar' | 'tab' | 'window', windowId?: string) {
+        const actualViewType = viewType || 'tab';
+        console.log(`🔄 处理 ${actualViewType} 会话ID变更:`, sessionId, windowId ? `窗口ID: ${windowId}` : '');
+        
+        const instance = this.getViewInstance(actualViewType, windowId);
+        if (instance.agent) {
+            console.log(`📤 发送 ${actualViewType} updateCurrentSession消息，新session ID:`, sessionId);
             // Update current session info
-            this.panel.webview.postMessage({
+            this.postMessageToWebview({
                 command: 'updateCurrentSession',
                 session: {
                     id: sessionId,
                     sessionType: 'main',
-                    workdir: this.agent.workingDirectory,
+                    workdir: instance.agent.workingDirectory,
                     lastActiveAt: new Date(),
-                    latestTotalTokens: this.agent.latestTotalTokens
+                    latestTotalTokens: instance.agent.latestTotalTokens
                 } as SessionMetadata
-            });
+            }, actualViewType, windowId);
             
-            console.log('🔄 刷新会话列表...');
+            console.log(`🔄 刷新 ${actualViewType} 会话列表...`);
+            // Also trigger sessions list update for this view
+            await this.listSessions(actualViewType, windowId);
         }
     }
 
@@ -718,95 +984,105 @@ export class ChatProvider {
     /**
      * Handle getConfiguration message from webview
      */
-    private async handleGetConfiguration(): Promise<void> {
+    private async handleGetConfiguration(viewType?: 'sidebar' | 'tab' | 'window', windowId?: string): Promise<void> {
+        const actualViewType = viewType || 'tab';
         try {
             const config = await this.loadConfiguration();
-            if (this.panel) {
-                this.panel.webview.postMessage({
-                    command: 'configurationResponse',
-                    configurationData: config
-                });
-            }
+            this.postMessageToWebview({
+                command: 'configurationResponse',
+                configurationData: config
+            }, actualViewType, windowId);
         } catch (error) {
-            console.error('Failed to get configuration:', error);
-            if (this.panel) {
-                this.panel.webview.postMessage({
-                    command: 'configurationError',
-                    error: 'Failed to load configuration: ' + error
-                });
-            }
+            console.error(`Failed to get ${actualViewType} configuration:`, error);
+            this.postMessageToWebview({
+                command: 'configurationError',
+                error: 'Failed to load configuration: ' + error
+            }, actualViewType, windowId);
         }
     }
 
     /**
      * Handle updateConfiguration message from webview
      */
-    private async handleUpdateConfiguration(configData: any): Promise<void> {
+    private async handleUpdateConfiguration(configData: any, viewType?: 'sidebar' | 'tab' | 'window', windowId?: string): Promise<void> {
+        const actualViewType = viewType || 'tab';
         try {
             await this.saveConfiguration(configData);
-            if (this.panel) {
-                this.panel.webview.postMessage({
-                    command: 'configurationUpdated'
-                });
-            }
+            this.postMessageToWebview({
+                command: 'configurationUpdated'
+            }, actualViewType, windowId);
         } catch (error) {
-            console.error('Failed to update configuration:', error);
-            if (this.panel) {
-                this.panel.webview.postMessage({
-                    command: 'configurationError',
-                    error: 'Failed to save configuration: ' + error
-                });
-            }
+            console.error(`Failed to update ${actualViewType} configuration:`, error);
+            this.postMessageToWebview({
+                command: 'configurationError',
+                error: 'Failed to save configuration: ' + error
+            }, actualViewType, windowId);
         }
     }
 
-    private async handleWebviewReady(): Promise<void> {
-        console.log('Webview ready, sending initial state...');
+    private async handleWebviewReady(viewType?: 'sidebar' | 'tab' | 'window', windowId?: string): Promise<void> {
+        const actualViewType = viewType || 'tab';
+        console.log(`${actualViewType} Webview ready, sending initial state...`, windowId ? `窗口ID: ${windowId}` : '');
+        
+        const instance = this.getViewInstance(actualViewType, windowId);
+        console.log(`${actualViewType} 实例状态:`, {
+            hasAgent: !!instance.agent,
+            messagesCount: instance.messages.length,
+            sessionId: instance.sessionId
+        });
+        
+        // Initialize agent if not yet initialized (fallback for race conditions)
+        if (!instance.agent) {
+            console.log(`${actualViewType} agent 未初始化，正在初始化...`);
+            await this.initializeAgent(actualViewType, windowId);
+        }
         
         // Send current messages if we have them
-        if (this.currentMessages.length > 0) {
-            this.updateChatMessages(this.currentMessages);
+        if (instance.messages.length > 0) {
+            console.log(`发送 ${instance.messages.length} 条历史消息到 ${actualViewType}`);
+            this.updateChatMessages(instance.messages, actualViewType, windowId);
         }
         
         // Send current session info if available
-        if (this.currentSessionId && this.agent) {
-            if (this.panel) {
-                this.panel.webview.postMessage({
-                    command: 'updateCurrentSession',
-                    session: {
-                        id: this.currentSessionId,
-                        sessionType: 'main',
-                        workdir: this.agent.workingDirectory,
-                        lastActiveAt: new Date(),
-                        latestTotalTokens: this.agent.latestTotalTokens
-                    } as SessionMetadata
-                });
-            }
+        if (instance.sessionId && instance.agent) {
+            console.log(`发送会话信息到 ${actualViewType}:`, instance.sessionId);
+            this.postMessageToWebview({
+                command: 'updateCurrentSession',
+                session: {
+                    id: instance.sessionId,
+                    sessionType: 'main',
+                    workdir: instance.agent.workingDirectory,
+                    lastActiveAt: new Date(),
+                    latestTotalTokens: instance.agent.latestTotalTokens
+                } as SessionMetadata
+            }, actualViewType, windowId);
         }
         
         // Also trigger sessions list update
-        await this.listSessions();
+        console.log(`触发 ${actualViewType} 会话列表更新...`);
+        await this.listSessions(actualViewType, windowId);
     }
 
     /**
      * Handle requestSlashCommands message from webview
      */
-    private async handleSlashCommandsRequest(filterText: string) {
+    private async handleSlashCommandsRequest(filterText: string, viewType?: 'sidebar' | 'tab' | 'window', windowId?: string) {
+        const actualViewType = viewType || 'tab';
+        const instance = this.getViewInstance(actualViewType, windowId);
+        
         try {
-            console.log('处理指令请求:', filterText);
+            console.log(`处理 ${actualViewType} 指令请求:`, filterText);
 
-            if (!this.agent) {
-                if (this.panel) {
-                    this.panel.webview.postMessage({
-                        command: 'slashCommandsError',
-                        error: '智能体未初始化'
-                    });
-                }
+            if (!instance.agent) {
+                this.postMessageToWebview({
+                    command: 'slashCommandsError',
+                    error: '智能体未初始化'
+                }, actualViewType, windowId);
                 return;
             }
 
             // Get slash commands from the agent
-            const allCommands = this.agent.getSlashCommands();
+            const allCommands = instance.agent.getSlashCommands();
 
             // Filter commands based on filter text (only by id and name, not description)
             let filteredCommands = allCommands;
@@ -825,33 +1101,29 @@ export class ChatProvider {
                 description: command.description
             }));
 
-            if (this.panel) {
-                this.panel.webview.postMessage({
-                    command: 'slashCommandsResponse',
-                    commands: commands
-                });
-            }
+            this.postMessageToWebview({
+                command: 'slashCommandsResponse',
+                commands: commands
+            }, actualViewType, windowId);
 
         } catch (error) {
-            console.error('获取指令失败:', error);
-            if (this.panel) {
-                this.panel.webview.postMessage({
-                    command: 'slashCommandsError',
-                    error: '获取指令失败: ' + error
-                });
-            }
+            console.error(`获取 ${actualViewType} 指令失败:`, error);
+            this.postMessageToWebview({
+                command: 'slashCommandsError',
+                error: '获取指令失败: ' + error
+            }, actualViewType, windowId);
         }
     }
 
 
 
-    private getWebviewContent(): string {
-        const scriptUri = this.panel!.webview.asWebviewUri(
+    private getWebviewContent(webview: vscode.Webview): string {
+        const scriptUri = webview.asWebviewUri(
             vscode.Uri.joinPath(this.context.extensionUri, 'webview', 'dist', 'chat.js')
         );
 
         // Add codicon CSS URI
-        const codiconUri = this.panel!.webview.asWebviewUri(
+        const codiconUri = webview.asWebviewUri(
             vscode.Uri.joinPath(this.context.extensionUri, 'node_modules', '@vscode', 'codicons', 'dist', 'codicon.css')
         );
 
@@ -860,7 +1132,7 @@ export class ChatProvider {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${this.panel!.webview.cspSource} 'unsafe-inline'; script-src ${this.panel!.webview.cspSource}; font-src ${this.panel!.webview.cspSource};">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource} 'unsafe-inline'; script-src ${webview.cspSource}; font-src ${webview.cspSource};">
     <title>Wave AI Chat</title>
     <link rel="stylesheet" href="${codiconUri}">
 </head>
@@ -877,21 +1149,46 @@ export class ChatProvider {
     public async destroy() {
         console.log('ChatProvider 正在清理资源...');
         
-        // Destroy the agent if it exists
-        if (this.agent) {
-            try {
-                await this.agent.destroy();
-                console.log('智能体销毁成功');
-            } catch (error) {
-                console.error('销毁智能体时出错:', error);
+        // Destroy all agent instances
+        try {
+            // Clean up sidebar instance (only on extension deactivation)
+            await this.cleanupViewInstance(this.sidebarInstance, '侧边栏');
+            
+            // Clean up tab instance (also only on extension deactivation, 
+            // as tab disposal is handled separately)
+            await this.cleanupViewInstance(this.tabInstance, '标签页');
+            
+            // Clean up all window instances (also only on extension deactivation,
+            // as window disposal is handled separately)
+            for (const [windowId, instance] of this.windowInstances.entries()) {
+                await this.cleanupViewInstance(instance, `窗口${windowId}`);
             }
-            this.agent = undefined;
+            this.windowInstances.clear();
+            
+        } catch (error) {
+            console.error('销毁智能体时出错:', error);
         }
         
-        // Close the webview panel if it exists
+        // Close all webview panels
         if (this.panel) {
             this.panel.dispose();
             this.panel = undefined;
+        }
+
+        // Close all window panels
+        this.windowPanels.forEach((panel, windowId) => {
+            try {
+                panel.dispose();
+            } catch (error) {
+                // Panel might already be disposed
+                console.error(`Error disposing window panel ${windowId}:`, error);
+            }
+        });
+        this.windowPanels.clear();
+
+        // Clear webview view reference
+        if (this.webviewView) {
+            this.webviewView = undefined;
         }
         
         console.log('ChatProvider 资源清理完成');
