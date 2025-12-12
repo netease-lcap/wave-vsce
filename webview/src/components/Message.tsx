@@ -64,7 +64,17 @@ export const Message: React.FC<MessageProps> = (props) => {
       return '';
     }
 
-    // Process blocks differently based on type
+    // For user messages, return raw text (to be rendered in <pre>)
+    if (message.role === 'user') {
+      const textBlocks = message.blocks
+        .filter(block => block.type === 'text')
+        .map(block => (block as TextBlock).content || '')
+        .filter(content => content.trim());
+      
+      return textBlocks.join('\n\n');
+    }
+
+    // For assistant messages and others, return HTML
     const contentParts: string[] = [];
     
     message.blocks.forEach(block => {
@@ -72,12 +82,7 @@ export const Message: React.FC<MessageProps> = (props) => {
         const textBlock = block as TextBlock;
         const content = textBlock.content || '';
         if (content.trim()) {
-          // Only apply markdown rendering to assistant messages, not user messages
-          if (message.role === 'user') {
-            contentParts.push(escapeHtml(content));
-          } else {
-            contentParts.push(renderMarkdown(content));
-          }
+          contentParts.push(renderMarkdown(content));
         }
       } else if (block.type === 'memory') {
         // Apply markdown rendering to memory blocks for better readability
@@ -270,12 +275,18 @@ export const Message: React.FC<MessageProps> = (props) => {
     <div className={getMessageClassName()}>
       {/* Render content div if there's actual content */}
       {content.trim() && (
-        <div 
-          className="message-content markdown-content"
-          dangerouslySetInnerHTML={{ 
-            __html: content 
-          }}
-        />
+        message.role === 'user' ? (
+          <pre className="message-content user-content">
+            {content}
+          </pre>
+        ) : (
+          <div 
+            className="message-content markdown-content"
+            dangerouslySetInnerHTML={{ 
+              __html: content 
+            }}
+          />
+        )
       )}
       
       {/* Render image blocks */}
