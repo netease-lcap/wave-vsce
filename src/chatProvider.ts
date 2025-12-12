@@ -644,8 +644,9 @@ export class ChatProvider implements vscode.WebviewViewProvider {
 
         try {
             const allItems: any[] = [];
+            const workspacePath = workspaceFolder.uri.fsPath;
 
-            // 1. Get files using vscode.workspace.findFiles with filterText as glob pattern
+            // 1. Get files using glob package with case insensitive matching
             let filePattern = '**/*'; // Default pattern
             if (filterText && filterText.trim()) {
                 // Use filterText as glob pattern for file searching
@@ -657,27 +658,37 @@ export class ChatProvider implements vscode.WebviewViewProvider {
                 }
             }
 
-            const files = await vscode.workspace.findFiles(
-                filePattern,  // Use filterText-based pattern
-                '{**/node_modules/**,**/.git/**,**/dist/**,**/build/**,**/.vscode/**}', // Exclude common folders
-                15  // Limit to 15 files for better performance and UX
-            );
+            // Use glob to find files with case insensitive matching
+            const globOptions = {
+                cwd: workspacePath,
+                onlyFiles: true, // Only return files, not directories
+                nocase: true, // Case insensitive matching
+                ignore: [
+                    'node_modules/**',
+                    '.git/**',
+                    'dist/**',
+                    'build/**',
+                    '.vscode/**'
+                ],
+                maxDepth: 5 // Reasonable depth limit
+            };
+
+            const filePaths = await glob(filePattern, globOptions);
 
             // Convert files to FileItem format
-            const fileItems = files.map(uri => {
-                const relativePath = vscode.workspace.asRelativePath(uri);
-                const path = uri.fsPath;
-                const pathSegments = relativePath.split('/');
+            const fileItems = filePaths.slice(0, 15).map(relativePath => {
+                const fullPath = path.join(workspacePath, relativePath);
+                const pathSegments = relativePath.split(path.sep);
                 const name = pathSegments[pathSegments.length - 1];
                 const extensionMatch = name.match(/\.([^.]+)$/);
                 const extension = extensionMatch ? extensionMatch[1] : '';
 
                 return {
-                    path: path,
+                    path: fullPath,
                     relativePath: relativePath,
                     name: name,
                     extension: extension,
-                    icon: 'codicon-file',      // Simplified: all files use file icon
+                    icon: 'codicon-file',
                     isDirectory: false
                 };
             });
@@ -726,10 +737,11 @@ export class ChatProvider implements vscode.WebviewViewProvider {
                 }
             }
 
-            // Use glob to find directories
+            // Use glob to find directories with case insensitive matching
             const globOptions = {
                 cwd: workspacePath,
                 onlyDirectories: true,
+                nocase: true, // Case insensitive matching
                 ignore: [
                     'node_modules/**',
                     '.git/**',
@@ -737,7 +749,7 @@ export class ChatProvider implements vscode.WebviewViewProvider {
                     'build/**',
                     '.vscode/**'
                 ],
-                maxDepth: 3 // Limit depth to avoid scanning too deep
+                maxDepth: 5 // Limit depth to avoid scanning too deep
             };
 
             const dirPaths = await glob(dirPattern, globOptions);
