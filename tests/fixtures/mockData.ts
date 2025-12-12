@@ -167,15 +167,38 @@ export class MockDataGenerator {
     }
 
     /**
-     * Create a MultiEdit tool message
+     * Create an assistant message with a tool call that has an error
      */
-    static createMultiEditToolMessage(filePath: string, edits: Array<{old_string: string, new_string: string}>): Message {
-        return this.createAssistantMessageWithFileEdit(
-            `Making multiple edits to ${filePath}:`,
-            'MultiEdit',
-            filePath,
-            { edits: edits }
-        );
+    static createAssistantMessageWithToolError(textContent: string, toolName: string, toolParams: string, errorMessage: string): Message {
+        const blocks: MessageBlock[] = [];
+
+        if (textContent) {
+            blocks.push({
+                type: "text",
+                content: textContent
+            } as TextBlock);
+        }
+
+        const toolBlock: ToolBlock = {
+            type: "tool",
+            name: toolName,
+            parameters: toolParams,
+            compactParams: toolName === "Read" ? "file.ts" : 
+                          toolName === "Write" ? "config.json" : 
+                          toolName === "Bash" ? "npm install" : 
+                          `${toolName.toLowerCase()}`,
+            stage: "end",
+            success: false,
+            id: `tool_${Date.now()}`,
+            error: errorMessage
+        } as any; // Cast to any since error field might not be in the type definition yet
+
+        blocks.push(toolBlock);
+
+        return {
+            role: "assistant",
+            blocks: blocks
+        };
     }
     static createSampleConversation(): Message[] {
         return [

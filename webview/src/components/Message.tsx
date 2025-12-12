@@ -157,13 +157,21 @@ export const Message: React.FC<MessageProps> = (props) => {
       </div>
     );
 
+    // Render tool error if it exists (with same style as error blocks)
+    const errorContent = (toolBlock as any).error ? (
+      <div className="tool-error">
+        {escapeHtml((toolBlock as any).error)}
+      </div>
+    ) : null;
+
     // For Bash tools, add the bash-specific content below the header
     if (toolBlock.name === 'Bash') {
       const bashContent = renderBashIO(toolBlock);
-      if (bashContent) {
+      if (bashContent || errorContent) {
         return (
           <div key={index}>
             {toolHeader}
+            {errorContent}
             {bashContent}
           </div>
         );
@@ -175,6 +183,7 @@ export const Message: React.FC<MessageProps> = (props) => {
       return (
         <div key={index}>
           {toolHeader}
+          {errorContent}
           <TodoList toolBlock={toolBlock} />
         </div>
       );
@@ -185,7 +194,18 @@ export const Message: React.FC<MessageProps> = (props) => {
       return (
         <div key={index}>
           {toolHeader}
+          {errorContent}
           <DiffViewer toolBlock={toolBlock} />
+        </div>
+      );
+    }
+    
+    // For other tools, show error if present
+    if (errorContent) {
+      return (
+        <div key={index}>
+          {toolHeader}
+          {errorContent}
         </div>
       );
     }

@@ -1,0 +1,130 @@
+import { test, expect } from './utils/webviewTestHarness.js';
+import { MessageInjector } from './utils/messageInjector.js';
+import { MockDataGenerator } from './fixtures/mockData.js';
+
+/**
+ * Test tool block error rendering functionality
+ * 
+ * This test verifies that when a tool block has an error field,
+ * it is rendered with the same styling as error blocks.
+ */
+
+test.describe('Tool Block Error Rendering', () => {
+  test('should render tool error with proper styling', async ({ webviewPage }) => {
+    const injector = new MessageInjector(webviewPage);
+
+    // Create a message with a tool that has an error
+    const messageWithToolError = MockDataGenerator.createAssistantMessageWithToolError(
+      "I'll try to read the file for you.",
+      "Read",
+      '{"file_path": "/nonexistent/file.txt"}',
+      "File not found: /nonexistent/file.txt"
+    );
+
+    // Inject the message
+    await injector.updateMessages([messageWithToolError]);
+
+    // Wait for the message to appear
+    await webviewPage.waitForSelector('.message.assistant', { timeout: 5000 });
+
+    // Verify tool block exists
+    const toolBlock = await webviewPage.locator('.tool-block').first();
+    await expect(toolBlock).toBeVisible();
+    await expect(toolBlock).toContainText('🛠️ Read');
+
+    // Verify tool error exists and has proper styling
+    const toolError = await webviewPage.locator('.tool-error').first();
+    await expect(toolError).toBeVisible();
+    await expect(toolError).toContainText('File not found: /nonexistent/file.txt');
+
+    // Verify error styling matches error block styling
+    const errorStyles = await toolError.evaluate((element) => {
+      const styles = window.getComputedStyle(element);
+      return {
+        color: styles.color,
+        fontStyle: styles.fontStyle,
+        padding: styles.padding
+      };
+    });
+
+    // The error should have italic styling and proper padding
+    expect(errorStyles.fontStyle).toBe('italic');
+    expect(errorStyles.padding).toBe('8px 12px');
+  });
+
+  test('should render tool error for Bash tool with command output', async ({ webviewPage }) => {
+    const injector = new MessageInjector(webviewPage);
+
+    // Create a message with a Bash tool that has an error
+    const bashToolError = MockDataGenerator.createAssistantMessageWithToolError(
+      "I'll run that command for you.",
+      "Bash", 
+      '{"command": "invalid-command"}',
+      "bash: invalid-command: command not found"
+    );
+
+    // Inject the message
+    await injector.updateMessages([bashToolError]);
+
+    // Wait for the message to appear
+    await webviewPage.waitForSelector('.message.assistant', { timeout: 5000 });
+
+    // Verify both tool block and error exist
+    await expect(webviewPage.locator('.tool-block')).toContainText('🛠️ Bash');
+    await expect(webviewPage.locator('.tool-error')).toContainText('bash: invalid-command: command not found');
+  });
+
+  test('should render tool error for file editing tools', async ({ webviewPage }) => {
+    const injector = new MessageInjector(webviewPage);
+
+    // Create a message with a Write tool that has an error
+    const writeToolError = MockDataGenerator.createAssistantMessageWithToolError(
+      "I'll create that file for you.",
+      "Write",
+      '{"file_path": "/readonly/file.txt", "content": "test"}',
+      "Permission denied: /readonly/file.txt is not writable"
+    );
+
+    // Inject the message
+    await injector.updateMessages([writeToolError]);
+
+    // Wait for the message to appear
+    await webviewPage.waitForSelector('.message.assistant', { timeout: 5000 });
+
+    // Verify tool block and error exist
+    await expect(webviewPage.locator('.tool-block')).toContainText('🛠️ Write');
+    await expect(webviewPage.locator('.tool-error')).toContainText('Permission denied');
+    
+    // Check if diff viewer exists - it might not show if there's an error and no valid changes
+    const diffViewer = webviewPage.locator('.diff-viewer');
+    const diffViewerCount = await diffViewer.count();
+    
+    // Either diff viewer is visible OR not present (both are valid depending on tool error handling)
+    if (diffViewerCount > 0) {
+      await expect(diffViewer).toBeVisible();
+    }
+    // If diff viewer doesn't exist, that's also acceptable for error cases
+  });
+
+  test('should render tool without error normally', async ({ webviewPage }) => {
+    const injector = new MessageInjector(webviewPage);
+
+    // Create a normal tool message without error
+    const normalTool = MockDataGenerator.createAssistantMessageWithTool(
+      "I'll read the file for you.",
+      "Read",
+      '{"file_path": "/project/package.json"}',
+      '{"name": "test-project", "version": "1.0.0"}'
+    );
+
+    // Inject the message
+    await injector.updateMessages([normalTool]);
+
+    // Wait for the message to appear
+    await webviewPage.waitForSelector('.message.assistant', { timeout: 5000 });
+
+    // Verify tool block exists but no error
+    await expect(webviewPage.locator('.tool-block')).toBeVisible();
+    await expect(webviewPage.locator('.tool-error')).not.toBeVisible();
+  });
+});

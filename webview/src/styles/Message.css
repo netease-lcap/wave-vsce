@@ -48,6 +48,13 @@
     font-weight: bold;
 }
 
+.tool-error {
+    color: var(--vscode-descriptionForeground);
+    font-style: italic;
+    padding: 8px 12px;
+    margin-top: 4px;
+}
+
 /* Image blocks */
 .image-block {
     margin: 8px 0;
