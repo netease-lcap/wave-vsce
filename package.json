@@ -14,6 +14,9 @@
   "files": [
     "dist/",
     "webview/dist/",
+    "node_modules/@vscode/ripgrep/bin/",
+    "node_modules/@vscode/ripgrep/lib/",
+    "node_modules/@vscode/ripgrep/package.json",
     "LICENSE"
   ],
   "categories": [
@@ -68,6 +71,7 @@
     "@types/dompurify": "^3.0.5",
     "@types/marked": "^5.0.2",
     "@vscode/codicons": "^0.0.43",
+    "@vscode/ripgrep": "^1.15.6",
     "diff": "^8.0.2",
     "dompurify": "^3.3.0",
     "glob": "^13.0.0",

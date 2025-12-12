@@ -11,7 +11,8 @@ const extensionConfig = {
     libraryTarget: 'commonjs2'
   },
   externals: {
-    vscode: 'commonjs vscode'
+    vscode: 'commonjs vscode',
+    '@vscode/ripgrep': 'commonjs @vscode/ripgrep'
   },
   resolve: {
     extensions: ['.ts', '.js']
