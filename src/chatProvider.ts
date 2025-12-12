@@ -753,9 +753,10 @@ export class ChatProvider implements vscode.WebviewViewProvider {
             }
 
             // Use glob to find files with case insensitive matching
-            const globOptions = {
+
+            const filePaths = await glob(filePattern, {
                 cwd: workspacePath,
-                onlyFiles: true, // Only return files, not directories
+                nodir: true, // Only return files, not directories
                 nocase: true, // Case insensitive matching
                 ignore: [
                     'node_modules/**',
@@ -765,9 +766,8 @@ export class ChatProvider implements vscode.WebviewViewProvider {
                     '.vscode/**'
                 ],
                 maxDepth: 5 // Reasonable depth limit
-            };
+            });
 
-            const filePaths = await glob(filePattern, globOptions);
 
             // Convert files to FileItem format
             const fileItems = filePaths.slice(0, 15).map(relativePath => {
@@ -832,9 +832,9 @@ export class ChatProvider implements vscode.WebviewViewProvider {
             }
 
             // Use glob to find directories with case insensitive matching
-            const globOptions = {
+            const dirPaths = await glob(dirPattern, {
                 cwd: workspacePath,
-                onlyDirectories: true,
+                nodir: false, // Allow directories to be returned (default behavior)
                 nocase: true, // Case insensitive matching
                 ignore: [
                     'node_modules/**',
@@ -844,9 +844,7 @@ export class ChatProvider implements vscode.WebviewViewProvider {
                     '.vscode/**'
                 ],
                 maxDepth: 5 // Limit depth to avoid scanning too deep
-            };
-
-            const dirPaths = await glob(dirPattern, globOptions);
+            });
             
             // Convert to FileItem format
             return dirPaths.map(relativePath => {
