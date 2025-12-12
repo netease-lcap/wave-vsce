@@ -1,4 +1,4 @@
-import React, { useState, useCallback, KeyboardEvent, useEffect, useRef } from 'react';
+import React, { useState, useCallback, KeyboardEvent, useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
 import type { MessageInputProps, FileItem, ConfigurationData, SlashCommand, AttachedImage } from '../types';
 import { FileSuggestionDropdown } from './FileSuggestionDropdown';
 import { SlashCommandsPopup } from './SlashCommandsPopup';
@@ -21,7 +21,7 @@ interface SlashCommandState {
   endPos: number;
 }
 
-export const MessageInput: React.FC<MessageInputProps> = ({
+export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>(({
   onSendMessage,
   disabled,
   isStreaming,
@@ -36,7 +36,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
   onConfigurationOpen,
   onConfigurationSave,
   onConfigurationCancel
-}) => {
+}, ref) => {
   const [message, setMessage] = useState('');
   const [atMention, setAtMention] = useState<AtMentionState>({
     isActive: false,
@@ -73,6 +73,15 @@ export const MessageInput: React.FC<MessageInputProps> = ({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const configButtonRef = useRef<HTMLDivElement>(null);
   const requestIdRef = useRef<string>('');
+
+  // Expose focus method to parent component
+  useImperativeHandle(ref, () => ({
+    focus: () => {
+      if (textareaRef.current) {
+        textareaRef.current.focus();
+      }
+    }
+  }));
 
   // Auto-focus input on component mount
   useEffect(() => {
@@ -786,4 +795,4 @@ export const MessageInput: React.FC<MessageInputProps> = ({
       />
     </div>
   );
-};
+});

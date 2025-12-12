@@ -1,4 +1,4 @@
-import React, { useEffect, useReducer, useCallback } from 'react';
+import React, { useEffect, useReducer, useCallback, useRef, useImperativeHandle } from 'react';
 import { MessageList } from './MessageList';
 import { MessageInput } from './MessageInput';
 import { ChatHeader } from './ChatHeader';
@@ -130,6 +130,7 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
 
 export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
   const [state, dispatch] = useReducer(chatReducer, initialState);
+  const messageInputRef = useRef<{ focus: () => void }>(null);
 
   // Handle messages from VS Code extension
   useEffect(() => {
@@ -190,6 +191,12 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
           break;
         case 'configurationError':
           dispatch({ type: 'SET_CONFIGURATION_ERROR', payload: message.error });
+          break;
+        case 'focusInput':
+          // Focus the message input
+          if (messageInputRef.current && typeof messageInputRef.current.focus === 'function') {
+            messageInputRef.current.focus();
+          }
           break;
       }
     };
@@ -320,6 +327,7 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
       
       {!state.pendingConfirmation && (
         <MessageInput
+          ref={messageInputRef}
           onSendMessage={handleSendMessage}
           disabled={state.inputDisabled}
           isStreaming={state.isStreaming}

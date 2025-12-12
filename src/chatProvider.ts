@@ -229,6 +229,61 @@ export class ChatProvider implements vscode.WebviewViewProvider {
     }
 
     /**
+     * Focus the appropriate chat view and send focus message to webview
+     */
+    public async focusView() {
+        console.log('聚焦聊天视图...');
+
+        // Check for active views in order of priority: window > tab > sidebar
+        
+        // 1. Check for active window panels first
+        if (this.windowPanels.size > 0) {
+            // Find the most recently active window panel (we'll use the first one for now)
+            const windowPanel = this.windowPanels.values().next().value;
+            if (windowPanel) {
+                console.log('聚焦窗口视图');
+                windowPanel.reveal(vscode.ViewColumn.Active);
+                // Send focus message to window webview
+                windowPanel.webview.postMessage({ command: 'focusInput' });
+                return;
+            }
+        }
+
+        // 2. Check for tab panel
+        if (this.panel) {
+            console.log('聚焦标签页视图');
+            this.panel.reveal(vscode.ViewColumn.Active);
+            // Send focus message to tab webview
+            this.panel.webview.postMessage({ command: 'focusInput' });
+            return;
+        }
+
+        // 3. Check for sidebar
+        if (this.webviewView) {
+            console.log('聚焦侧边栏视图');
+            // Show the sidebar view
+            await vscode.commands.executeCommand('workbench.view.extension.waveChatView');
+            // Send focus message to sidebar webview
+            setTimeout(() => {
+                if (this.webviewView) {
+                    this.webviewView.webview.postMessage({ command: 'focusInput' });
+                }
+            }, 100);
+            return;
+        }
+
+        // 4. No views are open, create a new tab view
+        console.log('未找到活动视图，创建新的标签页视图');
+        await this.createOrShowChatPanel('tab');
+        // Focus message will be sent when webview is ready
+        setTimeout(() => {
+            if (this.panel) {
+                this.panel.webview.postMessage({ command: 'focusInput' });
+            }
+        }, 100);
+    }
+
+    /**
      * Clean up a view instance (agent and state)
      */
     private async cleanupViewInstance(instance: ViewInstance, viewName: string): Promise<void> {

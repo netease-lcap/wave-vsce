@@ -24,6 +24,16 @@ export function activate(context: vscode.ExtensionContext) {
         await openChatWithProgress('window');
     });
 
+    // Register focus view command
+    const focusViewCommand = vscode.commands.registerCommand('wave-code.focusView', async () => {
+        try {
+            await chatProvider!.focusView();
+        } catch (error) {
+            console.error('聚焦视图时出错:', error);
+            vscode.window.showErrorMessage('聚焦视图失败: ' + error);
+        }
+    });
+
     async function openChatWithProgress(mode: 'sidebar' | 'tab' | 'window') {
         try {
             // Show progress indicator while opening chat
@@ -43,7 +53,8 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(
         openChatSidebarCommand,
         openChatTabCommand,
-        openChatWindowCommand
+        openChatWindowCommand,
+        focusViewCommand
     );
     
     console.log('Wave 聊天命令注册成功');

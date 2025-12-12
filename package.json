@@ -57,6 +57,11 @@
         "command": "wave-code.openChatWindow",
         "title": "在新窗口打开代码智聊",
         "category": "Wave"
+      },
+      {
+        "command": "wave-code.focusView",
+        "title": "聚焦到聊天输入框",
+        "category": "Wave"
       }
     ],
     "keybindings": [
@@ -69,6 +74,11 @@
         "command": "wave-code.openChatTab",
         "key": "ctrl+shift+w",
         "mac": "cmd+shift+w"
+      },
+      {
+        "command": "wave-code.focusView",
+        "key": "ctrl+shift+f",
+        "mac": "cmd+shift+f"
       }
     ]
   },
