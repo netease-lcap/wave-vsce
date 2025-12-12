@@ -10,12 +10,14 @@ const extensionConfig = {
     filename: 'extension.js',
     libraryTarget: 'commonjs2'
   },
-  devtool: 'nosources-source-map',
   externals: {
     vscode: 'commonjs vscode'
   },
   resolve: {
     extensions: ['.ts', '.js']
+  },
+  cache: {
+    type: 'filesystem', // Enable filesystem caching for faster rebuilds
   },
   module: {
     rules: [
@@ -26,7 +28,7 @@ const extensionConfig = {
           {
             loader: 'ts-loader',
             options: {
-              configFile: 'tsconfig.json'
+              configFile: 'tsconfig.json',
             }
           }
         ]
@@ -51,6 +53,9 @@ const webviewConfig = {
       "buffer": false
     }
   },
+  cache: {
+    type: 'filesystem', // Enable filesystem caching for faster rebuilds
+  },
   plugins: [
     new (require('webpack')).DefinePlugin({
       'process': false
@@ -70,7 +75,7 @@ const webviewConfig = {
           {
             loader: 'ts-loader',
             options: {
-              configFile: 'webview/tsconfig.json'
+              configFile: 'webview/tsconfig.json',
             }
           }
         ]
