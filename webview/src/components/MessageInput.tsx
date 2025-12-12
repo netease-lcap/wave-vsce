@@ -256,8 +256,8 @@ export const MessageInput: React.FC<MessageInputProps> = ({
   const insertUploadedFilePaths = useCallback((uploadedFiles: string[]) => {
     if (!textareaRef.current || uploadedFiles.length === 0) return;
 
-    // Create file paths string (space-separated for multiple files)
-    const filePaths = uploadedFiles.join(' ');
+    // Create file paths string (space-separated for multiple files) and add trailing space
+    const filePaths = uploadedFiles.join(' ') + ' '; // Add space after file paths
     
     // Use the saved atMention state from when upload was triggered, not the current one
     // This prevents issues caused by focus loss during file selection dialog
@@ -340,8 +340,9 @@ export const MessageInput: React.FC<MessageInputProps> = ({
       return;
     }
 
+    const filePathWithSpace = file.relativePath + ' '; // Add space after file path
     const newMessage = message.slice(0, atMention.startPos) +
-                      file.relativePath +
+                      filePathWithSpace +
                       message.slice(atMention.endPos);
 
     setMessage(newMessage);
@@ -351,7 +352,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
     setTimeout(() => {
       if (textareaRef.current) {
         textareaRef.current.focus();
-        const newCursorPos = atMention.startPos + file.relativePath.length;
+        const newCursorPos = atMention.startPos + filePathWithSpace.length;
         textareaRef.current.setSelectionRange(newCursorPos, newCursorPos);
       }
     }, 0);
