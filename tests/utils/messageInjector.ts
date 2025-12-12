@@ -1,11 +1,11 @@
 import { Page } from '@playwright/test';
-import type { Message } from 'wave-agent-sdk';
+import type { Message, SessionMetadata } from 'wave-agent-sdk';
 
 /**
  * Utilities for injecting messages and simulating extension communication
  */
 export class MessageInjector {
-    constructor(private page: Page) {}
+    constructor(private page: Page, private vscode?: any) {}
 
     /**
      * Simulate receiving messages from the extension
@@ -140,5 +140,25 @@ export class MessageInjector {
      */
     async setSessionsError(error: string) {
         await this.simulateExtensionMessage('sessionsError', { error });
+    }
+
+    /**
+     * Simulate webview ready initialization with existing messages and session
+     */
+    async simulateWebviewReady(messages: Message[], currentSession?: SessionMetadata) {
+        // First simulate the extension receiving the webviewReady command
+        // and responding with the initial state
+
+        if (messages.length > 0) {
+            await this.updateMessages(messages);
+        }
+
+        if (currentSession) {
+            await this.updateCurrentSession(currentSession);
+        }
+
+        // Simulate sessions list (we can use an empty array or include the current session)
+        const sessions = currentSession ? [currentSession] : [];
+        await this.updateSessions(sessions);
     }
 }

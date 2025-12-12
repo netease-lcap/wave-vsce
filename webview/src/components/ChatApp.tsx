@@ -260,11 +260,11 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
     ? state.messages.length - 1 
     : undefined;
 
-  // Load sessions on component mount
+  // Initialize webview and load sessions on component mount
   useEffect(() => {
     dispatch({ type: 'SET_SESSIONS_LOADING', payload: true });
     vscode.postMessage({
-      command: 'listSessions'
+      command: 'webviewReady'
     });
   }, [vscode]);
 

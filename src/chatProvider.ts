@@ -11,6 +11,8 @@ export class ChatProvider {
     private agent: Agent | undefined;
     private context: vscode.ExtensionContext;
     private pendingConfirmations: Map<string, { resolve: (decision: PermissionDecision) => void; toolName: string; }> = new Map();
+    private currentMessages: Message[] = [];
+    private currentSessionId: string | undefined;
 
     constructor(context: vscode.ExtensionContext) {
         this.context = context;
@@ -52,9 +54,11 @@ export class ChatProvider {
             const callbacks: AgentCallbacks = {
                 onMessagesChange: (messages: Message[]) => {
                     console.log('消息更新:', messages.length, '条消息');
+                    this.currentMessages = messages;
                     this.updateChatMessages(messages);
                 },
                 onSessionIdChange: (sessionId: string) => {
+                    this.currentSessionId = sessionId;
                     // Don't await here as callback is synchronous, but handle async work
                     this.handleSessionIdChange(sessionId).catch(error => {
                         console.error('❌ 处理会话ID变更时出错:', error);
@@ -167,6 +171,9 @@ export class ChatProvider {
                 break;
             case 'updateConfiguration':
                 await this.handleUpdateConfiguration(message.configurationData);
+                break;
+            case 'webviewReady':
+                await this.handleWebviewReady();
                 break;
         }
     }
@@ -751,6 +758,34 @@ export class ChatProvider {
                 });
             }
         }
+    }
+
+    private async handleWebviewReady(): Promise<void> {
+        console.log('Webview ready, sending initial state...');
+        
+        // Send current messages if we have them
+        if (this.currentMessages.length > 0) {
+            this.updateChatMessages(this.currentMessages);
+        }
+        
+        // Send current session info if available
+        if (this.currentSessionId && this.agent) {
+            if (this.panel) {
+                this.panel.webview.postMessage({
+                    command: 'updateCurrentSession',
+                    session: {
+                        id: this.currentSessionId,
+                        sessionType: 'main',
+                        workdir: this.agent.workingDirectory,
+                        lastActiveAt: new Date(),
+                        latestTotalTokens: this.agent.latestTotalTokens
+                    } as SessionMetadata
+                });
+            }
+        }
+        
+        // Also trigger sessions list update
+        await this.listSessions();
     }
 
     /**
