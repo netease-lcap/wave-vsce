@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
-import { glob } from 'glob';
+import { glob } from 'fs/promises'; // Use Node.js 22 native glob from fs/promises
 import { Agent, Message, listSessions, SessionMetadata, type PermissionDecision, type ToolPermissionContext, AgentCallbacks } from 'wave-agent-sdk';
 
 interface ViewInstance {
@@ -740,37 +740,55 @@ export class ChatProvider implements vscode.WebviewViewProvider {
             const allItems: any[] = [];
             const workspacePath = workspaceFolder.uri.fsPath;
 
-            // 1. Get files using glob package with case insensitive matching
-            let filePattern = '**/*'; // Default pattern
+            // Create glob pattern based on filter text
+            let pattern = '**/*'; // Default pattern
             if (filterText && filterText.trim()) {
-                // Use filterText as glob pattern for file searching
-                // If filterText doesn't contain wildcards, wrap it with wildcards
+                // Use filterText as glob pattern for searching
                 if (!filterText.includes('*') && !filterText.includes('?')) {
-                    filePattern = `**/*${filterText}*`;
+                    pattern = `**/*${filterText}*`;
                 } else {
-                    filePattern = filterText;
+                    pattern = filterText;
                 }
             }
 
-            // Use glob to find files with case insensitive matching
-
-            const filePaths = await glob(filePattern, {
+            // 🚀 Using Node.js 22 native glob with advanced features:
+            // - withFileTypes: true - Get Dirent objects directly (no fs.stat() calls needed!)
+            // - exclude: string[] - Use glob patterns for efficient filtering
+            const globIterator = glob(pattern, {
                 cwd: workspacePath,
-                nodir: true, // Only return files, not directories
-                nocase: true, // Case insensitive matching
-                ignore: [
-                    'node_modules/**',
-                    '.git/**',
-                    'dist/**',
-                    'build/**',
-                    '.vscode/**'
-                ],
-                maxDepth: 5 // Reasonable depth limit
+                withFileTypes: true, // Returns Dirent objects with type info built-in
+                exclude: [
+                    'node_modules/**',  // Exclude node_modules and all subdirectories
+                    '.git/**',          // Exclude git directory
+                    'dist/**',          // Exclude build output
+                    'build/**',         // Exclude build directory
+                    '.vscode/**',       // Exclude VS Code settings
+                    '**/.DS_Store',     // Exclude macOS metadata files
+                    '**/Thumbs.db'      // Exclude Windows metadata files
+                ]
             });
 
+            const files: string[] = [];
+            const directories: string[] = [];
 
-            // Convert files to FileItem format
-            const fileItems = filePaths.slice(0, 15).map(relativePath => {
+            // Collect files and directories from Dirent objects
+            // 💡 Performance boost: Dirent.isFile()/isDirectory() is much faster than fs.stat()
+            for await (const dirent of globIterator) {
+                // Type assertion needed as Node.js 22 Dirent has additional properties not yet in @types/node
+                const direntWithPath = dirent as any;
+                const relativePath = direntWithPath.parentPath 
+                    ? path.relative(workspacePath, path.join(direntWithPath.parentPath, dirent.name))
+                    : dirent.name;
+                
+                if (dirent.isFile()) {
+                    files.push(relativePath);
+                } else if (dirent.isDirectory()) {
+                    directories.push(relativePath);
+                }
+            }
+
+            // Convert files to FileItem format (limit to 15 files)
+            const fileItems = files.slice(0, 15).map((relativePath: string) => {
                 const fullPath = path.join(workspacePath, relativePath);
                 const pathSegments = relativePath.split(path.sep);
                 const name = pathSegments[pathSegments.length - 1];
@@ -787,13 +805,26 @@ export class ChatProvider implements vscode.WebviewViewProvider {
                 };
             });
 
-            // 2. Get directories using glob package
-            const directories = await this.findWorkspaceDirectories(workspaceFolder, filterText);
+            // Convert directories to FileItem format (limit to 5 directories)
+            const directoryItems = directories.slice(0, 5).map((relativePath: string) => {
+                const fullPath = path.join(workspacePath, relativePath);
+                const pathSegments = relativePath.split(path.sep);
+                const name = pathSegments[pathSegments.length - 1];
+                
+                return {
+                    path: fullPath,
+                    relativePath: relativePath,
+                    name: name,
+                    extension: '',
+                    icon: 'codicon-folder',
+                    isDirectory: true
+                };
+            });
 
             // Combine files and directories
-            allItems.push(...fileItems, ...directories);
+            allItems.push(...fileItems, ...directoryItems);
 
-            // 3. Sort by relevance
+            // Sort by relevance
             allItems.sort((a, b) => {
                 const aNameMatch = a.name.toLowerCase().startsWith((filterText || '').toLowerCase());
                 const bNameMatch = b.name.toLowerCase().startsWith((filterText || '').toLowerCase());
@@ -801,7 +832,7 @@ export class ChatProvider implements vscode.WebviewViewProvider {
                 if (aNameMatch && !bNameMatch) return -1;
                 if (!aNameMatch && bNameMatch) return 1;
 
-                // Prefer directories over files (optional)
+                // Prefer directories over files
                 if (a.isDirectory && !b.isDirectory) return -1;
                 if (!a.isDirectory && b.isDirectory) return 1;
 
@@ -815,65 +846,6 @@ export class ChatProvider implements vscode.WebviewViewProvider {
         }
     }
 
-    // Find directories using glob package
-    private async findWorkspaceDirectories(workspaceFolder: vscode.WorkspaceFolder, filterText: string): Promise<any[]> {
-        try {
-            const workspacePath = workspaceFolder.uri.fsPath;
-            
-            // Create glob pattern for directories
-            let dirPattern = '**/*/'; // Default pattern for directories
-            if (filterText && filterText.trim()) {
-                // Create pattern that matches directories containing filterText
-                if (!filterText.includes('*') && !filterText.includes('?')) {
-                    dirPattern = `**/*${filterText}*/`;
-                } else {
-                    dirPattern = filterText.endsWith('/') ? filterText : `${filterText}/`;
-                }
-            }
-
-            // Use glob to find directories with case insensitive matching
-            const dirPaths = await glob(dirPattern, {
-                cwd: workspacePath,
-                nodir: false, // Allow directories to be returned (default behavior)
-                nocase: true, // Case insensitive matching
-                ignore: [
-                    'node_modules/**',
-                    '.git/**',
-                    'dist/**',
-                    'build/**',
-                    '.vscode/**'
-                ],
-                maxDepth: 5 // Limit depth to avoid scanning too deep
-            });
-            
-            // Convert to FileItem format
-            return dirPaths.map(relativePath => {
-                const fullPath = path.join(workspacePath, relativePath);
-                const pathSegments = relativePath.split(path.sep);
-                const name = pathSegments[pathSegments.length - 1] || pathSegments[pathSegments.length - 2]; // Handle trailing slash
-                
-                return {
-                    path: fullPath,
-                    relativePath: relativePath.replace(/\/$/, ''), // Remove trailing slash
-                    name: name,
-                    extension: '',
-                    icon: 'codicon-folder',
-                    isDirectory: true
-                };
-            });
-        } catch (error) {
-            console.error('使用 glob 搜索目录失败:', error);
-            return [];
-        }
-    }
-
-
-
-    private getFileIcon(extension: string): string {
-        // Simplified: only return 'codicon-file'
-        // Directory icons are handled in the findWorkspaceFiles method
-        return 'codicon-file';
-    }
 
     private updateChatMessages(messages: Message[], viewType?: 'sidebar' | 'tab' | 'window', windowId?: string) {
         console.log(`更新 ${viewType || '所有'} 聊天消息:`, messages.length, windowId ? `窗口ID: ${windowId}` : '');
