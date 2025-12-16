@@ -347,7 +347,7 @@ export class ChatProvider implements vscode.WebviewViewProvider {
             // For window mode, create new panel and then move to new window
             const newPanel = vscode.window.createWebviewPanel(
                 ChatProvider.viewType + '_window',
-                `CodeChat - 代码智聊`,
+                `Wave - 代码智聊`,
                 vscode.ViewColumn.One,
                 {
                     enableScripts: true,
@@ -417,7 +417,7 @@ export class ChatProvider implements vscode.WebviewViewProvider {
             // Create new panel for tab mode
             this.panel = vscode.window.createWebviewPanel(
                 ChatProvider.viewType,
-                'CodeChat - 代码智聊',
+                'Wave - 代码智聊',
                 {
                     viewColumn: columnToShowIn || vscode.ViewColumn.One,
                     preserveFocus: false
