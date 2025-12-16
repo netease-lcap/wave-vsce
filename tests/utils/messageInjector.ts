@@ -161,4 +161,20 @@ export class MessageInjector {
         const sessions = currentSession ? [currentSession] : [];
         await this.updateSessions(sessions);
     }
+
+    /**
+     * Send webviewReady message to simulate webview initialization/re-initialization
+     */
+    async sendWebviewReady() {
+        await this.page.evaluate(() => {
+            // Simulate what happens when webview sends 'webviewReady' to extension
+            // In real scenario, extension would respond with current state
+            if (window.vscode && window.vscode.postMessage) {
+                window.vscode.postMessage({ command: 'webviewReady' });
+            }
+        });
+        
+        // Small delay to allow message processing
+        await this.page.waitForTimeout(50);
+    }
 }

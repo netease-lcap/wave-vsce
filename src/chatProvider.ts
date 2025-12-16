@@ -10,6 +10,7 @@ interface ViewInstance {
     messages: Message[];
     sessionId: string | undefined;
     pendingConfirmations: Map<string, { resolve: (decision: PermissionDecision) => void; toolName: string; }>;
+    isStreaming: boolean;
 }
 
 export class ChatProvider implements vscode.WebviewViewProvider {
@@ -25,14 +26,16 @@ export class ChatProvider implements vscode.WebviewViewProvider {
         agent: undefined,
         messages: [],
         sessionId: undefined,
-        pendingConfirmations: new Map()
+        pendingConfirmations: new Map(),
+        isStreaming: false
     };
     
     private tabInstance: ViewInstance = {
         agent: undefined,
         messages: [],
         sessionId: undefined,
-        pendingConfirmations: new Map()
+        pendingConfirmations: new Map(),
+        isStreaming: false
     };
     
     private windowInstances: Map<string, ViewInstance> = new Map(); // Each window has its own instance
@@ -219,7 +222,8 @@ export class ChatProvider implements vscode.WebviewViewProvider {
                     agent: undefined,
                     messages: [],
                     sessionId: undefined,
-                    pendingConfirmations: new Map()
+                    pendingConfirmations: new Map(),
+                    isStreaming: false
                 });
             }
             return this.windowInstances.get(windowId)!;
@@ -304,6 +308,7 @@ export class ChatProvider implements vscode.WebviewViewProvider {
         instance.messages = [];
         instance.sessionId = undefined;
         instance.pendingConfirmations.clear();
+        instance.isStreaming = false;
         
         console.log(`${viewName} 实例资源清理完成`);
     }
@@ -522,6 +527,7 @@ export class ChatProvider implements vscode.WebviewViewProvider {
             }
             
             // Start streaming before sending message
+            instance.isStreaming = true;
             this.postMessageToWebview({
                 command: 'startStreaming'
             }, actualViewType, windowId);
@@ -539,6 +545,7 @@ export class ChatProvider implements vscode.WebviewViewProvider {
             console.log(`${actualViewType} 智能体 sendMessage 完成`);
             
             // End streaming after message is complete
+            instance.isStreaming = false;
             this.postMessageToWebview({
                 command: 'endStreaming'
             }, actualViewType, windowId);
@@ -546,6 +553,7 @@ export class ChatProvider implements vscode.WebviewViewProvider {
             console.error(`发送消息给 ${actualViewType} 智能体时出错:`, error);
             
             // End streaming on error
+            instance.isStreaming = false;
             this.postMessageToWebview({
                 command: 'endStreaming'
             }, actualViewType, windowId);
@@ -1123,7 +1131,8 @@ export class ChatProvider implements vscode.WebviewViewProvider {
         console.log(`${actualViewType} 实例状态:`, {
             hasAgent: !!instance.agent,
             messagesCount: instance.messages.length,
-            sessionId: instance.sessionId
+            sessionId: instance.sessionId,
+            isStreaming: instance.isStreaming
         });
         
         // Initialize agent if not yet initialized (fallback for race conditions)
@@ -1136,6 +1145,14 @@ export class ChatProvider implements vscode.WebviewViewProvider {
         if (instance.messages.length > 0) {
             console.log(`发送 ${instance.messages.length} 条历史消息到 ${actualViewType}`);
             this.updateChatMessages(instance.messages, actualViewType, windowId);
+        }
+        
+        // Restore streaming state if still streaming
+        if (instance.isStreaming) {
+            console.log(`恢复 ${actualViewType} streaming 状态`);
+            this.postMessageToWebview({
+                command: 'startStreaming'
+            }, actualViewType, windowId);
         }
         
         // Send current session info if available
