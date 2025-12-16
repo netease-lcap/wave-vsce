@@ -1,5 +1,5 @@
 import React from 'react';
-import type { SessionSelectorProps, SessionMetadata } from '../types';
+import type { SessionSelectorProps, ExtendedSessionMetadata } from '../types';
 import '../styles/SessionSelector.css';
 
 export const SessionSelector: React.FC<SessionSelectorProps> = ({
@@ -17,7 +17,14 @@ export const SessionSelector: React.FC<SessionSelectorProps> = ({
     }
   };
 
-  const formatSessionLabel = (session: SessionMetadata): string => {
+  const formatSessionLabel = (session: ExtendedSessionMetadata): string => {
+    // Use first message content if available, limited to 30 characters
+    if (session.firstMessageContent && session.firstMessageContent.trim()) {
+      const content = session.firstMessageContent.trim();
+      return content.length > 30 ? content.substring(0, 30) + '...' : content;
+    }
+    
+    // Fallback to date/time format
     const date = new Date(session.lastActiveAt).toLocaleDateString();
     const time = new Date(session.lastActiveAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     return `${date} ${time}`;

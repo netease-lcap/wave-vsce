@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 import type {  Message, SessionMetadata, PermissionDecision, ToolPermissionContext, AgentCallbacks } from 'wave-agent-sdk';
-import { Agent, listSessions, searchFilesRipgrep,  } from 'wave-agent-sdk';
+import { Agent, listSessions, searchFilesRipgrep, getFirstMessageContent } from 'wave-agent-sdk';
 
 interface ViewInstance {
     agent: Agent | undefined;
@@ -599,11 +599,33 @@ export class ChatProvider implements vscode.WebviewViewProvider {
             const workdir = workspaceFolder?.uri.fsPath || process.cwd();
 
             console.log(`获取 ${actualViewType} 会话列表，工作目录:`, workdir);
-            const sessions = await listSessions(workdir);
+            const allSessions = await listSessions(workdir);
+            
+            // Slice to get only first 5 sessions
+            const sessions = allSessions.slice(0, 5);
+            
+            // Add first message content to each session
+            const sessionsWithContent = await Promise.all(
+                sessions.map(async (session) => {
+                    try {
+                        const firstMessageContent = await getFirstMessageContent(session.id, workdir);
+                        return {
+                            ...session,
+                            firstMessageContent: firstMessageContent || ''
+                        };
+                    } catch (error) {
+                        console.warn(`Failed to get first message content for session ${session.id}:`, error);
+                        return {
+                            ...session,
+                            firstMessageContent: ''
+                        };
+                    }
+                })
+            );
 
             this.postMessageToWebview({
                 command: 'updateSessions',
-                sessions: sessions
+                sessions: sessionsWithContent
             }, actualViewType, windowId);
         } catch (error) {
             console.error(`获取 ${actualViewType} 会话列表失败:`, error);
