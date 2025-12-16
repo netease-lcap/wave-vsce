@@ -1,0 +1,248 @@
+/* Mermaid Renderer Component Styles */
+.mermaid-renderer {
+  border: 1px solid var(--vscode-panel-border);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--vscode-editor-background);
+  margin: 12px 0;
+}
+
+/* Tab Navigation */
+.mermaid-tabs {
+  display: flex;
+  background: var(--vscode-editorGroupHeader-tabsBackground);
+  border-bottom: 1px solid var(--vscode-panel-border);
+  position: relative;
+}
+
+.tab-button {
+  background: transparent;
+  border: none;
+  padding: 8px 16px;
+  font-size: 12px;
+  font-family: var(--vscode-font-family);
+  color: var(--vscode-tab-inactiveForeground);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.tab-button:hover {
+  background: var(--vscode-tab-hoverBackground);
+  color: var(--vscode-tab-activeForeground);
+}
+
+.tab-button.active {
+  color: var(--vscode-tab-activeForeground);
+  border-bottom-color: var(--vscode-tab-activeBorder, var(--vscode-focusBorder));
+  background: var(--vscode-tab-activeBackground);
+}
+
+/* Tab Content */
+.mermaid-content {
+  min-height: 200px;
+  position: relative;
+}
+
+/* Preview Tab Styles */
+.mermaid-preview {
+  padding: 16px;
+  text-align: center;
+  background: var(--vscode-editor-background);
+}
+
+.mermaid-container {
+  display: inline-block;
+  max-width: 100%;
+  overflow: auto;
+}
+
+.mermaid-container svg {
+  max-width: 100%;
+  height: auto;
+  background: transparent;
+}
+
+/* Dark theme adjustments for mermaid diagrams */
+.vscode-dark .mermaid-container svg {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+.vscode-dark .mermaid-container svg .node rect,
+.vscode-dark .mermaid-container svg .node circle,
+.vscode-dark .mermaid-container svg .node ellipse,
+.vscode-dark .mermaid-container svg .node polygon {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+/* Source Tab Styles */
+.mermaid-source {
+  padding: 0;
+  background: var(--vscode-textCodeBlock-background);
+}
+
+.source-code {
+  margin: 0;
+  padding: 16px;
+  background: var(--vscode-textCodeBlock-background);
+  color: var(--vscode-editor-foreground);
+  font-family: var(--vscode-editor-font-family, 'Menlo', 'Monaco', 'Courier New', monospace);
+  font-size: var(--vscode-editor-font-size, 13px);
+  line-height: 1.6;
+  overflow-x: auto;
+  border: none;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+/* Loading State */
+.mermaid-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  color: var(--vscode-foreground);
+  font-family: var(--vscode-font-family);
+  font-size: 14px;
+}
+
+.loading-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--vscode-progressBar-background);
+  border-top: 2px solid var(--vscode-progressBar-foreground);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-right: 8px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Error State */
+.mermaid-error {
+  padding: 16px;
+  background: var(--vscode-inputValidation-errorBackground);
+  color: var(--vscode-inputValidation-errorForeground);
+  border-left: 4px solid var(--vscode-inputValidation-errorBorder);
+  font-family: var(--vscode-font-family);
+}
+
+.error-icon {
+  font-size: 18px;
+  margin-bottom: 8px;
+}
+
+.error-message {
+  font-size: 13px;
+}
+
+.error-message strong {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.error-message pre {
+  margin: 0 0 12px 0;
+  padding: 8px;
+  background: var(--vscode-textCodeBlock-background);
+  border-radius: 4px;
+  font-family: var(--vscode-editor-font-family, 'Menlo', 'Monaco', 'Courier New', monospace);
+  font-size: 12px;
+  line-height: 1.4;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+/* Action Buttons */
+.retry-button {
+  background: var(--vscode-button-background);
+  color: var(--vscode-button-foreground);
+  border: none;
+  border-radius: 4px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-family: var(--vscode-font-family);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.retry-button:hover {
+  background: var(--vscode-button-hoverBackground);
+}
+
+.retry-button:active {
+  background: var(--vscode-button-activeBackground, var(--vscode-button-background));
+}
+
+/* Empty State */
+.mermaid-empty {
+  padding: 24px;
+  text-align: center;
+  color: var(--vscode-descriptionForeground);
+  font-family: var(--vscode-font-family);
+}
+
+.mermaid-empty p {
+  margin: 0 0 12px 0;
+  font-size: 13px;
+}
+
+/* Improved Source Tab */
+.mermaid-source {
+  padding: 0;
+  background: var(--vscode-textCodeBlock-background);
+  display: flex;
+  flex-direction: column;
+  min-height: 200px;
+}
+
+.source-code {
+  margin: 0;
+  padding: 16px;
+  background: var(--vscode-textCodeBlock-background);
+  color: var(--vscode-editor-foreground);
+  font-family: var(--vscode-editor-font-family, 'Menlo', 'Monaco', 'Courier New', monospace);
+  font-size: var(--vscode-editor-font-size, 13px);
+  line-height: 1.6;
+  overflow-x: auto;
+  border: none;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  flex: 1;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+  .mermaid-preview {
+    padding: 12px;
+  }
+  
+  .source-code {
+    padding: 12px;
+    font-size: 12px;
+  }
+  
+  .tab-button {
+    padding: 6px 12px;
+    font-size: 11px;
+  }
+}
+
+/* High contrast theme support */
+.vscode-high-contrast .mermaid-renderer {
+  border: 2px solid var(--vscode-contrastBorder);
+}
+
+.vscode-high-contrast .tab-button.active {
+  border-bottom-width: 3px;
+}
+
+.vscode-high-contrast .mermaid-container svg {
+  filter: none;
+}

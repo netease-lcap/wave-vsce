@@ -5,6 +5,7 @@ import type { MessageProps, TextBlock, ErrorBlock, ToolBlock, SubagentBlock, Ima
 import { DiffViewer } from './DiffViewer';
 import { TodoList } from './TodoList';
 import { SubagentDisplay } from './SubagentDisplay';
+import { MermaidRenderer } from './MermaidRenderer';
 import '../styles/Message.css';
 
 // Configure marked for VS Code webview context
@@ -19,21 +20,67 @@ const escapeHtml = (text: string): string => {
   return div.innerHTML;
 };
 
-// Render markdown content with sanitization
-const renderMarkdown = (content: string): string => {
+// Interface for parsed markdown content that may contain mermaid diagrams
+interface ParsedMarkdownContent {
+  elements: Array<{
+    type: 'html' | 'mermaid';
+    content: string;
+    id?: string;
+  }>;
+}
+
+// Parse markdown content and extract mermaid blocks
+const parseMarkdownWithMermaid = (content: string): ParsedMarkdownContent => {
   if (!content || content.trim() === '') {
-    return '';
+    return { elements: [] };
   }
+
+  const elements: Array<{ type: 'html' | 'mermaid'; content: string; id?: string; }> = [];
   
-  // Parse markdown to HTML
-  const html = marked.parse(content);
+  // Split content by mermaid blocks
+  const parts = content.split(/(```mermaid\n[\s\S]*?\n```)/g);
   
-  // Sanitize HTML to prevent XSS while preserving formatting
-  return DOMPurify.sanitize(html, {
-    ALLOWED_TAGS: ['p', 'br', 'strong', 'b', 'em', 'i', 'code', 'pre', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'a', 'blockquote'],
-    ALLOWED_ATTR: ['href', 'title'],
-    ALLOW_DATA_ATTR: false
-  });
+  let mermaidIndex = 0;
+  
+  for (let i = 0; i < parts.length; i++) {
+    const part = parts[i];
+    
+    if (part.match(/^```mermaid\n[\s\S]*?\n```$/)) {
+      // This is a mermaid block
+      const mermaidContent = part.replace(/^```mermaid\n/, '').replace(/\n```$/, '').trim();
+      elements.push({
+        type: 'mermaid',
+        content: mermaidContent,
+        id: `mermaid-${mermaidIndex++}`
+      });
+    } else if (part.trim()) {
+      // This is regular markdown content
+      const html = marked.parse(part);
+      const sanitizedHtml = DOMPurify.sanitize(html, {
+        ALLOWED_TAGS: ['p', 'br', 'strong', 'b', 'em', 'i', 'code', 'pre', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'a', 'blockquote'],
+        ALLOWED_ATTR: ['href', 'title'],
+        ALLOW_DATA_ATTR: false
+      });
+      
+      if (sanitizedHtml.trim()) {
+        elements.push({
+          type: 'html',
+          content: sanitizedHtml
+        });
+      }
+    }
+  }
+
+  return { elements };
+};
+
+// Legacy function for backward compatibility
+const renderMarkdown = (content: string): string => {
+  const parsed = parseMarkdownWithMermaid(content);
+  return parsed.elements
+    .filter(el => el.type === 'html')
+    .map(el => el.content)
+    .join('');
 };
 
 export const Message: React.FC<MessageProps> = (props) => {
@@ -59,9 +106,9 @@ export const Message: React.FC<MessageProps> = (props) => {
     return classes.join(' ');
   };
 
-  const renderContent = () => {
+  const renderContent = (): { elements: Array<{ type: 'html' | 'mermaid'; content: string; id?: string; }>; isUserMessage: boolean } => {
     if (!message.blocks || message.blocks.length === 0) {
-      return '';
+      return { elements: [], isUserMessage: false };
     }
 
     // For user messages, return raw text (to be rendered in <pre>)
@@ -71,38 +118,47 @@ export const Message: React.FC<MessageProps> = (props) => {
         .map(block => (block as TextBlock).content || '')
         .filter(content => content.trim());
       
-      return textBlocks.join('\n\n');
+      const content = textBlocks.join('\n\n');
+      return { 
+        elements: content ? [{ type: 'html', content }] : [],
+        isUserMessage: true 
+      };
     }
 
-    // For assistant messages and others, return HTML
-    const contentParts: string[] = [];
+    // For assistant messages and others, process content with mermaid support
+    let allElements: Array<{ type: 'html' | 'mermaid'; content: string; id?: string; }> = [];
     
     message.blocks.forEach(block => {
       if (block.type === 'text') {
         const textBlock = block as TextBlock;
         const content = textBlock.content || '';
         if (content.trim()) {
-          contentParts.push(renderMarkdown(content));
+          const parsed = parseMarkdownWithMermaid(content);
+          allElements = allElements.concat(parsed.elements);
         }
       } else if (block.type === 'memory') {
         // Apply markdown rendering to memory blocks for better readability
         const memoryBlock = block as any; // Memory block type not imported
         const content = memoryBlock.content || '';
         if (content) {
-          contentParts.push(renderMarkdown(content));
+          const parsed = parseMarkdownWithMermaid(content);
+          allElements = allElements.concat(parsed.elements);
         }
       } else if (block.type === 'error') {
         const errorBlock = block as ErrorBlock;
         const content = errorBlock.content || '';
         if (content) {
           // Keep error content as plain text for clarity
-          contentParts.push(escapeHtml(content));
+          allElements.push({ type: 'html', content: escapeHtml(content) });
         }
       }
       // Other block types (compress, diff, etc.) are ignored in main content
     });
 
-    return contentParts.join('');
+    return { 
+      elements: allElements,
+      isUserMessage: false
+    };
   };
 
   const renderBashIO = (toolBlock: ToolBlock) => {
@@ -269,23 +325,35 @@ export const Message: React.FC<MessageProps> = (props) => {
   const toolBlocks = message.blocks?.filter(block => block.type === 'tool') || [];
   const subagentBlocks = message.blocks?.filter(block => block.type === 'subagent') || [];
   const imageBlocks = message.blocks?.filter(block => block.type === 'image') || [];
-  const content = renderContent();
+  const contentResult = renderContent();
 
   return (
     <div className={getMessageClassName()}>
-      {/* Render content div if there's actual content */}
-      {content.trim() && (
-        message.role === 'user' ? (
+      {/* Render content elements */}
+      {contentResult.elements.length > 0 && (
+        contentResult.isUserMessage ? (
           <pre className="message-content user-content">
-            {content}
+            {contentResult.elements.map(el => el.content).join('')}
           </pre>
         ) : (
-          <div 
-            className="message-content markdown-content"
-            dangerouslySetInnerHTML={{ 
-              __html: content 
-            }}
-          />
+          <div className="message-content-container">
+            {contentResult.elements.map((element, index) => (
+              element.type === 'mermaid' ? (
+                <MermaidRenderer 
+                  key={element.id || `mermaid-${index}`}
+                  content={element.content}
+                />
+              ) : (
+                <div 
+                  key={`html-${index}`}
+                  className="message-content markdown-content"
+                  dangerouslySetInnerHTML={{ 
+                    __html: element.content 
+                  }}
+                />
+              )
+            ))}
+          </div>
         )
       )}
       

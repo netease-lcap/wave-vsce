@@ -28,6 +28,34 @@
 .message.streaming::after {
     content: "▋";
     animation: blink 1s ease-in-out infinite;
+
+/* Content Container for Mixed HTML/Mermaid Content */
+.message-content-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.message-content-container .message-content {
+    margin: 0;
+}
+
+.message-content-container .mermaid-renderer {
+    margin: 12px 0;
+}
+
+/* Mermaid React Container Styling */
+.mermaid-react-container {
+    margin: 16px 0;
+    display: block;
+    width: 100%;
+}
+
+.mermaid-placeholder {
+    display: block;
+    height: 0;
+    overflow: hidden;
+}
     margin-left: 2px;
     display: inline-block;
 }
