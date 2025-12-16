@@ -214,7 +214,7 @@ test.describe('File Upload Feature', () => {
 
     // Verify that file paths are inserted into the input
     const inputValue = await messageInput.inputValue();
-    expect(inputValue).toBe('.wave/artifacts/document.pdf .wave/artifacts/image.png');
+    expect(inputValue).toBe('.wave/artifacts/document.pdf .wave/artifacts/image.png ');
   });
 
   test('should handle single file upload path insertion', async ({ webviewPage }) => {
@@ -245,7 +245,7 @@ test.describe('File Upload Feature', () => {
 
     // Verify that single file path is inserted into the input
     const inputValue = await messageInput.inputValue();
-    expect(inputValue).toBe('.wave/artifacts/single-file.txt');
+    expect(inputValue).toBe('.wave/artifacts/single-file.txt ');
   });
 
   test('should insert file path correctly in basic scenario', async ({ webviewPage }) => {
@@ -275,7 +275,7 @@ test.describe('File Upload Feature', () => {
 
     // Verify that file path replaces the @ symbol correctly
     const inputValue = await messageInput.inputValue();
-    expect(inputValue).toBe('.wave/artifacts/test.pdf');
+    expect(inputValue).toBe('.wave/artifacts/test.pdf ');
   });
 
   test('should not add extra @ symbol when inserting file paths', async ({ webviewPage }) => {
@@ -305,7 +305,7 @@ test.describe('File Upload Feature', () => {
 
     // Verify that file path replaces filter text correctly and doesn't add extra @
     const inputValue = await messageInput.inputValue();
-    expect(inputValue).toBe('.wave/artifacts/uploaded-file.txt');
+    expect(inputValue).toBe('.wave/artifacts/uploaded-file.txt ');
     expect(inputValue).not.toContain('@'); // Should completely replace @test with file path
   });
 
