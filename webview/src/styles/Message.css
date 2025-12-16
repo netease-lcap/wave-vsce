@@ -7,7 +7,6 @@
     display: flex;
     gap: 10px;
     flex-direction: column;
-    align-self: flex-start;
 }
 
 .message.user {
@@ -16,6 +15,8 @@
     border-radius: 8px;
     padding: 8px 12px;
     margin-bottom: 8px;
+    overflow-wrap: break-word; /* 长词自动换行 */
+    word-break: break-word; /* 兼容性 */
 }
 
 .message.error {
