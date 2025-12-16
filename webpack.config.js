@@ -45,8 +45,7 @@ const webviewConfig = {
   entry: './webview/src/index.tsx',
   output: {
     path: path.resolve(__dirname, 'webview', 'dist'),
-    filename: 'chat.js',
-    publicPath: ''
+    filename: 'chat.js'
   },
   resolve: {
     extensions: ['.tsx', '.ts', '.js', '.jsx'],

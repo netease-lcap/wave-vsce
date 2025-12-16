@@ -26,9 +26,37 @@ export const test = base.extend<WebviewTestContext>({
 
         // Load the React webview app for testing
         const chatJsPath = path.join(process.cwd(), 'webview', 'dist', 'chat.js');
+        const webviewDistPath = path.join(process.cwd(), 'webview', 'dist');
 
-        // Read the compiled React bundle
-        const jsContent = fs.readFileSync(chatJsPath, 'utf-8');
+        // Serve the webview files through a mock server that simulates vscode-webview:// protocol
+        await page.route('vscode-webview://**', (route, request) => {
+            const url = new URL(request.url());
+            const pathname = url.pathname;
+            
+            // Remove leading slash and map to actual file
+            const filename = pathname.substring(1);
+            const filePath = path.join(webviewDistPath, filename);
+            
+            if (fs.existsSync(filePath)) {
+                const content = fs.readFileSync(filePath);
+                const ext = path.extname(filename);
+                
+                let contentType = 'application/octet-stream';
+                if (ext === '.js') contentType = 'application/javascript';
+                else if (ext === '.css') contentType = 'text/css';
+                
+                route.fulfill({
+                    status: 200,
+                    contentType,
+                    body: content
+                });
+            } else {
+                route.fulfill({
+                    status: 404,
+                    body: `File not found: ${filename}`
+                });
+            }
+        });
 
         // Create a minimal HTML page that matches the React app structure
         const testHtml = `
@@ -104,13 +132,7 @@ export const test = base.extend<WebviewTestContext>({
     <script>
         ${mockVscodeApiJs}
     </script>
-    <script>
-        try {
-            ${jsContent}
-        } catch (error) {
-            console.error('Error loading React app:', error);
-        }
-    </script>
+    <script src="vscode-webview://mock-extension-id/chat.js"></script>
 </body>
 </html>`;
 
