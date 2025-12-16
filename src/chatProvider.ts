@@ -2,8 +2,8 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
-import { glob } from 'fs/promises'; // Use Node.js 22 native glob from fs/promises
-import { Agent, Message, listSessions, SessionMetadata, type PermissionDecision, type ToolPermissionContext, AgentCallbacks } from 'wave-agent-sdk';
+import type {  Message, SessionMetadata, PermissionDecision, ToolPermissionContext, AgentCallbacks } from 'wave-agent-sdk';
+import { Agent, listSessions, searchFilesRipgrep,  } from 'wave-agent-sdk';
 
 interface ViewInstance {
     agent: Agent | undefined;
@@ -792,94 +792,36 @@ export class ChatProvider implements vscode.WebviewViewProvider {
         }
 
         try {
-            const allItems: any[] = [];
             const workspacePath = workspaceFolder.uri.fsPath;
-
-            // Create glob pattern based on filter text
-            let pattern = '**/*'; // Default pattern
-            if (filterText && filterText.trim()) {
-                // Use filterText as glob pattern for searching
-                if (!filterText.includes('*') && !filterText.includes('?')) {
-                    pattern = `**/*${filterText}*`;
-                } else {
-                    pattern = filterText;
-                }
-            }
-
-            // 🚀 Using Node.js 22 native glob with advanced features:
-            // - withFileTypes: true - Get Dirent objects directly (no fs.stat() calls needed!)
-            // - exclude: string[] - Use glob patterns for efficient filtering
-            const globIterator = glob(pattern, {
-                cwd: workspacePath,
-                withFileTypes: true, // Returns Dirent objects with type info built-in
-                exclude: [
-                    'node_modules/**',  // Exclude node_modules and all subdirectories
-                    '.git/**',          // Exclude git directory
-                    'dist/**',          // Exclude build output
-                    'build/**',         // Exclude build directory
-                    '.vscode/**',       // Exclude VS Code settings
-                    '**/.DS_Store',     // Exclude macOS metadata files
-                    '**/Thumbs.db'      // Exclude Windows metadata files
-                ]
+            
+            // Use searchFilesRipgrep from SDK for more efficient file searching
+            const fileItems = await searchFilesRipgrep(filterText || '', {
+                maxResults: 20, // Limit total results to 20 for better UX
+                workingDirectory: workspacePath,
+                ignoreCase: true // Case-insensitive search for better UX
             });
 
-            const files: string[] = [];
-            const directories: string[] = [];
-
-            // Collect files and directories from Dirent objects
-            // 💡 Performance boost: Dirent.isFile()/isDirectory() is much faster than fs.stat()
-            for await (const dirent of globIterator) {
-                // Type assertion needed as Node.js 22 Dirent has additional properties not yet in @types/node
-                const direntWithPath = dirent as any;
-                const relativePath = direntWithPath.parentPath 
-                    ? path.relative(workspacePath, path.join(direntWithPath.parentPath, dirent.name))
-                    : dirent.name;
-                
-                if (dirent.isFile()) {
-                    files.push(relativePath);
-                } else if (dirent.isDirectory()) {
-                    directories.push(relativePath);
-                }
-            }
-
-            // Convert files to FileItem format (limit to 15 files)
-            const fileItems = files.slice(0, 15).map((relativePath: string) => {
+            // Convert FileItem objects to the format expected by the UI
+            const allItems = fileItems.map((item) => {
+                const relativePath = item.path;
                 const fullPath = path.join(workspacePath, relativePath);
                 const pathSegments = relativePath.split(path.sep);
                 const name = pathSegments[pathSegments.length - 1];
                 const extensionMatch = name.match(/\.([^.]+)$/);
                 const extension = extensionMatch ? extensionMatch[1] : '';
+                const isDirectory = item.type === 'directory';
 
                 return {
                     path: fullPath,
                     relativePath: relativePath,
                     name: name,
                     extension: extension,
-                    icon: 'codicon-file',
-                    isDirectory: false
+                    icon: isDirectory ? 'codicon-folder' : 'codicon-file',
+                    isDirectory: isDirectory
                 };
             });
 
-            // Convert directories to FileItem format (limit to 5 directories)
-            const directoryItems = directories.slice(0, 5).map((relativePath: string) => {
-                const fullPath = path.join(workspacePath, relativePath);
-                const pathSegments = relativePath.split(path.sep);
-                const name = pathSegments[pathSegments.length - 1];
-                
-                return {
-                    path: fullPath,
-                    relativePath: relativePath,
-                    name: name,
-                    extension: '',
-                    icon: 'codicon-folder',
-                    isDirectory: true
-                };
-            });
-
-            // Combine files and directories
-            allItems.push(...fileItems, ...directoryItems);
-
-            // Sort by relevance
+            // Sort by relevance (similar to previous logic)
             allItems.sort((a, b) => {
                 const aNameMatch = a.name.toLowerCase().startsWith((filterText || '').toLowerCase());
                 const bNameMatch = b.name.toLowerCase().startsWith((filterText || '').toLowerCase());
@@ -894,7 +836,7 @@ export class ChatProvider implements vscode.WebviewViewProvider {
                 return a.name.localeCompare(b.name);
             });
 
-            return allItems.slice(0, 20); // Limit total results to 20 for better UX
+            return allItems;
         } catch (error) {
             console.error('搜索工作区文件失败:', error);
             return [];
