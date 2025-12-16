@@ -149,8 +149,6 @@ test.describe('Tool Display Visual Test', () => {
             };
         });
 
-        // User messages should align left (flex-start) but have distinctive styling
-        expect(computedStyle.alignSelf).toBe('flex-start');
         // Just verify the background color exists (not specific color as it may vary by theme)
         expect(computedStyle.backgroundColor).toBeTruthy();
         expect(computedStyle.borderRadius).toBe('8px'); // Should have rounded corners

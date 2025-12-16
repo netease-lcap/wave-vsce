@@ -139,8 +139,11 @@ export const test = base.extend<WebviewTestContext>({
         // Load the HTML content
         await page.setContent(testHtml);
 
-        // Wait for the React app to render
-        await page.waitForTimeout(1000);
+        // Wait for the React app to render by checking for the chat container
+        // This is much faster than a fixed timeout
+        await page.waitForSelector('[data-testid="chat-container"]', { 
+            timeout: 3000 
+        });
 
         await use(page);
     }

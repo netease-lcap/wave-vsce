@@ -78,15 +78,12 @@ test.describe('SubagentBlock Display in Messages', () => {
       }, '*');
     });
 
-    // Wait for the UI to update
-    await webviewPage.waitForTimeout(100);
+    // Wait for the UI to update by waiting for the tools count to appear
+    await expect(subagentDisplay.locator('.tools-count')).toContainText('2 tools');
 
     // Should now show live messages (only tool blocks, content should be hidden)
     const messageWrappers = subagentDisplay.locator('.subagent-message-wrapper');
     await expect(messageWrappers).toHaveCount(2);
-    
-    // Should show tools count in header
-    await expect(subagentDisplay.locator('.tools-count')).toContainText('2 tools');
     
     // Content should be hidden, but messages should still be present
     await expect(messageWrappers.first()).toBeVisible();
@@ -206,12 +203,10 @@ test.describe('SubagentBlock Display in Messages', () => {
       }, '*');
     }, manyMessages);
 
-    await webviewPage.waitForTimeout(100);
-
     const subagentDisplay = webviewPage.locator('.subagent-display').first();
     await expect(subagentDisplay).toBeVisible();
 
-    // Should show tools count in header
+    // Wait for tools count to update
     await expect(subagentDisplay.locator('.tools-count')).toContainText('5 tools');
 
     // Should only render 2 message wrappers (steps 4, 5)
@@ -272,10 +267,11 @@ test.describe('SubagentBlock Display in Messages', () => {
       }, '*');
     });
 
-    await webviewPage.waitForTimeout(100);
-
     const subagentDisplay = webviewPage.locator('.subagent-display').first();
     await expect(subagentDisplay).toBeVisible();
+
+    // Wait for the nested tool block to appear
+    await expect(subagentDisplay.locator('.tool-block')).toBeVisible();
 
     // Check that nested tool blocks are rendered correctly (content should be hidden)
     const messageWrapper = subagentDisplay.locator('.subagent-message-wrapper').first();
