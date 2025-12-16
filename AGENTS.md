@@ -9,7 +9,7 @@ This is **Wave VSCode Chat Extension** - a VS Code extension that provides an in
 **Extension Details:**
 - Publisher: `wave-code`
 - Command: `wave-code.openChat`
-- Keyboard shortcut: `Ctrl+Shift+W` (Windows/Linux), `Cmd+Shift+W` (Mac)
+- Keyboard shortcut: None (use Command Palette)
 - Minimum VS Code version: 1.74.0
 
 ## Development Commands
@@ -189,7 +189,7 @@ border: 1px solid var(--vscode-panel-border);
 2. `npm run watch` - Start watch mode compilation
 3. Open project in VS Code
 4. Press `F5` to launch extension development host
-5. Use `Ctrl+Shift+W` in the new window to open chat
+5. Use Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`) and search "Wave: Open AI Chat" to open chat
 6. Make changes → extension reloads automatically (use `Ctrl+R` in dev window)
 
 ### Testing During Development

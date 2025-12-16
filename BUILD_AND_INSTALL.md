@@ -39,8 +39,7 @@ npm run watch
    - 这会启动一个新的 VS Code 窗口，插件已经加载
 
 3. **使用插件**：
-   - 在新窗口中按 `Ctrl+Shift+W` (Windows/Linux) 或 `Cmd+Shift+W` (Mac)
-   - 或者通过命令面板 (`Ctrl+Shift+P`) 搜索 "打开 AI 聊天"
+   - 通过命令面板 (`Ctrl+Shift+P`) 搜索 "打开 AI 聊天"
 
 ### 方法二：打包安装 (.vsix)
 
@@ -72,7 +71,6 @@ npm run watch
 ## 🎮 使用方法
 
 ### 启动聊天
-- **快捷键**: `Ctrl+Shift+W` (Windows/Linux) 或 `Cmd+Shift+W` (Mac)
 - **命令面板**: 按 `Ctrl+Shift+P`，搜索 "打开 AI 聊天"
 
 ### 聊天功能

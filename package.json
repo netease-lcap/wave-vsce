@@ -63,23 +63,6 @@
         "title": "聚焦到聊天输入框",
         "category": "Wave"
       }
-    ],
-    "keybindings": [
-      {
-        "command": "wave-code.openChatSidebar",
-        "key": "ctrl+shift+alt+w",
-        "mac": "cmd+shift+alt+w"
-      },
-      {
-        "command": "wave-code.openChatTab",
-        "key": "ctrl+shift+w",
-        "mac": "cmd+shift+w"
-      },
-      {
-        "command": "wave-code.focusView",
-        "key": "ctrl+shift+f",
-        "mac": "cmd+shift+f"
-      }
     ]
   },
   "scripts": {

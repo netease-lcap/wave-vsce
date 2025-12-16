@@ -19,7 +19,7 @@ A VS Code extension that provides an integrated chat interface for AI assistance
 ## Usage
 
 1. Open the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`)
-2. Run "Wave: Open AI Chat" or use the keyboard shortcut `Ctrl+Shift+W` / `Cmd+Shift+W`
+2. Run "Wave: Open AI Chat"
 3. Start chatting with the AI about your project!
 
 ## Quick Actions
