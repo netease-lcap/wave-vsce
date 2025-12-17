@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 import type {  Message, SessionMetadata, PermissionDecision, ToolPermissionContext, AgentCallbacks } from 'wave-agent-sdk';
-import { Agent, listSessions, searchFilesRipgrep, getFirstMessageContent } from 'wave-agent-sdk';
+import { Agent, listSessions, searchFiles, getFirstMessageContent } from 'wave-agent-sdk';
 
 interface ViewInstance {
     agent: Agent | undefined;
@@ -823,11 +823,10 @@ export class ChatProvider implements vscode.WebviewViewProvider {
         try {
             const workspacePath = workspaceFolder.uri.fsPath;
             
-            // Use searchFilesRipgrep from SDK for more efficient file searching
-            const fileItems = await searchFilesRipgrep(filterText || '', {
+            // Use searchFiles from SDK for more efficient file searching
+            const fileItems = await searchFiles(filterText || '', {
                 maxResults: 20, // Limit total results to 20 for better UX
                 workingDirectory: workspacePath,
-                ignoreCase: true // Case-insensitive search for better UX
             });
 
             // Convert FileItem objects to the format expected by the UI
