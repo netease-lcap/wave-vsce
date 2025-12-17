@@ -192,6 +192,7 @@ export class ChatProvider implements vscode.WebviewViewProvider {
             };
 
             instance.agent = await Agent.create({
+                logger: console,
                 callbacks,
                 workdir,
                 restoreSessionId,
