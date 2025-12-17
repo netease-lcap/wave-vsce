@@ -113,7 +113,6 @@ export class ChatProvider implements vscode.WebviewViewProvider {
     private postMessageToWebview(message: any, viewType?: 'sidebar' | 'tab' | 'window', windowId?: string) {
         // If specific viewType is provided, only send to that view
         if (viewType) {
-            console.log(`发送消息到 ${viewType}${windowId ? ` (${windowId})` : ''}:`, message.command);
             if (viewType === 'sidebar' && this.webviewView) {
                 this.webviewView.webview.postMessage(message);
             } else if (viewType === 'tab' && this.panel) {
@@ -174,7 +173,6 @@ export class ChatProvider implements vscode.WebviewViewProvider {
             // Only use onMessagesChange as it contains all data including errors
             const callbacks: AgentCallbacks = {
                 onMessagesChange: (messages: Message[]) => {
-                    console.log(`${viewType} 消息更新:`, messages.length, '条消息');
                     instance.messages = messages;
                     this.updateChatMessages(messages, viewType, windowId);
                 },
@@ -876,7 +874,6 @@ export class ChatProvider implements vscode.WebviewViewProvider {
 
 
     private updateChatMessages(messages: Message[], viewType?: 'sidebar' | 'tab' | 'window', windowId?: string) {
-        console.log(`更新 ${viewType || '所有'} 聊天消息:`, messages.length, windowId ? `窗口ID: ${windowId}` : '');
         this.postMessageToWebview({
             command: 'updateMessages',
             messages: messages // Pass Message objects directly
@@ -884,7 +881,6 @@ export class ChatProvider implements vscode.WebviewViewProvider {
     }
 
     private updateSubagentMessages(subagentId: string, messages: Message[], viewType?: 'sidebar' | 'tab' | 'window', windowId?: string) {
-        console.log(`更新 ${viewType || '所有'} 子智能体 [${subagentId}] 消息:`, messages.length, windowId ? `窗口ID: ${windowId}` : '');
         this.postMessageToWebview({
             command: 'updateSubagentMessages',
             subagentId: subagentId,
