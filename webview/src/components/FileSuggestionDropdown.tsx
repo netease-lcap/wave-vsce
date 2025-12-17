@@ -1,6 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import type { FileItem } from '@wave-code-chat/shared-types';
-import type { FileSuggestionDropdownProps } from '../types';
+import { FileSuggestionDropdownProps, FileItem } from '../types';
 import '../styles/FileSuggestionDropdown.css';
 
 /**

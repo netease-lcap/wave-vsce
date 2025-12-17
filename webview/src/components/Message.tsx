@@ -1,8 +1,7 @@
 import React from 'react';
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
-import type { TextBlock, ErrorBlock, ToolBlock, SubagentBlock, ImageBlock } from '@wave-code-chat/shared-types';
-import type { MessageProps } from '../types';
+import type { MessageProps, TextBlock, ErrorBlock, ToolBlock, SubagentBlock, ImageBlock } from '../types';
 import { DiffViewer } from './DiffViewer';
 import { TodoList } from './TodoList';
 import { SubagentDisplay } from './SubagentDisplay';

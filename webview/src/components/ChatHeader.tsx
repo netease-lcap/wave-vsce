@@ -1,4 +1,3 @@
-import type { Message } from '@wave-code-chat/shared-types';
 import React from 'react';
 import { SessionSelector } from './SessionSelector';
 import type { ChatHeaderProps } from '../types';

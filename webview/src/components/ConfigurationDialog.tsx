@@ -7,8 +7,7 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
-import type { ConfigurationData } from '@wave-code-chat/shared-types';
-import type { ConfigurationDialogProps } from '../types';
+import { ConfigurationDialogProps, ConfigurationData } from '../types';
 import '../styles/ConfigurationDialog.css';
 
 const ConfigurationDialog: React.FC<ConfigurationDialogProps> = ({

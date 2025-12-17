@@ -1,5 +1,5 @@
 import React from 'react';
-import type { ToolBlock } from '@wave-code-chat/shared-types';
+import type { ToolBlock } from '../types';
 import '../styles/TodoList.css';
 
 export interface TodoItem {

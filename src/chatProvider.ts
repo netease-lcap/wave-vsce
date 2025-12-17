@@ -4,7 +4,6 @@ import * as path from 'path';
 import * as os from 'os';
 import type {  Message, SessionMetadata, PermissionDecision, ToolPermissionContext, AgentCallbacks } from 'wave-agent-sdk';
 import { Agent, listSessions, searchFiles, getFirstMessageContent } from 'wave-agent-sdk';
-import type { ExtendedSessionMetadata, ConfigurationData, UploadFileInfo, FileItem, AttachedImage } from '@wave-code-chat/shared-types';
 
 interface ViewInstance {
     agent: Agent | undefined;

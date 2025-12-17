@@ -1,27 +1,108 @@
 {
-  "name": "wave-code-chat",
+  "name": "wave-vscode-chat",
+  "displayName": "Wave AI 聊天",
+  "description": "基于 Wave Agent SDK 的 VS Code AI 聊天界面",
   "version": "0.0.1",
-  "private": true,
-  "description": "Wave VSCode Chat Extension Monorepo",
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ],
-  "scripts": {
-    "build": "pnpm -r run build",
-    "watch": "pnpm -r run watch",
-    "test": "pnpm --filter @wave-code-chat/webview run test",
-    "test:ui": "pnpm --filter @wave-code-chat/webview run test:ui",
-    "clean": "pnpm -r run clean",
-    "package": "pnpm --filter @wave-code-chat/vsce run package",
-    "dev": "pnpm run watch"
-  },
-  "devDependencies": {
-    "@types/node": "^25.0.1",
-    "typescript": "^5.9.3"
+  "publisher": "wave-code",
+  "repository": {
+    "type": "git",
+    "url": "ssh://git@g.hz.netease.com:22222/vusion/wave-vsce.git"
   },
   "engines": {
-    "node": ">=22.0.0",
-    "pnpm": ">=9.0.0"
+    "vscode": "^1.107.0"
+  },
+  "files": [
+    "dist/",
+    "webview/dist/",
+    "node_modules/@vscode/ripgrep/bin/",
+    "node_modules/@vscode/ripgrep/lib/",
+    "node_modules/@vscode/ripgrep/package.json",
+    "LICENSE"
+  ],
+  "categories": [
+    "Other"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "views": {
+      "waveChatView": [
+        {
+          "id": "waveChat",
+          "name": "代码智聊",
+          "type": "webview"
+        }
+      ]
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "waveChatView",
+          "title": "Wave",
+          "icon": "$(comment-discussion)"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "wave-code.openChatSidebar",
+        "title": "在侧边栏打开代码智聊",
+        "category": "Wave"
+      },
+      {
+        "command": "wave-code.openChatTab",
+        "title": "在新标签页打开代码智聊",
+        "category": "Wave"
+      },
+      {
+        "command": "wave-code.openChatWindow",
+        "title": "在新窗口打开代码智聊",
+        "category": "Wave"
+      },
+      {
+        "command": "wave-code.focusView",
+        "title": "聚焦到聊天输入框",
+        "category": "Wave"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run package",
+    "clean": "node -e \"const fs=require('fs'); ['dist', 'webview/dist'].forEach(d => {try{fs.rmSync(d, {recursive:true, force:true})}catch(e){}})\"",
+    "prepackage": "npm run clean",
+    "compile": "npm run compile:backend && npm run compile:frontend",
+    "watch": "npm run watch:backend & npm run watch:frontend",
+    "compile:backend": "tsc",
+    "compile:frontend": "ONLY_FRONTEND=true webpack --mode development --devtool source-map",
+    "watch:backend": "tsc --watch",
+    "watch:frontend": "npm run compile:frontend -- --watch",
+    "package": "webpack --mode production --devtool false",
+    "test": "npm run test:playwright",
+    "test:playwright": "playwright test",
+    "test:playwright:ui": "playwright test --ui"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.40.0",
+    "@types/diff": "^7.0.2",
+    "@types/node": "^25.0.1",
+    "@types/react": "^18.0.0",
+    "@types/react-dom": "^18.0.0",
+    "@types/vscode": "^1.95.0",
+    "css-loader": "^6.8.1",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "style-loader": "^3.3.3",
+    "ts-loader": "^9.5.4",
+    "typescript": "^5.9.3",
+    "webpack": "^5.103.0",
+    "webpack-cli": "^6.0.1"
+  },
+  "dependencies": {
+    "@vscode/codicons": "^0.0.43",
+    "@vscode/ripgrep": "^1.15.6",
+    "diff": "^8.0.2",
+    "dompurify": "^3.3.0",
+    "marked": "^9.1.6",
+    "mermaid": "^11.12.2",
+    "wave-agent-sdk": "file:wave-agent-sdk-0.0.8.tgz"
   }
 }

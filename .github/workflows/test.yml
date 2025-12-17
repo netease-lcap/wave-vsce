@@ -1,0 +1,46 @@
+name: Test Extension
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Install Playwright Browsers
+      run: npx playwright install chromium
+    
+    - name: TypeScript compilation check
+      run: npx tsc --noEmit
+    
+    - name: Run Playwright webview tests
+      run: npm run test:playwright
+      env:
+        CI: true
+    
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
+      if: failure()
+      with:
+        name: playwright-report-${{ matrix.node-version }}
+        path: playwright-report/
+        retention-days: 7
