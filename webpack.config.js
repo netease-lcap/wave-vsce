@@ -1,5 +1,8 @@
 const path = require('path');
 
+// 使用环境变量判断是否只打包前端
+const onlyFrontend = process.env.ONLY_FRONTEND === 'true';
+
 const extensionConfig = {
   target: 'node',
   // mode 将通过命令行参数设置，不在这里硬编码
@@ -89,4 +92,11 @@ const webviewConfig = {
   }
 };
 
-module.exports = [extensionConfig, webviewConfig];
+// 根据环境变量决定导出哪些配置
+if (onlyFrontend) {
+  console.log('只打包前端...');
+  module.exports = webviewConfig;
+} else {
+  console.log('同时打包前后端...');
+  module.exports = [extensionConfig, webviewConfig];
+}
