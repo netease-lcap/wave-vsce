@@ -1,5 +1,6 @@
 import React from 'react';
-import type { SessionSelectorProps, ExtendedSessionMetadata } from '../types';
+import type { ExtendedSessionMetadata } from '@wave-code-chat/shared-types';
+import type { SessionSelectorProps } from '../types';
 import '../styles/SessionSelector.css';
 
 export const SessionSelector: React.FC<SessionSelectorProps> = ({

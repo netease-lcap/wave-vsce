@@ -1,5 +1,5 @@
 import React from 'react';
-import type { SubagentBlock, Message } from '../types';
+import type { SubagentBlock, Message } from '@wave-code-chat/shared-types';
 import { Message as MessageComponent } from './Message';
 import '../styles/SubagentDisplay.css';
 

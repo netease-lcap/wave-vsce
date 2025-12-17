@@ -1,5 +1,6 @@
 import React from 'react';
-import type { AttachedImagesProps, AttachedImage } from '../types';
+import type { AttachedImage } from '@wave-code-chat/shared-types';
+import type { AttachedImagesProps } from '../types';
 import '../styles/AttachedImages.css';
 
 /**

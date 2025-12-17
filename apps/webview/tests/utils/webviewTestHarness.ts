@@ -27,8 +27,7 @@ export const test = base.extend<WebviewTestContext>({
         });
 
         // Load the React webview app for testing
-        const chatJsPath = path.join(process.cwd(), 'webview', 'dist', 'chat.js');
-        const webviewDistPath = path.join(process.cwd(), 'webview', 'dist');
+        const webviewDistPath = path.join(process.cwd(), '../vsce/webview/dist/')
 
         // Serve the webview files through a mock server that simulates vscode-webview:// protocol
         await page.route('vscode-webview://**', (route, request) => {

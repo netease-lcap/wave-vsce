@@ -1,6 +1,6 @@
-# CLAUDE.md
+# AGENTS.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Agent when working with code in this repository.
 
 ## Project Overview
 
@@ -15,56 +15,64 @@ This is **Wave VSCode Chat Extension** - a VS Code extension that provides an in
 ## Development Commands
 
 ```bash
-# Install dependencies
-npm install
+# Install dependencies (using pnpm)
+pnpm install
 
 # Development build with watch mode (recommended during development)
-npm run watch
+pnpm run watch
 
-# One-time compilation
-npm run compile
+# Build all packages
+pnpm run build
 
 # Production build for publishing
-npm run package
+pnpm run package
 
-# Run all tests (Playwright)
-npm test
+# Run all tests (Playwright - tests are in webview package)
+pnpm run test
 
 # Run tests with UI interface
-npm run test:playwright:ui
+pnpm run test:ui
 
 # Launch extension in development mode
 # Open project in VS Code and press F5 to launch extension host
+# Make sure to run `pnpm run watch:webview` in another terminal for webview changes
 ```
 
 ## Architecture Overview
 
-### Dual-Component Architecture
-The extension uses VS Code's extension-webview architecture with clear separation:
+### Monorepo Architecture
+The project is organized as a pnpm monorepo with clear separation of concerns:
 
-1. **Extension Backend** (`src/` - Node.js/TypeScript)
-   - Entry point: `src/extension.ts` (44 lines)
-   - Core logic: `src/chatProvider.ts` (380+ lines)
+1. **Extension Backend** (`apps/vsce/` - Node.js/TypeScript)
+   - Entry point: `apps/vsce/src/extension.ts`
+   - Core logic: `apps/vsce/src/chatProvider.ts`
    - Manages Wave Agent SDK integration, webview lifecycle, and VS Code APIs
+   - Output: `apps/vsce/dist/extension.js`
 
-2. **Webview Frontend** (`webview/src/` - React/TypeScript)
-   - Entry: `webview/src/index.tsx`
+2. **Webview Frontend** (`apps/webview/` - React/TypeScript)
+   - Entry: `apps/webview/src/index.tsx`
    - Main component: `ChatApp.tsx` with useReducer state management
-   - Compiled to `webview/dist/chat.js` via Webpack
+   - Compiled to `apps/webview/dist/chat.js` via Webpack
+
+3. **Shared Types** (`packages/shared-types/` - TypeScript)
+   - Shared TypeScript definitions between backend and frontend
+   - Ensures type safety across the extension boundary
+   - Published as internal workspace package
 
 ### Key Files & Responsibilities
 
 | File | Purpose |
 |------|---------|
-| `src/extension.ts` | Extension activation, command registration |
-| `src/chatProvider.ts` | Core provider managing agent/webview bridge, session management |
-| `webview/src/components/ChatApp.tsx` | Root React component with reducer-based state management |
-| `webview/src/components/Message.tsx` | Message rendering with markdown parsing and tool display |
-| `webview/src/components/MessageList.tsx` | Auto-scrolling message container |
-| `webview/src/components/MessageInput.tsx` | User input with dynamic textarea resize |
-| `webview/src/components/ConfirmationDialog.tsx` | Tool permission confirmation UI |
-| `webview/src/types/index.ts` | Shared TypeScript type definitions |
-| `webpack.config.js` | Dual build configuration (extension + webview) |
+| `apps/vsce/src/extension.ts` | Extension activation, command registration |
+| `apps/vsce/src/chatProvider.ts` | Core provider managing agent/webview bridge, session management |
+| `apps/webview/src/components/ChatApp.tsx` | Root React component with reducer-based state management |
+| `apps/webview/src/components/Message.tsx` | Message rendering with markdown parsing and tool display |
+| `apps/webview/src/components/MessageList.tsx` | Auto-scrolling message container |
+| `apps/webview/src/components/MessageInput.tsx` | User input with dynamic textarea resize |
+| `apps/webview/src/components/ConfirmationDialog.tsx` | Tool permission confirmation UI |
+| `packages/shared-types/src/index.ts` | Shared TypeScript type definitions |
+| `apps/vsce/webpack.config.js` | Extension backend build configuration |
+| `apps/webview/webpack.config.js` | Webview frontend build configuration |
 
 ### Message Flow Architecture
 
@@ -87,15 +95,18 @@ The React frontend uses **useReducer pattern** with 10 action types:
 ## Build System
 
 ### Webpack Configuration
-**File:** `webpack.config.js` exports dual configurations:
-1. **Extension Config**: Target=node, Output=dist/extension.js (CommonJS)
-2. **Webview Config**: Target=web, Output=webview/dist/chat.js (ES modules)
+**Extension Backend:** `apps/vsce/webpack.config.js`
+- Target: node
+- Output: `apps/vsce/dist/extension.js` (CommonJS)
 
-Both builds run in parallel with `npm run compile`.
+**Webview Frontend:** `apps/webview/webpack.config.js`
+- Target: web
+- Output: `apps/webview/dist/chat.js` (ES modules)
 
 ### TypeScript Setup
-- Root config: `tsconfig.json` (extension)
-- Webview config: `webview/tsconfig.json` (React-specific)
+- Extension config: `apps/vsce/tsconfig.json`
+- Webview config: `apps/webview/tsconfig.json`
+- Shared types config: `packages/shared-types/tsconfig.json`
 - Target: ES2020, strict type checking enabled
 
 ## Testing Architecture
@@ -104,9 +115,9 @@ Both builds run in parallel with `npm run compile`.
 **Framework:** Playwright with custom webview test harness
 
 **Key Innovation:** Tests load the React webview directly in Playwright instead of full VS Code:
-- `tests/utils/webviewTestHarness.ts` - Loads React app with mocked vscode API
-- `tests/utils/messageInjector.ts` - Simulates extension-to-webview messages
-- `tests/fixtures/mockData.ts` - Realistic mock agent SDK data structures
+- `apps/webview/tests/utils/webviewTestHarness.ts` - Loads React app with mocked vscode API
+- `apps/webview/tests/utils/messageInjector.ts` - Simulates extension-to-webview messages
+- `apps/webview/tests/fixtures/mockData.ts` - Realistic mock agent SDK data structures
 
 **Test Coverage (9 test suites):**
 - Basic message flow and exchanges
@@ -121,8 +132,13 @@ Both builds run in parallel with `npm run compile`.
 
 **Run tests:**
 ```bash
-npm test                    # Run all tests
-npm run test:playwright:ui  # Interactive test runner
+pnpm run test                    # Run all tests (from root)
+pnpm run test:ui                 # Interactive test runner
+
+# Or from webview directory:
+cd apps/webview
+pnpm run test                    # Run all tests
+pnpm run test:ui                 # Interactive test runner
 ```
 
 **Testing Guidelines:**
@@ -171,13 +187,13 @@ border: 1px solid var(--vscode-panel-border);
 ## Dependencies
 
 ### Core Dependencies
-- **wave-agent-sdk** - Local file dependency (`file:../../personal-projects/wave-agent/packages/agent-sdk`)
+- **wave-agent-sdk** - Local file dependency (`file:../../wave-agent-sdk-0.0.8.tgz`)
 - **marked 9.1.6** - Markdown parsing
 - **dompurify 3.3.0** - HTML sanitization
 - **React 18.0.0 + ReactDOM** - Frontend framework
 
 ### Development Dependencies
-- **TypeScript 4.9.4** - Language
+- **TypeScript 5.9.3** - Language
 - **Webpack 5 + ts-loader** - Build system
 - **Playwright 1.40.0** - Testing framework
 - **css-loader + style-loader** - CSS bundling
@@ -185,22 +201,23 @@ border: 1px solid var(--vscode-panel-border);
 ## Development Workflow
 
 ### Local Development
-1. `npm install` - Install dependencies
-2. `npm run watch` - Start watch mode compilation
+1. `pnpm install` - Install dependencies
+2. `pnpm run watch` - Start watch mode compilation
 3. Open project in VS Code
 4. Press `F5` to launch extension development host
 5. Use Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`) and search "Wave: Open AI Chat" to open chat
 6. Make changes → extension reloads automatically (use `Ctrl+R` in dev window)
+7. Make sure to run `pnpm run watch:webview` in another terminal for webview changes
 
 ### Testing During Development
 ```bash
-npm test                     # Run full test suite
-npm run test:playwright:ui   # Interactive test runner for debugging
+pnpm run test                     # Run full test suite
+pnpm run test:ui                  # Interactive test runner for debugging
 ```
 
 ### Building for Distribution
 ```bash
-npm run package             # Production build
+pnpm run package             # Production build
 npm install -g vsce         # Install packaging tool
 vsce package               # Creates .vsix file
 ```
@@ -210,17 +227,17 @@ vsce package               # Creates .vsix file
 ### Common Issues
 
 **Compilation Errors:**
-- Check Node.js version compatibility (18.x recommended)
-- Ensure `npm install` completed successfully
+- Check Node.js version compatibility (22.x recommended)
+- Ensure `pnpm install` completed successfully
 - Verify `wave-agent-sdk` local dependency path
 
 **Extension Not Loading:**
-- Confirm `dist/extension.js` exists after compilation
+- Confirm `apps/vsce/dist/extension.js` exists after compilation
 - Check VS Code version meets minimum requirement (1.74.0)
 - Restart VS Code after changes
 
 **Webview Issues:**
-- Verify `webview/dist/chat.js` was generated
+- Verify `apps/webview/dist/chat.js` was generated
 - Check browser console in VS Code Developer Tools (`Help > Toggle Developer Tools`)
 - Ensure React components compile without TypeScript errors
 

@@ -1,5 +1,6 @@
 import React, { useState, useCallback, KeyboardEvent, useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
-import type { MessageInputProps, FileItem, ConfigurationData, SlashCommand, AttachedImage } from '../types';
+import type { FileItem, ConfigurationData, AttachedImage } from '@wave-code-chat/shared-types';
+import type { MessageInputProps, SlashCommand } from '../types';
 import { FileSuggestionDropdown } from './FileSuggestionDropdown';
 import { SlashCommandsPopup } from './SlashCommandsPopup';
 import { AttachedImages } from './AttachedImages';
