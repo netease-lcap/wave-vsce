@@ -47,7 +47,7 @@ npm run watch
 
 1. **安装 vsce 工具**：
    ```bash
-   npm install -g vsce
+   npm install -g @vscode/vsce
    ```
 
 2. **打包插件**：
