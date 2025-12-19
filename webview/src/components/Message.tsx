@@ -190,7 +190,7 @@ export const Message: React.FC<MessageProps> = (props) => {
               <span className="bash-command">{command}</span>
             </div>
             <div className="bash-command-output">
-              {toolBlock.result || ''}
+              {(toolBlock.result || '').trim()}
             </div>
           </div>
         );
