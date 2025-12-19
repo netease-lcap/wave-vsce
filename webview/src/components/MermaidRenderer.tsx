@@ -7,6 +7,13 @@ interface MermaidRendererProps {
   className?: string;
 }
 
+interface FullscreenModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  svgContent: string;
+  originalContent: string;
+}
+
 let mermaidInitialized = false;
 
 // Clean and validate mermaid syntax
@@ -21,11 +28,179 @@ const cleanMermaidSyntax = (content: string): string => {
     .replace(/\s+$/gm, '');
 };
 
+const FullscreenModal: React.FC<FullscreenModalProps> = ({ isOpen, onClose, svgContent, originalContent }) => {
+  const [scale, setScale] = useState(1);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const modalRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setScale(1);
+      setPosition({ x: 0, y: 0 });
+    }
+  }, [isOpen]);
+
+  const handleWheel = useCallback((e: WheelEvent) => {
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? -0.1 : 0.1;
+    setScale(prevScale => Math.max(0.1, Math.min(5, prevScale + delta)));
+  }, []);
+
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    setIsDragging(true);
+    setDragStart({ x: e.clientX - position.x, y: e.clientY - position.y });
+  }, [position]);
+
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    if (isDragging) {
+      setPosition({
+        x: e.clientX - dragStart.x,
+        y: e.clientY - dragStart.y
+      });
+    }
+  }, [isDragging, dragStart]);
+
+  const handleMouseUp = useCallback(() => {
+    setIsDragging(false);
+  }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('keydown', handleKeyDown);
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      const contentEl = contentRef.current;
+      if (contentEl) {
+        contentEl.addEventListener('wheel', handleWheel, { passive: false });
+      }
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      const contentEl = contentRef.current;
+      if (contentEl) {
+        contentEl.removeEventListener('wheel', handleWheel);
+      }
+    };
+  }, [isOpen, handleWheel, handleMouseMove, handleMouseUp, onClose]);
+
+  const downloadSvg = () => {
+    const blob = new Blob([svgContent], { type: 'image/svg+xml' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `mermaid-diagram-${Date.now()}.svg`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const downloadPng = () => {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const img = new Image();
+    const svgBlob = new Blob([svgContent], { type: 'image/svg+xml' });
+    const url = URL.createObjectURL(svgBlob);
+
+    img.onload = () => {
+      canvas.width = img.width * 2; // Higher resolution
+      canvas.height = img.height * 2;
+      ctx.scale(2, 2);
+      ctx.fillStyle = 'white';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0);
+      
+      canvas.toBlob(blob => {
+        if (blob) {
+          const pngUrl = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = pngUrl;
+          link.download = `mermaid-diagram-${Date.now()}.png`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(pngUrl);
+        }
+      });
+      URL.revokeObjectURL(url);
+    };
+    img.src = url;
+  };
+
+  const resetView = () => {
+    setScale(1);
+    setPosition({ x: 0, y: 0 });
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div 
+      className="mermaid-fullscreen-modal"
+      ref={modalRef}
+      onClick={(e) => e.target === modalRef.current && onClose()}
+    >
+      <div className="fullscreen-header">
+        <div className="fullscreen-controls">
+          <button onClick={downloadSvg} className="control-btn" title="下载SVG">
+            📄 SVG
+          </button>
+          <button onClick={downloadPng} className="control-btn" title="下载PNG">
+            🖼️ PNG
+          </button>
+          <button onClick={resetView} className="control-btn" title="重置视图">
+            🔄 重置
+          </button>
+          <span className="zoom-info">{Math.round(scale * 100)}%</span>
+        </div>
+        <button onClick={onClose} className="close-btn" title="关闭 (ESC)">
+          ✕
+        </button>
+      </div>
+      
+      <div 
+        className="fullscreen-content"
+        ref={contentRef}
+        onMouseDown={handleMouseDown}
+        style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
+      >
+        <div 
+          className="fullscreen-diagram"
+          style={{
+            transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
+            transformOrigin: 'center center'
+          }}
+          dangerouslySetInnerHTML={{ __html: svgContent }}
+        />
+      </div>
+      
+      <div className="fullscreen-help">
+        滚轮缩放 | 拖拽移动 | ESC关闭
+      </div>
+    </div>
+  );
+};
+
 export const MermaidRenderer: React.FC<MermaidRendererProps> = ({ content, className = '' }) => {
   const [activeTab, setActiveTab] = useState<'preview' | 'source'>('preview');
   const [error, setError] = useState<string | null>(null);
   const [isRendering, setIsRendering] = useState(false);
   const [svgContent, setSvgContent] = useState<string>('');
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const mermaidRef = useRef<HTMLDivElement>(null);
   const renderTimeoutRef = useRef<NodeJS.Timeout>();
   const cleanedContent = useRef<string>('');
@@ -203,6 +378,57 @@ export const MermaidRenderer: React.FC<MermaidRendererProps> = ({ content, class
     }
   }, [svgContent]);
 
+  // Download functions
+  const downloadSvg = useCallback(() => {
+    if (!svgContent) return;
+    
+    const blob = new Blob([svgContent], { type: 'image/svg+xml' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `mermaid-diagram-${Date.now()}.svg`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }, [svgContent]);
+
+  const downloadPng = useCallback(() => {
+    if (!svgContent) return;
+    
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const img = new Image();
+    const svgBlob = new Blob([svgContent], { type: 'image/svg+xml' });
+    const url = URL.createObjectURL(svgBlob);
+
+    img.onload = () => {
+      canvas.width = img.width * 2; // Higher resolution
+      canvas.height = img.height * 2;
+      ctx.scale(2, 2);
+      ctx.fillStyle = 'white';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0);
+      
+      canvas.toBlob(blob => {
+        if (blob) {
+          const pngUrl = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = pngUrl;
+          link.download = `mermaid-diagram-${Date.now()}.png`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(pngUrl);
+        }
+      });
+      URL.revokeObjectURL(url);
+    };
+    img.src = url;
+  }, [svgContent]);
+
   const renderPreviewTab = () => {
     if (error) {
       return (
@@ -236,9 +462,37 @@ export const MermaidRenderer: React.FC<MermaidRendererProps> = ({ content, class
 
     return (
       <div className="mermaid-preview">
+        {svgContent && (
+          <div className="mermaid-actions">
+            <button 
+              onClick={downloadSvg} 
+              className="action-button" 
+              title="下载SVG格式"
+            >
+              📄 SVG
+            </button>
+            <button 
+              onClick={downloadPng} 
+              className="action-button" 
+              title="下载PNG格式"
+            >
+              🖼️ PNG
+            </button>
+            <button 
+              onClick={() => setIsFullscreen(true)} 
+              className="action-button" 
+              title="全屏查看"
+            >
+              🔍 全屏
+            </button>
+          </div>
+        )}
         <div 
           ref={mermaidRef} 
           className="mermaid-container"
+          onClick={() => svgContent && setIsFullscreen(true)}
+          style={{ cursor: svgContent ? 'pointer' : 'default' }}
+          title={svgContent ? '点击全屏查看' : ''}
         />
         {!svgContent && !isRendering && (
           <div className="mermaid-empty">
@@ -266,27 +520,36 @@ export const MermaidRenderer: React.FC<MermaidRendererProps> = ({ content, class
   };
 
   return (
-    <div className={`mermaid-renderer ${className}`}>
-      {/* Tab navigation */}
-      <div className="mermaid-tabs">
-        <button
-          className={`tab-button ${activeTab === 'preview' ? 'active' : ''}`}
-          onClick={() => setActiveTab('preview')}
-        >
-          预览
-        </button>
-        <button
-          className={`tab-button ${activeTab === 'source' ? 'active' : ''}`}
-          onClick={() => setActiveTab('source')}
-        >
-          源码
-        </button>
-      </div>
+    <>
+      <div className={`mermaid-renderer ${className}`}>
+        {/* Tab navigation */}
+        <div className="mermaid-tabs">
+          <button
+            className={`tab-button ${activeTab === 'preview' ? 'active' : ''}`}
+            onClick={() => setActiveTab('preview')}
+          >
+            预览
+          </button>
+          <button
+            className={`tab-button ${activeTab === 'source' ? 'active' : ''}`}
+            onClick={() => setActiveTab('source')}
+          >
+            源码
+          </button>
+        </div>
 
-      {/* Tab content */}
-      <div className="mermaid-content">
-        {activeTab === 'preview' ? renderPreviewTab() : renderSourceTab()}
+        {/* Tab content */}
+        <div className="mermaid-content">
+          {activeTab === 'preview' ? renderPreviewTab() : renderSourceTab()}
+        </div>
       </div>
-    </div>
+      
+      <FullscreenModal 
+        isOpen={isFullscreen}
+        onClose={() => setIsFullscreen(false)}
+        svgContent={svgContent}
+        originalContent={content}
+      />
+    </>
   );
 };
