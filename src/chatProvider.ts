@@ -11,6 +11,8 @@ interface ViewInstance {
     sessionId: string | undefined;
     pendingConfirmations: Map<string, { resolve: (decision: PermissionDecision) => void; toolName: string; }>;
     isStreaming: boolean;
+    updateTimer: NodeJS.Timeout | undefined;
+    pendingUpdate: boolean;
 }
 
 export class ChatProvider implements vscode.WebviewViewProvider {
@@ -27,7 +29,9 @@ export class ChatProvider implements vscode.WebviewViewProvider {
         messages: [],
         sessionId: undefined,
         pendingConfirmations: new Map(),
-        isStreaming: false
+        isStreaming: false,
+        updateTimer: undefined,
+        pendingUpdate: false
     };
     
     private tabInstance: ViewInstance = {
@@ -35,7 +39,9 @@ export class ChatProvider implements vscode.WebviewViewProvider {
         messages: [],
         sessionId: undefined,
         pendingConfirmations: new Map(),
-        isStreaming: false
+        isStreaming: false,
+        updateTimer: undefined,
+        pendingUpdate: false
     };
     
     private windowInstances: Map<string, ViewInstance> = new Map(); // Each window has its own instance
@@ -173,8 +179,7 @@ export class ChatProvider implements vscode.WebviewViewProvider {
             // Only use onMessagesChange as it contains all data including errors
             const callbacks: AgentCallbacks = {
                 onMessagesChange: (messages: Message[]) => {
-                    instance.messages = messages;
-                    this.updateChatMessages(messages, viewType, windowId);
+                    this.throttledUpdateChatMessages(messages, viewType, windowId);
                 },
                 onSessionIdChange: (sessionId: string) => {
                     instance.sessionId = sessionId;
@@ -222,7 +227,9 @@ export class ChatProvider implements vscode.WebviewViewProvider {
                     messages: [],
                     sessionId: undefined,
                     pendingConfirmations: new Map(),
-                    isStreaming: false
+                    isStreaming: false,
+                    updateTimer: undefined,
+                    pendingUpdate: false
                 });
             }
             return this.windowInstances.get(windowId)!;
@@ -292,6 +299,12 @@ export class ChatProvider implements vscode.WebviewViewProvider {
     private async cleanupViewInstance(instance: ViewInstance, viewName: string): Promise<void> {
         console.log(`清理 ${viewName} 实例资源...`);
         
+        // Clear update timer if exists
+        if (instance.updateTimer) {
+            clearTimeout(instance.updateTimer);
+            instance.updateTimer = undefined;
+        }
+        
         if (instance.agent) {
             console.log(`销毁 ${viewName} agent...`);
             try {
@@ -308,6 +321,7 @@ export class ChatProvider implements vscode.WebviewViewProvider {
         instance.sessionId = undefined;
         instance.pendingConfirmations.clear();
         instance.isStreaming = false;
+        instance.pendingUpdate = false;
         
         console.log(`${viewName} 实例资源清理完成`);
     }
@@ -877,6 +891,32 @@ export class ChatProvider implements vscode.WebviewViewProvider {
             command: 'updateMessages',
             messages: messages // Pass Message objects directly
         }, viewType, windowId);
+    }
+
+    /**
+     * Throttled version of updateChatMessages that limits update frequency to 1 second
+     */
+    private throttledUpdateChatMessages(messages: Message[], viewType: 'sidebar' | 'tab' | 'window', windowId?: string) {
+        const instance = this.getViewInstance(viewType, windowId);
+        
+        // Store latest messages
+        instance.messages = messages;
+        
+        // If already pending an update, just mark it and return
+        if (instance.pendingUpdate) {
+            return;
+        }
+        
+        // Mark as pending and set timer
+        instance.pendingUpdate = true;
+        instance.updateTimer = setTimeout(() => {
+            // Send the latest messages
+            this.updateChatMessages(instance.messages, viewType, windowId);
+            
+            // Reset state
+            instance.pendingUpdate = false;
+            instance.updateTimer = undefined;
+        }, 1000); // 1 second delay
     }
 
     private updateSubagentMessages(subagentId: string, messages: Message[], viewType?: 'sidebar' | 'tab' | 'window', windowId?: string) {
