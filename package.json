@@ -4,6 +4,7 @@
   "description": "基于 Wave Agent SDK 的 VS Code AI 聊天界面",
   "version": "0.0.1",
   "publisher": "wave-code",
+  "icon": "LOGO.png",
   "repository": {
     "type": "git",
     "url": "ssh://git@g.hz.netease.com:22222/vusion/wave-vsce.git"
@@ -14,6 +15,7 @@
   "files": [
     "dist/",
     "webview/dist/",
+    "LOGO.png",
     "node_modules/@vscode/ripgrep/bin/",
     "node_modules/@vscode/ripgrep/lib/",
     "node_modules/@vscode/ripgrep/package.json",
@@ -38,7 +40,7 @@
         {
           "id": "waveChatView",
           "title": "Wave",
-          "icon": "$(comment-discussion)"
+          "icon": "LOGO.png"
         }
       ]
     },
