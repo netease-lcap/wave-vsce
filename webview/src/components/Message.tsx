@@ -1,7 +1,7 @@
 import React from 'react';
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
-import type { MessageProps, TextBlock, ErrorBlock, ToolBlock, SubagentBlock, ImageBlock } from '../types';
+import type { MessageProps, TextBlock, ErrorBlock, ToolBlock, SubagentBlock, ImageBlock, CompressBlock, MemoryBlock } from '../types';
 import { DiffViewer } from './DiffViewer';
 import { TodoList } from './TodoList';
 import { SubagentDisplay } from './SubagentDisplay';
@@ -129,18 +129,10 @@ export const Message: React.FC<MessageProps> = (props) => {
     let allElements: Array<{ type: 'html' | 'mermaid'; content: string; id?: string; }> = [];
     
     message.blocks.forEach(block => {
-      if (block.type === 'text') {
-        const textBlock = block as TextBlock;
+      if (block.type === 'text' || block.type === 'memory' || block.type === 'compress') {
+        const textBlock = block as TextBlock | MemoryBlock | CompressBlock; // memory and compress blocks have similar structure
         const content = textBlock.content || '';
         if (content.trim()) {
-          const parsed = parseMarkdownWithMermaid(content);
-          allElements = allElements.concat(parsed.elements);
-        }
-      } else if (block.type === 'memory') {
-        // Apply markdown rendering to memory blocks for better readability
-        const memoryBlock = block as any; // Memory block type not imported
-        const content = memoryBlock.content || '';
-        if (content) {
           const parsed = parseMarkdownWithMermaid(content);
           allElements = allElements.concat(parsed.elements);
         }
@@ -152,7 +144,7 @@ export const Message: React.FC<MessageProps> = (props) => {
           allElements.push({ type: 'html', content: escapeHtml(content) });
         }
       }
-      // Other block types (compress, diff, etc.) are ignored in main content
+      // Other block types (diff, etc.) are ignored in main content
     });
 
     return { 

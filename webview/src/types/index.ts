@@ -6,11 +6,11 @@
  */
 
 // Import message structures and session types from wave-agent-sdk
-import type { Message, MessageBlock, TextBlock, ErrorBlock, ToolBlock, SubagentBlock, ImageBlock } from 'wave-agent-sdk';
+import type { Message, MessageBlock, TextBlock, ErrorBlock, ToolBlock, SubagentBlock, ImageBlock,MemoryBlock, CompressBlock } from 'wave-agent-sdk';
 import type { SessionMetadata, SessionData } from 'wave-agent-sdk';
 
 // Export the agent-sdk types for use in components
-export type { Message, MessageBlock, TextBlock, ErrorBlock, ToolBlock, SubagentBlock, ImageBlock, SessionData };
+export type { Message, MessageBlock, TextBlock, ErrorBlock, ToolBlock, SubagentBlock, ImageBlock,MemoryBlock, CompressBlock, SessionData };
 
 // Extended session metadata that includes first message content
 export interface ExtendedSessionMetadata extends SessionMetadata {
