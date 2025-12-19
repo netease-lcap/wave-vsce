@@ -1,7 +1,7 @@
 {
   "name": "wave-vscode-chat",
-  "displayName": "Wave AI 聊天",
-  "description": "基于 Wave Agent SDK 的 VS Code AI 聊天界面",
+  "displayName": "Wave 代码智聊",
+  "description": "Wave code for VS Code",
   "version": "0.0.1",
   "publisher": "wave-code",
   "icon": "LOGO.png",
@@ -16,6 +16,7 @@
     "dist/",
     "webview/dist/",
     "LOGO.png",
+    "logo.svg",
     "node_modules/@vscode/ripgrep/bin/",
     "node_modules/@vscode/ripgrep/lib/",
     "node_modules/@vscode/ripgrep/package.json",
@@ -40,7 +41,7 @@
         {
           "id": "waveChatView",
           "title": "Wave",
-          "icon": "LOGO.png"
+          "icon": "logo.svg"
         }
       ]
     },
