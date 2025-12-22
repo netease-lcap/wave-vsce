@@ -179,6 +179,16 @@ export class ChatProvider implements vscode.WebviewViewProvider {
             // Load configuration
             const config = await this.loadConfiguration();
             
+            // Check if required configuration is present
+            if (!config.apiKey || !config.baseURL || !config.agentModel || !config.fastModel) {
+                console.log(`Skipping agent creation for ${viewType} due to missing configuration`);
+                this.postMessageToWebview({
+                    command: 'configurationError',
+                    error: '请先在设置中配置 API Key, Base URL 和模型名称'
+                }, viewType, windowId);
+                return;
+            }
+            
             // Only use onMessagesChange as it contains all data including errors
             const callbacks: AgentCallbacks = {
                 onMessagesChange: (messages: Message[]) => {
@@ -1063,10 +1073,24 @@ export class ChatProvider implements vscode.WebviewViewProvider {
                 }
             };
 
-            if (this.sidebarInstance.agent) this.sidebarInstance.agent.updateConfig(update);
-            if (this.tabInstance.agent) this.tabInstance.agent.updateConfig(update);
-            this.windowInstances.forEach(instance => {
-                if (instance.agent) instance.agent.updateConfig(update);
+            if (this.sidebarInstance.agent) {
+                this.sidebarInstance.agent.updateConfig(update);
+            } else {
+                this.initializeAgent('sidebar').catch(err => console.error('Failed to initialize sidebar agent after config update:', err));
+            }
+
+            if (this.tabInstance.agent) {
+                this.tabInstance.agent.updateConfig(update);
+            } else {
+                this.initializeAgent('tab').catch(err => console.error('Failed to initialize tab agent after config update:', err));
+            }
+
+            this.windowInstances.forEach((instance, windowId) => {
+                if (instance.agent) {
+                    instance.agent.updateConfig(update);
+                } else {
+                    this.initializeAgent('window', windowId).catch(err => console.error(`Failed to initialize window agent ${windowId} after config update:`, err));
+                }
             });
 
             console.log('Configuration saved to globalState and agents updated');
