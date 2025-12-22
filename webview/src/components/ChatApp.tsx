@@ -99,12 +99,13 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
         configurationLoading: false,
         configurationError: undefined
       };
-    case 'HIDE_CONFIGURATION':
-      return {
-        ...state,
-        showConfiguration: false,
-        configurationError: undefined
-      };
+	    case 'HIDE_CONFIGURATION':
+	      return {
+	        ...state,
+	        showConfiguration: false,
+	        configurationData: action.payload || state.configurationData,
+	        configurationError: undefined
+	      };
     case 'SET_CONFIGURATION_LOADING':
       return {
         ...state,
@@ -115,6 +116,13 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
         ...state,
         configurationError: action.payload,
         configurationLoading: false
+      };
+    case 'SET_CONFIGURATION_DATA':
+      return {
+        ...state,
+        configurationData: action.payload,
+        configurationLoading: false,
+        configurationError: undefined
       };
     case 'UPDATE_SUBAGENT_MESSAGES':
       const newSubagentMessages = new Map(state.subagentMessages);
@@ -182,7 +190,7 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
           break;
         case 'configurationResponse':
           dispatch({
-            type: 'SHOW_CONFIGURATION',
+            type: 'SET_CONFIGURATION_DATA',
             payload: message.configurationData
           });
           break;
@@ -245,10 +253,11 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
 
   // Configuration handlers
   const handleConfigurationOpen = useCallback(() => {
+    dispatch({ type: 'SHOW_CONFIGURATION', payload: state.configurationData || {} });
     vscode.postMessage({
       command: 'getConfiguration'
     });
-  }, [vscode]);
+  }, [vscode, state.configurationData]);
 
   const handleConfigurationSave = useCallback((configData: any) => {
     dispatch({ type: 'SET_CONFIGURATION_LOADING', payload: true });

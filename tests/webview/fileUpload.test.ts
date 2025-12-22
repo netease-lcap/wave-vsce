@@ -182,7 +182,7 @@ test.describe('File Upload Feature', () => {
     // Note: We can't actually test file selection dialog in headless browser,
     // but we can verify the upload option is clickable and properly structured
     await expect(uploadOption).toContainText('上传本地文件');
-    await expect(uploadOption).toContainText('选择本地文件上传到工作区');
+    await expect(uploadOption).toContainText('选择本地文件上传到临时目录');
   });
 
   test('should insert file paths into input after successful upload', async ({ webviewPage }) => {
@@ -204,17 +204,17 @@ test.describe('File Upload Feature', () => {
     // Simulate successful file upload response
     await injector.simulateExtensionMessage('uploadSuccess', {
       uploadedFiles: [
-        '.wave/artifacts/document.pdf',
-        '.wave/artifacts/image.png'
+        '/tmp/wave-artifacts/document.pdf',
+        '/tmp/wave-artifacts/image.png'
       ],
-      message: '成功上传 2 个文件到 .wave/artifacts'
+      message: '成功上传 2 个文件到临时目录'
     });
 
     await webviewPage.waitForTimeout(300);
 
     // Verify that file paths are inserted into the input
     const inputValue = await messageInput.inputValue();
-    expect(inputValue).toBe('.wave/artifacts/document.pdf .wave/artifacts/image.png ');
+    expect(inputValue).toBe('/tmp/wave-artifacts/document.pdf /tmp/wave-artifacts/image.png ');
   });
 
   test('should handle single file upload path insertion', async ({ webviewPage }) => {
@@ -236,16 +236,16 @@ test.describe('File Upload Feature', () => {
     // Simulate successful single file upload response
     await injector.simulateExtensionMessage('uploadSuccess', {
       uploadedFiles: [
-        '.wave/artifacts/single-file.txt'
+        '/tmp/wave-artifacts/single-file.txt'
       ],
-      message: '成功上传 1 个文件到 .wave/artifacts'
+      message: '成功上传 1 个文件到临时目录'
     });
 
     await webviewPage.waitForTimeout(300);
 
     // Verify that single file path is inserted into the input
     const inputValue = await messageInput.inputValue();
-    expect(inputValue).toBe('.wave/artifacts/single-file.txt ');
+    expect(inputValue).toBe('/tmp/wave-artifacts/single-file.txt ');
   });
 
   test('should insert file path correctly in basic scenario', async ({ webviewPage }) => {
@@ -266,16 +266,16 @@ test.describe('File Upload Feature', () => {
     // Simulate successful file upload response
     await injector.simulateExtensionMessage('uploadSuccess', {
       uploadedFiles: [
-        '.wave/artifacts/test.pdf'
+        '/tmp/wave-artifacts/test.pdf'
       ],
-      message: '成功上传 1 个文件到 .wave/artifacts'
+      message: '成功上传 1 个文件到临时目录'
     });
 
     await webviewPage.waitForTimeout(300);
 
     // Verify that file path replaces the @ symbol correctly
     const inputValue = await messageInput.inputValue();
-    expect(inputValue).toBe('.wave/artifacts/test.pdf ');
+    expect(inputValue).toBe('/tmp/wave-artifacts/test.pdf ');
   });
 
   test('should not add extra @ symbol when inserting file paths', async ({ webviewPage }) => {
@@ -296,16 +296,16 @@ test.describe('File Upload Feature', () => {
     // Simulate successful file upload response
     await injector.simulateExtensionMessage('uploadSuccess', {
       uploadedFiles: [
-        '.wave/artifacts/uploaded-file.txt'
+        '/tmp/wave-artifacts/uploaded-file.txt'
       ],
-      message: '成功上传 1 个文件到 .wave/artifacts'
+      message: '成功上传 1 个文件到临时目录'
     });
 
     await webviewPage.waitForTimeout(300);
 
     // Verify that file path replaces filter text correctly and doesn't add extra @
     const inputValue = await messageInput.inputValue();
-    expect(inputValue).toBe('.wave/artifacts/uploaded-file.txt ');
+    expect(inputValue).toBe('/tmp/wave-artifacts/uploaded-file.txt ');
     expect(inputValue).not.toContain('@'); // Should completely replace @test with file path
   });
 

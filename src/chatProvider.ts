@@ -511,12 +511,17 @@ export class ChatProvider implements vscode.WebviewViewProvider {
                 break;
             case 'updateConfiguration':
                 await this.handleUpdateConfiguration(message.configurationData, actualViewType, windowId);
+                // After successful update, trigger a getConfiguration to refresh the webview state
+                await this.handleGetConfiguration(actualViewType, windowId);
                 break;
             case 'uploadFilesToArtifacts':
                 await this.handleUploadFilesToArtifacts(message.files, actualViewType, windowId);
                 break;
             case 'downloadKbFile':
-                await this.handleDownloadKbFile(message.fileId, message.fileName, message.kbLink, actualViewType, windowId);
+                await this.handleDownloadKbFile(message.fileId, message.fileName, message.backendLink, actualViewType, windowId);
+                break;
+            case 'getKbItems':
+                await this.handleGetKbItems(message.level, message.kbId, message.folderId, message.backendLink, actualViewType, windowId);
                 break;
             case 'showError':
                 vscode.window.showErrorMessage(message.message);
@@ -748,17 +753,8 @@ export class ChatProvider implements vscode.WebviewViewProvider {
         try {
             console.log(`处理 ${actualViewType} 文件上传请求:`, files.length, '个文件', windowId ? `窗口ID: ${windowId}` : '');
 
-            const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
-            if (!workspaceFolder) {
-                this.postMessageToWebview({
-                    command: 'uploadError',
-                    error: '没有打开的工作区'
-                }, actualViewType, windowId);
-                return;
-            }
-
-            // Create .wave/artifacts directory if it doesn't exist
-            const artifactsDir = path.join(workspaceFolder.uri.fsPath, '.wave', 'artifacts');
+            // Create temporary artifacts directory if it doesn't exist
+            const artifactsDir = path.join(os.tmpdir(), 'wave-artifacts');
             if (!fs.existsSync(artifactsDir)) {
                 fs.mkdirSync(artifactsDir, { recursive: true });
             }
@@ -785,10 +781,9 @@ export class ChatProvider implements vscode.WebviewViewProvider {
                     const buffer = Buffer.from(file.data);
                     fs.writeFileSync(finalPath, buffer);
                     
-                    const relativePath = path.relative(workspaceFolder.uri.fsPath, finalPath);
-                    uploadedFiles.push(relativePath);
+                    uploadedFiles.push(finalPath);
                     
-                    console.log(`成功上传文件: ${relativePath}`);
+                    console.log(`成功上传文件到临时目录: ${finalPath}`);
                 } catch (error) {
                     console.error(`上传文件 ${file.name} 失败:`, error);
                     errors.push(`${file.name}: ${error}`);
@@ -800,12 +795,12 @@ export class ChatProvider implements vscode.WebviewViewProvider {
                 this.postMessageToWebview({
                     command: 'uploadSuccess',
                     uploadedFiles: uploadedFiles,
-                    message: `成功上传 ${uploadedFiles.length} 个文件到 .wave/artifacts`
+                    message: `成功上传 ${uploadedFiles.length} 个文件到临时目录`
                 }, actualViewType, windowId);
 
                 // Show success notification
                 vscode.window.showInformationMessage(
-                    `成功上传 ${uploadedFiles.length} 个文件到 .wave/artifacts`
+                    `成功上传 ${uploadedFiles.length} 个文件到临时目录`
                 );
             }
 
@@ -1224,6 +1219,10 @@ export class ChatProvider implements vscode.WebviewViewProvider {
         // Also trigger sessions list update
         console.log(`触发 ${actualViewType} 会话列表更新...`);
         await this.listSessions(actualViewType, windowId);
+
+        // Send configuration to webview
+        console.log(`发送配置到 ${actualViewType}...`);
+        await this.handleGetConfiguration(actualViewType, windowId);
     }
 
     /**
@@ -1280,45 +1279,105 @@ export class ChatProvider implements vscode.WebviewViewProvider {
 
 
 
+    private async handleGetKbItems(level: string, kbId: string | number | undefined, folderId: string | number | undefined, backendLink: string, viewType?: 'sidebar' | 'tab' | 'window', windowId?: string) {
+        const actualViewType = viewType || 'tab';
+        try {
+            if (!backendLink) {
+                throw new Error('未配置后台连接');
+            }
+
+            // Remove trailing slash if present
+            const baseLink = backendLink.endsWith('/') ? backendLink.slice(0, -1) : backendLink;
+            
+            let url = '';
+            if (level === 'root') {
+                url = `${baseLink}/api/knowledge-base?page=1&pageSize=10`;
+            } else if (level === 'kb') {
+                url = `${baseLink}/api/knowledge-base/${kbId}/categories?page=1&pageSize=10`;
+            } else if (level === 'folder') {
+                url = `${baseLink}/api/knowledge-base/categories/${folderId}/files?page=1&pageSize=10`;
+            }
+
+            console.log(`[KnowledgeBase] 正在请求数据: ${url}`);
+            const response = await fetch(url);
+            
+            if (!response.ok) {
+                throw new Error(`请求失败: ${response.status} ${response.statusText}`);
+            }
+
+            const result = await response.json() as any;
+            console.log(`[KnowledgeBase] 收到响应:`, JSON.stringify(result).substring(0, 200) + '...');
+
+            this.postMessageToWebview({
+                command: 'kbItemsResponse',
+                level,
+                kbId,
+                folderId,
+                result
+            }, actualViewType, windowId);
+        } catch (error) {
+            console.error('[KnowledgeBase] 获取数据失败:', error);
+            this.postMessageToWebview({
+                command: 'kbItemsError',
+                error: '获取知识库数据失败: ' + (error instanceof Error ? error.message : String(error))
+            }, actualViewType, windowId);
+        }
+    }
+
     private async handleDownloadKbFile(fileId: string | number, fileName: string, backendLink: string, viewType?: 'sidebar' | 'tab' | 'window', windowId?: string) {
         const actualViewType = viewType || 'tab';
         try {
-            console.log(`正在从知识库下载文件: ${fileName} (ID: ${fileId})`);
+            if (!backendLink) {
+                throw new Error('未配置后台连接');
+            }
+
+            // Remove trailing slash if present
+            const baseLink = backendLink.endsWith('/') ? backendLink.slice(0, -1) : backendLink;
+            const url = `${baseLink}/api/knowledge-base/files/${fileId}/download`;
             
-            const url = `${backendLink}/api/knowledge-base/files/${fileId}/download`;
+            console.log(`[KnowledgeBase] 正在从知识库下载文件: ${fileName} (ID: ${fileId}), URL: ${url}`);
             
-            // Use dynamic import for node-fetch or use global fetch if available (Node 18+)
             const response = await fetch(url);
             if (!response.ok) {
-                throw new Error(`下载失败: ${response.statusText}`);
+                throw new Error(`下载失败: ${response.status} ${response.statusText}`);
             }
             
             const arrayBuffer = await response.arrayBuffer();
             const buffer = Buffer.from(arrayBuffer);
             
-            // Create a temporary directory for downloaded files
-            const tempDir = path.join(os.tmpdir(), 'wave-kb-downloads');
-            if (!fs.existsSync(tempDir)) {
-                fs.mkdirSync(tempDir, { recursive: true });
+            // Determine download directory: system temp dir
+            const downloadDir = path.join(os.tmpdir(), 'wave-artifacts');
+
+            if (!fs.existsSync(downloadDir)) {
+                fs.mkdirSync(downloadDir, { recursive: true });
             }
             
-            const tempPath = path.join(tempDir, fileName);
-            fs.writeFileSync(tempPath, buffer);
+            // Handle potential file name conflicts
+            let finalPath = path.join(downloadDir, fileName);
+            let counter = 1;
+            while (fs.existsSync(finalPath)) {
+                const ext = path.extname(fileName);
+                const baseName = path.basename(fileName, ext);
+                finalPath = path.join(downloadDir, `${baseName}_${counter}${ext}`);
+                counter++;
+            }
             
-            console.log(`文件已下载到临时目录: ${tempPath}`);
+            fs.writeFileSync(finalPath, buffer);
+            
+            console.log(`[KnowledgeBase] 文件已下载到: ${finalPath}`);
             
             this.postMessageToWebview({
                 command: 'kbFileDownloaded',
-                tempPath: tempPath
+                tempPath: finalPath
             }, actualViewType, windowId);
             
         } catch (error) {
-            console.error('下载知识库文件失败:', error);
-            vscode.window.showErrorMessage('下载知识库文件失败: ' + error);
+            console.error('[KnowledgeBase] 下载知识库文件失败:', error);
+            vscode.window.showErrorMessage('下载知识库文件失败: ' + (error instanceof Error ? error.message : String(error)));
             
             this.postMessageToWebview({
                 command: 'kbFileDownloadError',
-                error: '下载失败: ' + error
+                error: '下载失败: ' + (error instanceof Error ? error.message : String(error))
             }, actualViewType, windowId);
         }
     }

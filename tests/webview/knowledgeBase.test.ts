@@ -12,7 +12,56 @@ test.describe('Knowledge Base Integration', () => {
       }
     });
 
-    // 2. Type @ to trigger suggestions
+    // 2. Set up listener for getKbItems and respond with mock data
+    let capturedDownloadMessage: any = null;
+    await webviewPage.exposeFunction('handleExtensionRequests', async (message: any) => {
+      if (message.command === 'getKbItems') {
+        if (message.level === 'root') {
+          await injector.simulateExtensionMessage('kbItemsResponse', {
+            level: 'root',
+            result: {
+              success: true,
+              data: {
+                data: [{ id: 1, name: '技术文档库' }]
+              }
+            }
+          });
+        } else if (message.level === 'kb') {
+          await injector.simulateExtensionMessage('kbItemsResponse', {
+            level: 'kb',
+            kbId: message.kbId,
+            result: {
+              success: true,
+              data: {
+                data: [{ id: 10, name: 'API文档' }]
+              }
+            }
+          });
+        } else if (message.level === 'folder') {
+          await injector.simulateExtensionMessage('kbItemsResponse', {
+            level: 'folder',
+            kbId: message.kbId,
+            folderId: message.folderId,
+            result: {
+              success: true,
+              data: {
+                data: [{ id: 2, original_filename: 'api.md' }]
+              }
+            }
+          });
+        }
+      } else if (message.command === 'downloadKbFile') {
+        capturedDownloadMessage = message;
+      }
+    });
+
+    await webviewPage.evaluate(() => {
+      window.addEventListener('vscode-message', (event: any) => {
+        (window as any).handleExtensionRequests(event.detail);
+      });
+    });
+
+    // 3. Type @ to trigger suggestions
     const messageInput = webviewPage.getByTestId('message-input');
     await messageInput.fill('@');
     await messageInput.press('End');
@@ -53,17 +102,7 @@ test.describe('Knowledge Base Integration', () => {
     await expect(fileItem).toBeVisible();
 
     // 10. Set up listener for downloadKbFile message
-    let capturedDownloadMessage: any = null;
-    await webviewPage.exposeFunction('captureDownloadMessage', (message: any) => {
-      if (message.command === 'downloadKbFile') {
-        capturedDownloadMessage = message;
-      }
-    });
-    await webviewPage.evaluate(() => {
-      window.addEventListener('vscode-message', (event: any) => {
-        (window as any).captureDownloadMessage(event.detail);
-      });
-    });
+    // Note: listener already added in step 2
 
     // 11. Click the File
     await fileItem.click();

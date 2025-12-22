@@ -70,9 +70,13 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Filter out empty strings to avoid writing them to settings.json
+    // Filter out empty strings to avoid writing them to settings.json,
+    // but allow backendLink to be empty to clear it
     const filteredData = Object.fromEntries(
-      Object.entries(formData).filter(([_, value]) => value && value.trim() !== '')
+      Object.entries(formData).filter(([key, value]) => {
+        if (key === 'backendLink') return true;
+        return value && value.trim() !== '';
+      })
     );
     onSave(filteredData);
   };
