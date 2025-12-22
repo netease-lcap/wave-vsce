@@ -1,6 +1,7 @@
 /* Messages */
 .message {
     word-wrap: break-word;
+    max-width: 100%;
 }
 
 .message.assistant {
@@ -16,7 +17,6 @@
     padding: 8px 12px;
     margin-bottom: 8px;
     overflow-wrap: break-word; /* 长词自动换行 */
-    word-break: break-word; /* 兼容性 */
 }
 
 .message.assistant .error {
