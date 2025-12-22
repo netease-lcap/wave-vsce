@@ -56,6 +56,11 @@
     color: var(--vscode-editor-foreground);
 }
 
+.required-star {
+    color: var(--vscode-errorForeground);
+    margin-left: 2px;
+}
+
 .configuration-field input {
     background-color: var(--vscode-input-background);
     color: var(--vscode-input-foreground);

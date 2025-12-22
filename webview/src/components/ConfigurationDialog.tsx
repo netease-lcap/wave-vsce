@@ -26,6 +26,13 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps> = ({
     backendLink: ''
   });
 
+  const isFormValid = !!(
+    formData.apiKey?.trim() &&
+    formData.baseURL?.trim() &&
+    formData.agentModel?.trim() &&
+    formData.fastModel?.trim()
+  );
+
   const dialogRef = useRef<HTMLDivElement>(null);
 
   // Update form data when configurationData prop changes
@@ -39,13 +46,17 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps> = ({
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dialogRef.current && !dialogRef.current.contains(event.target as Node)) {
-        onCancel();
+        if (isFormValid) {
+          onCancel();
+        }
       }
     };
 
     const handleEscapeKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
-        onCancel();
+        if (isFormValid) {
+          onCancel();
+        }
       }
     };
 
@@ -58,7 +69,7 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps> = ({
       document.removeEventListener('mousedown', handleClickOutside);
       document.removeEventListener('keydown', handleEscapeKey);
     };
-  }, [isVisible, onCancel]);
+  }, [isVisible, onCancel, isFormValid]);
 
   const handleInputChange = (field: keyof ConfigurationData, value: string) => {
     setFormData(prev => ({
@@ -88,7 +99,7 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps> = ({
 
         <form onSubmit={handleSubmit} className="configuration-form">
         <div className="configuration-field">
-          <label htmlFor="apiKey">API Key:</label>
+          <label htmlFor="apiKey">API Key <span className="required-star">*</span>:</label>
           <input
             id="apiKey"
             type="password"
@@ -96,11 +107,12 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps> = ({
             onChange={(e) => handleInputChange('apiKey', e.target.value)}
             placeholder="输入 API Key"
             disabled={isLoading}
+            required
           />
         </div>
 
         <div className="configuration-field">
-          <label htmlFor="baseURL">Base URL:</label>
+          <label htmlFor="baseURL">Base URL <span className="required-star">*</span>:</label>
           <input
             id="baseURL"
             type="url"
@@ -108,11 +120,12 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps> = ({
             onChange={(e) => handleInputChange('baseURL', e.target.value)}
             placeholder="https://api.example.com"
             disabled={isLoading}
+            required
           />
         </div>
 
         <div className="configuration-field">
-          <label htmlFor="agentModel">Agent Model:</label>
+          <label htmlFor="agentModel">Agent Model <span className="required-star">*</span>:</label>
           <input
             id="agentModel"
             type="text"
@@ -120,11 +133,12 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps> = ({
             onChange={(e) => handleInputChange('agentModel', e.target.value)}
             placeholder="请输入模型名称"
             disabled={isLoading}
+            required
           />
         </div>
 
         <div className="configuration-field">
-          <label htmlFor="fastModel">Fast Model:</label>
+          <label htmlFor="fastModel">Fast Model <span className="required-star">*</span>:</label>
           <input
             id="fastModel"
             type="text"
@@ -132,6 +146,7 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps> = ({
             onChange={(e) => handleInputChange('fastModel', e.target.value)}
             placeholder="请输入快速模型名称"
             disabled={isLoading}
+            required
           />
         </div>
 
@@ -157,14 +172,14 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps> = ({
           <button
             type="button"
             onClick={onCancel}
-            disabled={isLoading}
+            disabled={isLoading || !isFormValid}
             className="configuration-cancel-btn"
           >
             取消
           </button>
           <button
             type="submit"
-            disabled={isLoading}
+            disabled={isLoading || !isFormValid}
             className="configuration-save-btn"
           >
             {isLoading ? '保存中...' : '保存'}
