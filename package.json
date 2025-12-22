@@ -17,9 +17,7 @@
     "webview/dist/",
     "LOGO.png",
     "logo.svg",
-    "node_modules/@vscode/ripgrep/bin/",
-    "node_modules/@vscode/ripgrep/lib/",
-    "node_modules/@vscode/ripgrep/package.json",
+    "bin/",
     "LICENSE"
   ],
   "categories": [
@@ -79,6 +77,7 @@
     "watch:backend": "tsc --watch",
     "watch:frontend": "npm run compile:frontend -- --watch",
     "package": "webpack --mode production --devtool false",
+    "package:all": "node scripts/package.js",
     "test": "npm run test:playwright",
     "test:playwright": "playwright test",
     "test:playwright:ui": "playwright test --ui"
@@ -101,7 +100,6 @@
   },
   "dependencies": {
     "@vscode/codicons": "^0.0.43",
-    "@vscode/ripgrep": "^1.15.6",
     "diff": "^8.0.2",
     "dompurify": "^3.3.0",
     "marked": "^9.1.6",

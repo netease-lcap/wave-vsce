@@ -14,11 +14,13 @@ const extensionConfig = {
     libraryTarget: 'commonjs2'
   },
   externals: {
-    vscode: 'commonjs vscode',
-    '@vscode/ripgrep': 'commonjs @vscode/ripgrep'
+    vscode: 'commonjs vscode'
   },
   resolve: {
-    extensions: ['.ts', '.js']
+    extensions: ['.ts', '.js'],
+    alias: {
+      '@vscode/ripgrep': path.resolve(__dirname, 'src/ripgrep.ts')
+    }
   },
   cache: {
     type: 'filesystem', // Enable filesystem caching for faster rebuilds

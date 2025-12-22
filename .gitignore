@@ -10,5 +10,10 @@ webview/dist/
 
 # VS Code extension packages
 *.vsix
+*.zip
+
+# Binaries
+bin/*
+!bin/.gitkeep
 
 designs/
