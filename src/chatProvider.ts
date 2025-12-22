@@ -176,6 +176,9 @@ export class ChatProvider implements vscode.WebviewViewProvider {
             // Get the appropriate instance
             const instance = this.getViewInstance(viewType, windowId);
             
+            // Load configuration
+            const config = await this.loadConfiguration();
+            
             // Only use onMessagesChange as it contains all data including errors
             const callbacks: AgentCallbacks = {
                 onMessagesChange: (messages: Message[]) => {
@@ -199,6 +202,10 @@ export class ChatProvider implements vscode.WebviewViewProvider {
                 callbacks,
                 workdir,
                 restoreSessionId,
+                apiKey: config.apiKey,
+                baseURL: config.baseURL,
+                agentModel: config.agentModel,
+                fastModel: config.fastModel,
                 canUseTool: async (context: ToolPermissionContext): Promise<PermissionDecision> => {
                     return await this.handleToolPermissionRequest(context, viewType, windowId);
                 }
@@ -1021,109 +1028,48 @@ export class ChatProvider implements vscode.WebviewViewProvider {
     // Configuration management methods
 
     /**
-     * Get the ~/.wave/settings.json file path
-     */
-    private getWaveSettingsPath(): string {
-        return path.join(os.homedir(), '.wave', 'settings.json');
-    }
-
-    /**
-     * Ensure ~/.wave directory exists
-     */
-    private async ensureWaveDirectory(): Promise<void> {
-        const waveDir = path.join(os.homedir(), '.wave');
-        try {
-            await fs.promises.access(waveDir);
-        } catch (error) {
-            // Directory doesn't exist, create it
-            await fs.promises.mkdir(waveDir, { recursive: true });
-            console.log('Created ~/.wave directory');
-        }
-    }
-
-    /**
-     * Load configuration from ~/.wave/settings.json
+     * Load configuration from globalState
      */
     private async loadConfiguration(): Promise<any> {
-        try {
-            const settingsPath = this.getWaveSettingsPath();
-            await fs.promises.access(settingsPath);
-            const content = await fs.promises.readFile(settingsPath, 'utf8');
-            const settings = JSON.parse(content);
-
-            // Extract configuration from env field
-            const env = settings.env || {};
-            
-            // Load backendLink from globalState
-            const backendLink = this.context.globalState.get<string>('backendLink') || '';
-
-            return {
-                apiKey: env.AIGW_TOKEN || '',
-                baseURL: env.AIGW_URL || '',
-                agentModel: env.AIGW_MODEL || '',
-                fastModel: env.AIGW_FAST_MODEL || '',
-                backendLink
-            };
-        } catch (error) {
-            // File doesn't exist or is invalid, return default config
-            console.log('No configuration file found, using defaults');
-            const backendLink = this.context.globalState.get<string>('backendLink') || '';
-            return {
-                apiKey: '',
-                baseURL: '',
-                agentModel: '',
-                fastModel: '',
-                backendLink
-            };
-        }
+        return {
+            apiKey: this.context.globalState.get<string>('apiKey') || '',
+            baseURL: this.context.globalState.get<string>('baseURL') || '',
+            agentModel: this.context.globalState.get<string>('agentModel') || '',
+            fastModel: this.context.globalState.get<string>('fastModel') || '',
+            backendLink: this.context.globalState.get<string>('backendLink') || ''
+        };
     }
 
     /**
-     * Save configuration to ~/.wave/settings.json
+     * Save configuration to globalState and update active agents
      */
     private async saveConfiguration(configData: any): Promise<void> {
         try {
-            await this.ensureWaveDirectory();
-            const settingsPath = this.getWaveSettingsPath();
+            if (configData.apiKey !== undefined) await this.context.globalState.update('apiKey', configData.apiKey);
+            if (configData.baseURL !== undefined) await this.context.globalState.update('baseURL', configData.baseURL);
+            if (configData.agentModel !== undefined) await this.context.globalState.update('agentModel', configData.agentModel);
+            if (configData.fastModel !== undefined) await this.context.globalState.update('fastModel', configData.fastModel);
+            if (configData.backendLink !== undefined) await this.context.globalState.update('backendLink', configData.backendLink);
 
-            // Load existing settings or create new ones
-            let settings: any = {};
-            try {
-                const content = await fs.promises.readFile(settingsPath, 'utf8');
-                settings = JSON.parse(content);
-            } catch (error) {
-                // File doesn't exist or is invalid, start with empty settings
-                settings = {};
-            }
+            // Update all active agents
+            const update = {
+                gateway: {
+                    apiKey: configData.apiKey,
+                    baseURL: configData.baseURL
+                },
+                model: {
+                    agentModel: configData.agentModel,
+                    fastModel: configData.fastModel
+                }
+            };
 
-            // Ensure env field exists
-            if (!settings.env) {
-                settings.env = {};
-            }
+            if (this.sidebarInstance.agent) this.sidebarInstance.agent.updateConfig(update);
+            if (this.tabInstance.agent) this.tabInstance.agent.updateConfig(update);
+            this.windowInstances.forEach(instance => {
+                if (instance.agent) instance.agent.updateConfig(update);
+            });
 
-            // Map configuration fields to environment variables
-            if (configData.apiKey !== undefined) {
-                settings.env.AIGW_TOKEN = configData.apiKey;
-            }
-            if (configData.baseURL !== undefined) {
-                settings.env.AIGW_URL = configData.baseURL;
-            }
-            if (configData.agentModel !== undefined) {
-                settings.env.AIGW_MODEL = configData.agentModel;
-            }
-            if (configData.fastModel !== undefined) {
-                settings.env.AIGW_FAST_MODEL = configData.fastModel;
-            }
-
-            // Save backendLink to globalState and remove from configData before saving to settings.json
-            if (configData.backendLink !== undefined) {
-                await this.context.globalState.update('backendLink', configData.backendLink);
-            }
-
-            // Write settings back to file
-            const content = JSON.stringify(settings, null, 2);
-            await fs.promises.writeFile(settingsPath, content, 'utf8');
-            console.log('Configuration saved to ~/.wave/settings.json');
+            console.log('Configuration saved to globalState and agents updated');
         } catch (error) {
             console.error('Failed to save configuration:', error);
             throw error;

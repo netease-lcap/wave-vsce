@@ -245,16 +245,16 @@ export interface ConfirmationDialogProps {
 
 /**
  * Configuration data for AI agent settings
- * Maps to environment variables in ~/.wave/settings.json
+ * Maps to VS Code global state
  */
 export interface ConfigurationData {
-  /** API key for authentication -> env.AIGW_TOKEN */
+  /** API key for authentication */
   apiKey?: string;
-  /** Base URL for API endpoints -> env.AIGW_URL */
+  /** Base URL for API endpoints */
   baseURL?: string;
-  /** Primary agent model -> env.AIGW_MODEL */
+  /** Primary agent model */
   agentModel?: string;
-  /** Fast model for quick responses -> env.AIGW_FAST_MODEL */
+  /** Fast model for quick responses */
   fastModel?: string;
   /** Backend link for @ mention integration and other services */
   backendLink?: string;

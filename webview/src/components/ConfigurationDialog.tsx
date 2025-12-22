@@ -3,7 +3,7 @@
  *
  * This component appears above the configuration button when opened, similar to
  * the FileSuggestionDropdown pattern. It allows users to configure API settings
- * that are saved to ~/.wave/settings.json.
+ * that are saved to VS Code's global state.
  */
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -70,15 +70,7 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Filter out empty strings to avoid writing them to settings.json,
-    // but allow backendLink to be empty to clear it
-    const filteredData = Object.fromEntries(
-      Object.entries(formData).filter(([key, value]) => {
-        if (key === 'backendLink') return true;
-        return value && value.trim() !== '';
-      })
-    );
-    onSave(filteredData);
+    onSave(formData);
   };
 
   if (!isVisible) {
