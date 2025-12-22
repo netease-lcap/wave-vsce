@@ -1,6 +1,6 @@
-# CLAUDE.md
+# AGENTS.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to AGENT when working with code in this repository.
 
 ## Project Overview
 
@@ -43,8 +43,9 @@ npm run test:playwright:ui
 The extension uses VS Code's extension-webview architecture with clear separation:
 
 1. **Extension Backend** (`src/` - Node.js/TypeScript)
-   - Entry point: `src/extension.ts` (44 lines)
-   - Core logic: `src/chatProvider.ts` (380+ lines)
+   - Entry point: `src/extension.ts`
+   - Core provider: `src/chatProvider.ts`
+   - Business logic split into specialized services (`src/services/`) and session management (`src/session/`)
    - Manages Wave Agent SDK integration, webview lifecycle, and VS Code APIs
 
 2. **Webview Frontend** (`webview/src/` - React/TypeScript)
@@ -57,7 +58,14 @@ The extension uses VS Code's extension-webview architecture with clear separatio
 | File | Purpose |
 |------|---------|
 | `src/extension.ts` | Extension activation, command registration |
-| `src/chatProvider.ts` | Core provider managing agent/webview bridge, session management |
+| `src/chatProvider.ts` | Main coordinator for the extension backend |
+| `src/session/chatSession.ts` | Encapsulates state and logic for a single chat instance |
+| `src/session/webviewManager.ts` | Manages VS Code webview panels and views |
+| `src/session/messageHandler.ts` | Routes and handles messages from the webview |
+| `src/services/configurationService.ts` | Manages extension settings and persistence |
+| `src/services/fileService.ts` | Handles workspace file operations and artifacts |
+| `src/services/kbService.ts` | Integrates with Knowledge Base backend |
+| `src/services/sessionService.ts` | Manages global session listing and metadata |
 | `webview/src/components/ChatApp.tsx` | Root React component with reducer-based state management |
 | `webview/src/components/Message.tsx` | Message rendering with markdown parsing and tool display |
 | `webview/src/components/MessageList.tsx` | Auto-scrolling message container |
@@ -69,10 +77,11 @@ The extension uses VS Code's extension-webview architecture with clear separatio
 ### Message Flow Architecture
 
 ```
-User Input → MessageInput → vscode.postMessage() → chatProvider.handleWebviewMessage()
+User Input → MessageInput → vscode.postMessage() → MessageHandler.handleMessage()
+                                                   → ChatSession.sendMessage()
                                                    → agent.sendMessage() (Wave Agent SDK)
                                                    → agent callbacks (onMessagesChange)
-                                                   → panel.webview.postMessage() → ChatApp reducer
+                                                   → WebviewManager.postMessage() → ChatApp reducer
 ```
 
 ### State Management Pattern
@@ -131,15 +140,18 @@ npm run test:playwright:ui  # Interactive test runner
 ## Key Technical Patterns
 
 ### 1. Agent Integration
-**File:** `src/chatProvider.ts:48-52`
+**File:** `src/chatProvider.ts`
 ```typescript
-const callbacks: MessageManagerCallbacks = {
-  onMessagesChange: (messages: Message[]) => {
-    this.updateChatMessages(messages);
-  }
-};
+private createChatSession(viewType: 'sidebar' | 'tab' | 'window', windowId?: string): ChatSession {
+    return new ChatSession(viewType, windowId, {
+        onMessagesChange: (messages) => {
+            this.webviewManager.postMessage({ command: 'updateMessages', messages }, viewType, windowId);
+        },
+        // ... other callbacks
+    });
+}
 ```
-Uses single callback for all message changes instead of multiple event handlers.
+Uses a centralized factory method to create `ChatSession` instances with consistent callbacks for UI updates.
 
 ### 2. Session Persistence
 Sessions managed via Wave Agent SDK:
@@ -201,7 +213,7 @@ npm run test:playwright:ui   # Interactive test runner for debugging
 ### Building for Distribution
 ```bash
 npm run package             # Production build
-npm install -g vsce         # Install packaging tool
+npm install -g @vscode/vsce         # Install packaging tool
 vsce package               # Creates .vsix file
 ```
 
