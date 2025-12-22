@@ -42,14 +42,12 @@ test.describe('Tool Block Error Rendering', () => {
       const styles = window.getComputedStyle(element);
       return {
         color: styles.color,
-        fontStyle: styles.fontStyle,
-        padding: styles.padding
+        fontStyle: styles.fontStyle
       };
     });
 
-    // The error should have italic styling and proper padding
+    // The error should have italic styling
     expect(errorStyles.fontStyle).toBe('italic');
-    expect(errorStyles.padding).toBe('8px 12px');
   });
 
   test('should render tool error for Bash tool with command output', async ({ webviewPage }) => {

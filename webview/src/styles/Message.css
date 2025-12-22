@@ -19,10 +19,9 @@
     word-break: break-word; /* 兼容性 */
 }
 
-.message.error {
+.message.assistant .error {
     color: var(--vscode-descriptionForeground);
     font-style: italic;
-    padding: 8px 12px;
 }
 
 .message.streaming::after {
@@ -90,7 +89,6 @@
 .tool-error {
     color: var(--vscode-descriptionForeground);
     font-style: italic;
-    padding: 8px 12px;
     margin-top: 4px;
 }
 

@@ -74,15 +74,6 @@ const parseMarkdownWithMermaid = (content: string): ParsedMarkdownContent => {
   return { elements };
 };
 
-// Legacy function for backward compatibility
-const renderMarkdown = (content: string): string => {
-  const parsed = parseMarkdownWithMermaid(content);
-  return parsed.elements
-    .filter(el => el.type === 'html')
-    .map(el => el.content)
-    .join('');
-};
-
 export const Message: React.FC<MessageProps> = (props) => {
   const { message, isStreaming = false, subagentMessages } = props;
   const getMessageClassName = () => {
@@ -91,66 +82,13 @@ export const Message: React.FC<MessageProps> = (props) => {
     if (message.role === 'user') {
       classes.push('user');
     } else if (message.role === 'assistant') {
-      // Check if any block is an error block
-      const hasErrorBlock = message.blocks?.some(block => block.type === 'error');
-      if (hasErrorBlock) {
-        classes.push('error');
-      } else {
-        classes.push('assistant');
-        if (isStreaming) {
-          classes.push('streaming');
-        }
+      classes.push('assistant');
+      if (isStreaming) {
+        classes.push('streaming');
       }
     }
     
     return classes.join(' ');
-  };
-
-  const renderContent = (): { elements: Array<{ type: 'html' | 'mermaid'; content: string; id?: string; }>; isUserMessage: boolean } => {
-    if (!message.blocks || message.blocks.length === 0) {
-      return { elements: [], isUserMessage: false };
-    }
-
-    // For user messages, return raw text (to be rendered in <pre>)
-    if (message.role === 'user') {
-      const textBlocks = message.blocks
-        .filter(block => block.type === 'text')
-        .map(block => (block as TextBlock).content || '')
-        .filter(content => content.trim());
-      
-      const content = textBlocks.join('\n\n');
-      return { 
-        elements: content ? [{ type: 'html', content }] : [],
-        isUserMessage: true 
-      };
-    }
-
-    // For assistant messages and others, process content with mermaid support
-    let allElements: Array<{ type: 'html' | 'mermaid'; content: string; id?: string; }> = [];
-    
-    message.blocks.forEach(block => {
-      if (block.type === 'text' || block.type === 'memory' || block.type === 'compress') {
-        const textBlock = block as TextBlock | MemoryBlock | CompressBlock; // memory and compress blocks have similar structure
-        const content = textBlock.content || '';
-        if (content.trim()) {
-          const parsed = parseMarkdownWithMermaid(content);
-          allElements = allElements.concat(parsed.elements);
-        }
-      } else if (block.type === 'error') {
-        const errorBlock = block as ErrorBlock;
-        const content = errorBlock.content || '';
-        if (content) {
-          // Keep error content as plain text for clarity
-          allElements.push({ type: 'html', content: escapeHtml(content) });
-        }
-      }
-      // Other block types (diff, etc.) are ignored in main content
-    });
-
-    return { 
-      elements: allElements,
-      isUserMessage: false
-    };
   };
 
   const renderBashIO = (toolBlock: ToolBlock) => {
@@ -303,6 +241,7 @@ export const Message: React.FC<MessageProps> = (props) => {
       </div>
     );
   };
+
   const renderSubagentBlock = (subagentBlock: SubagentBlock, index: number) => {
     return (
       <div key={`subagent-${index}`}>
@@ -314,30 +253,34 @@ export const Message: React.FC<MessageProps> = (props) => {
     );
   };
 
-  const toolBlocks = message.blocks?.filter(block => block.type === 'tool') || [];
-  const subagentBlocks = message.blocks?.filter(block => block.type === 'subagent') || [];
-  const imageBlocks = message.blocks?.filter(block => block.type === 'image') || [];
-  const contentResult = renderContent();
+  const renderBlock = (block: any, index: number) => {
+    switch (block.type) {
+      case 'text':
+      case 'memory':
+      case 'compress': {
+        const content = block.content || '';
+        if (!content.trim()) return null;
+        
+        if (message.role === 'user') {
+          return (
+            <pre key={index} className="message-content user-content">
+              {content}
+            </pre>
+          );
+        }
 
-  return (
-    <div className={getMessageClassName()}>
-      {/* Render content elements */}
-      {contentResult.elements.length > 0 && (
-        contentResult.isUserMessage ? (
-          <pre className="message-content user-content">
-            {contentResult.elements.map(el => el.content).join('')}
-          </pre>
-        ) : (
-          <div className="message-content-container">
-            {contentResult.elements.map((element, index) => (
+        const parsed = parseMarkdownWithMermaid(content);
+        return (
+          <div key={index} className="message-content-container">
+            {parsed.elements.map((element, elIndex) => (
               element.type === 'mermaid' ? (
                 <MermaidRenderer 
-                  key={element.id || `mermaid-${index}`}
+                  key={element.id || `mermaid-${index}-${elIndex}`}
                   content={element.content}
                 />
               ) : (
                 <div 
-                  key={`html-${index}`}
+                  key={`html-${index}-${elIndex}`}
                   className="message-content markdown-content"
                   dangerouslySetInnerHTML={{ 
                     __html: element.content 
@@ -346,17 +289,28 @@ export const Message: React.FC<MessageProps> = (props) => {
               )
             ))}
           </div>
-        )
-      )}
-      
-      {/* Render image blocks */}
-      {imageBlocks.map((block, index) => renderImageBlock(block as ImageBlock, index))}
-      
-      {/* Render tool blocks separately */}
-      {toolBlocks.map((block, index) => renderToolBlock(block as ToolBlock, index))}
+        );
+      }
+      case 'error':
+        return (
+          <div key={index} className="message-content error">
+            {escapeHtml(block.content || '')}
+          </div>
+        );
+      case 'tool':
+        return renderToolBlock(block as ToolBlock, index);
+      case 'image':
+        return renderImageBlock(block as ImageBlock, index);
+      case 'subagent':
+        return renderSubagentBlock(block as SubagentBlock, index);
+      default:
+        return null;
+    }
+  };
 
-      {/* Render subagent blocks separately */}
-      {subagentBlocks.map((block, index) => renderSubagentBlock(block as SubagentBlock, index))}
+  return (
+    <div className={getMessageClassName()}>
+      {message.blocks?.map((block, index) => renderBlock(block, index))}
     </div>
   );
 };

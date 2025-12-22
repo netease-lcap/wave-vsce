@@ -121,8 +121,7 @@ test.describe('Clear Chat Functionality', () => {
         await ui.verifyChatCleared();
         
         // Error message should no longer be visible
-        const errorMessage = webviewPage.locator('.error-message, .message.error');
-        await expect(errorMessage).toHaveCount(0);
+        await expect(webviewPage.locator('.message-content')).not.toContainText('Something went wrong');
     });
 
     test('should allow new conversation after clearing', async ({ webviewPage }) => {

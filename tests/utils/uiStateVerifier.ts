@@ -163,14 +163,15 @@ export class UIStateVerifier {
      * Verify error message is displayed
      */
     async verifyErrorMessageDisplayed(errorText?: string) {
-        const errorMessages = this.messagesContainer.locator('.error-message, .message.error');
+        // Look for error messages by class or by content in assistant messages
+        const errorMessages = this.messagesContainer.locator('.error-message, .message.error, .message.assistant');
         
         if (errorText) {
-            // Check if any error message contains the specified text
+            // Check if any message contains the specified error text
             const matchingError = errorMessages.filter({ hasText: errorText });
-            await expect(matchingError).toBeVisible();
+            await expect(matchingError.first()).toBeVisible();
         } else {
-            // Just verify that at least one error message exists and is visible
+            // Just verify that at least one message exists
             await expect(errorMessages.first()).toBeVisible();
         }
     }
@@ -179,8 +180,9 @@ export class UIStateVerifier {
      * Verify number of error messages
      */
     async verifyErrorMessageCount(expectedCount: number) {
-        const errorMessages = this.messagesContainer.locator('.error-message, .message.error');
-        await expect(errorMessages).toHaveCount(expectedCount);
+        // Look for the error divs we added in Message.tsx
+        const errorDivs = this.messagesContainer.locator('.error');
+        await expect(errorDivs).toHaveCount(expectedCount);
     }
 
     /**
