@@ -118,7 +118,7 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps> = ({
             type="url"
             value={formData.baseURL || ''}
             onChange={(e) => handleInputChange('baseURL', e.target.value)}
-            placeholder="https://api.example.com"
+            placeholder="https://api.example.com/v1"
             disabled={isLoading}
             required
           />
