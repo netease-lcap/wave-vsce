@@ -5,6 +5,10 @@ import * as os from 'os';
 import type {  Message, SessionMetadata, PermissionDecision, ToolPermissionContext, AgentCallbacks } from 'wave-agent-sdk';
 import { Agent, listSessions, searchFiles, getFirstMessageContent } from 'wave-agent-sdk';
 
+interface ExtendedSessionMetadata extends SessionMetadata {
+    firstMessageContent?: string | null;
+}
+
 interface ViewInstance {
     agent: Agent | undefined;
     messages: Message[];
@@ -1164,28 +1168,31 @@ export class ChatProvider implements vscode.WebviewViewProvider {
 
         // Get sessions
         let sessions: ExtendedSessionMetadata[] = [];
-        if (instance.agent) {
-            try {
-                const rawSessions = await instance.agent.listSessions();
-                sessions = await Promise.all(rawSessions.map(async (s) => ({
-                    ...s,
-                    firstMessageContent: await getFirstMessageContent(s.id)
-                })));
-            } catch (error) {
-                console.error('Error listing sessions for initial state:', error);
-            }
+        try {
+            const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+            const workdir = workspaceFolder?.uri.fsPath || process.cwd();
+            const rawSessions = await listSessions(workdir);
+            sessions = await Promise.all(rawSessions.slice(0, 5).map(async (s: SessionMetadata) => ({
+                ...s,
+                firstMessageContent: await getFirstMessageContent(s.id, workdir)
+            })));
+        } catch (error) {
+            console.error('Error listing sessions for initial state:', error);
         }
 
         // Get pending confirmation (take the first one if multiple, though usually there's only one)
         let pendingConfirmation = undefined;
         if (instance.pendingConfirmations.size > 0) {
-            const [confirmationId, pending] = instance.pendingConfirmations.entries().next().value;
-            pendingConfirmation = {
-                confirmationId,
-                toolName: pending.toolName,
-                confirmationType: pending.confirmationType,
-                toolInput: pending.toolInput
-            };
+            const nextValue = instance.pendingConfirmations.entries().next().value;
+            if (nextValue) {
+                const [confirmationId, pending] = nextValue;
+                pendingConfirmation = {
+                    confirmationId,
+                    toolName: pending.toolName,
+                    confirmationType: pending.confirmationType,
+                    toolInput: pending.toolInput
+                };
+            }
         }
 
         // Send all-in-one initial state
