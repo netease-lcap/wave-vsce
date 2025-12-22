@@ -16,8 +16,7 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps> = ({
   isLoading,
   error,
   onSave,
-  onCancel,
-  position
+  onCancel
 }) => {
   const [formData, setFormData] = useState<ConfigurationData>({
     apiKey: '',
@@ -78,19 +77,16 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps> = ({
   }
 
   return (
-    <div
-      ref={dialogRef}
-      className="configuration-dialog"
-      style={{
-        top: position.top,
-        left: position.left
-      }}
-    >
-      <div className="configuration-dialog-header">
-        <h3>配置设置</h3>
-      </div>
+    <div className="configuration-dialog-overlay">
+      <div
+        ref={dialogRef}
+        className="configuration-dialog"
+      >
+        <div className="configuration-dialog-header">
+          <h3>配置设置</h3>
+        </div>
 
-      <form onSubmit={handleSubmit} className="configuration-form">
+        <form onSubmit={handleSubmit} className="configuration-form">
         <div className="configuration-field">
           <label htmlFor="apiKey">API Key:</label>
           <input
@@ -176,6 +172,7 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps> = ({
         </div>
       </form>
     </div>
+  </div>
   );
 };
 

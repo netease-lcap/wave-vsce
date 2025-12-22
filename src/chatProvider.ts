@@ -11,6 +11,7 @@ interface ViewInstance {
     sessionId: string | undefined;
     pendingConfirmations: Map<string, { resolve: (decision: PermissionDecision) => void; toolName: string; }>;
     isStreaming: boolean;
+    isInitializing: boolean;
     updateTimer: NodeJS.Timeout | undefined;
     pendingUpdate: boolean;
 }
@@ -30,6 +31,7 @@ export class ChatProvider implements vscode.WebviewViewProvider {
         sessionId: undefined,
         pendingConfirmations: new Map(),
         isStreaming: false,
+        isInitializing: false,
         updateTimer: undefined,
         pendingUpdate: false
     };
@@ -40,6 +42,7 @@ export class ChatProvider implements vscode.WebviewViewProvider {
         sessionId: undefined,
         pendingConfirmations: new Map(),
         isStreaming: false,
+        isInitializing: false,
         updateTimer: undefined,
         pendingUpdate: false
     };
@@ -105,11 +108,6 @@ export class ChatProvider implements vscode.WebviewViewProvider {
         // Set sidebar visible context
         vscode.commands.executeCommand('setContext', 'waveChatSidebarVisible', true);
 
-        // Initialize sidebar agent if not already done
-        if (!this.sidebarInstance.agent) {
-            this.initializeAgent('sidebar');
-        }
-
         // Send initial state if we have data
         if (this.sidebarInstance.messages.length > 0) {
             this.updateChatMessages(this.sidebarInstance.messages, 'sidebar');
@@ -160,6 +158,12 @@ export class ChatProvider implements vscode.WebviewViewProvider {
     }
 
     private async initializeAgent(viewType: 'sidebar' | 'tab' | 'window', windowId?: string, restoreSessionId?: string) {
+        const instance = this.getViewInstance(viewType, windowId);
+        if (instance.isInitializing) {
+            return;
+        }
+
+        instance.isInitializing = true;
         try {
             console.log(`正在初始化 ${viewType} 视图的智能体...`, windowId ? `窗口ID: ${windowId}` : '');
             
@@ -182,10 +186,19 @@ export class ChatProvider implements vscode.WebviewViewProvider {
             // Check if required configuration is present
             if (!config.apiKey || !config.baseURL || !config.agentModel || !config.fastModel) {
                 console.log(`Skipping agent creation for ${viewType} due to missing configuration`);
+                
+                // Automatically show configuration dialog in the webview
+                this.postMessageToWebview({
+                    command: 'showConfiguration',
+                    configurationData: config
+                }, viewType, windowId);
+                
+                // Send error to be displayed in the dialog
                 this.postMessageToWebview({
                     command: 'configurationError',
                     error: '请先在设置中配置 API Key, Base URL 和模型名称'
                 }, viewType, windowId);
+                
                 return;
             }
             
@@ -229,6 +242,8 @@ export class ChatProvider implements vscode.WebviewViewProvider {
             
             // Send error to specific view
             this.sendErrorToView(error, viewType, windowId);
+        } finally {
+            instance.isInitializing = false;
         }
     }
 
@@ -245,6 +260,7 @@ export class ChatProvider implements vscode.WebviewViewProvider {
                     sessionId: undefined,
                     pendingConfirmations: new Map(),
                     isStreaming: false,
+                    isInitializing: false,
                     updateTimer: undefined,
                     pendingUpdate: false
                 });

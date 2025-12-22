@@ -278,7 +278,6 @@ export interface ConfigurationDialogProps {
   error?: string;
   onSave: (config: ConfigurationData) => void;
   onCancel: () => void;
-  position: { top: number; left: number };
 }
 
 export type ChatAction =

@@ -4,7 +4,6 @@ import { FileSuggestionDropdown } from './FileSuggestionDropdown';
 import { SlashCommandsPopup } from './SlashCommandsPopup';
 import { AttachedImages } from './AttachedImages';
 import ConfigurationButton from './ConfigurationButton';
-import ConfigurationDialog from './ConfigurationDialog';
 import '../styles/MessageInput.css';
 
 interface AtMentionState {
@@ -56,7 +55,6 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
   const [selectedSlashIndex, setSelectedSlashIndex] = useState(0);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
   const [slashPopupPosition, setSlashPopupPosition] = useState({ top: 0, left: 0 });
-  const [configDialogPosition, setConfigDialogPosition] = useState({ top: 0, left: 0 });
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
   const [isLoadingSlashCommands, setIsLoadingSlashCommands] = useState(false);
   const [isComposing, setIsComposing] = useState(false);
@@ -744,19 +742,6 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
 
   // Handle configuration button click
   const handleConfigurationClick = useCallback(() => {
-    if (configButtonRef.current && textareaRef.current) {
-      const buttonRect = configButtonRef.current.getBoundingClientRect();
-      const containerRect = textareaRef.current.parentElement?.getBoundingClientRect();
-
-      if (containerRect) {
-        // Calculate position relative to the input container
-        // Position dialog at left edge of button, top above button
-        setConfigDialogPosition({
-          top: buttonRect.top - containerRect.top - 420, // Position above button relative to container
-          left: buttonRect.left - containerRect.left - 334 + buttonRect.width // Align right edge of dialog with right edge of button
-        });
-      }
-    }
     onConfigurationOpen();
   }, [onConfigurationOpen]);
 
@@ -962,17 +947,6 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
         onClose={closeSlashCommandPopup}
         position={slashPopupPosition}
         isLoading={isLoadingSlashCommands}
-      />
-
-      {/* Configuration Dialog */}
-      <ConfigurationDialog
-        isVisible={showConfiguration}
-        configurationData={configurationData || {}}
-        isLoading={configurationLoading}
-        error={configurationError}
-        onSave={onConfigurationSave}
-        onCancel={onConfigurationCancel}
-        position={configDialogPosition}
       />
     </div>
   );

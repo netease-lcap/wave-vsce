@@ -3,6 +3,7 @@ import { MessageList } from './MessageList';
 import { MessageInput } from './MessageInput';
 import { ChatHeader } from './ChatHeader';
 import { ConfirmationDialog } from './ConfirmationDialog';
+import ConfigurationDialog from './ConfigurationDialog';
 import type {
   ChatAppProps,
   ChatState,
@@ -139,6 +140,12 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
 export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
   const [state, dispatch] = useReducer(chatReducer, initialState);
   const messageInputRef = useRef<{ focus: () => void }>(null);
+  const stateRef = useRef(state);
+
+  // Keep stateRef in sync with state
+  useEffect(() => {
+    stateRef.current = state;
+  }, [state]);
 
   // Handle messages from VS Code extension
   useEffect(() => {
@@ -192,6 +199,12 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
           dispatch({
             type: 'SET_CONFIGURATION_DATA',
             payload: message.configurationData
+          });
+          break;
+        case 'showConfiguration':
+          dispatch({
+            type: 'SHOW_CONFIGURATION',
+            payload: message.configurationData || stateRef.current.configurationData || {}
           });
           break;
         case 'configurationUpdated':
@@ -361,6 +374,15 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
           onReject={handleRejection}
         />
       )}
+
+      <ConfigurationDialog
+        isVisible={state.showConfiguration}
+        configurationData={state.configurationData || {}}
+        isLoading={state.configurationLoading}
+        error={state.configurationError}
+        onSave={handleConfigurationSave}
+        onCancel={handleConfigurationCancel}
+      />
     </div>
   );
 };
