@@ -942,7 +942,7 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
       {/* File Suggestion Dropdown */}
       <FileSuggestionDropdown
         suggestions={suggestions}
-        isVisible={atMention.isActive && (suggestions.length > 0 || isLoadingSuggestions || (!atMention.filterText && configurationData?.backendLink && configurationData.backendLink.trim() !== '' && !kbNavigation.isActive))}
+        isVisible={!!(atMention.isActive && (suggestions.length > 0 || isLoadingSuggestions || (!atMention.filterText && configurationData?.backendLink && configurationData.backendLink.trim() !== '' && !kbNavigation.isActive)))}
         selectedIndex={selectedIndex}
         onSelect={handleFileSelect}
         onClose={closeDropdown}

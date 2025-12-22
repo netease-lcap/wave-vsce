@@ -294,7 +294,7 @@ export type ChatAction =
   | { type: 'SHOW_CONFIRMATION'; payload: ConfirmationRequest }
   | { type: 'HIDE_CONFIRMATION' }
   | { type: 'SHOW_CONFIGURATION'; payload: ConfigurationData }
-  | { type: 'HIDE_CONFIGURATION' }
+  | { type: 'HIDE_CONFIGURATION'; payload?: ConfigurationData }
   | { type: 'SET_CONFIGURATION_LOADING'; payload: boolean }
   | { type: 'SET_CONFIGURATION_ERROR'; payload: string | undefined }
   | { type: 'SET_CONFIGURATION_DATA'; payload: ConfigurationData }
