@@ -187,15 +187,10 @@ export class ChatProvider implements vscode.WebviewViewProvider {
             if (!config.apiKey || !config.baseURL || !config.agentModel || !config.fastModel) {
                 console.log(`Skipping agent creation for ${viewType} due to missing configuration`);
                 
-                // Automatically show configuration dialog in the webview
+                // Automatically show configuration dialog in the webview with error message
                 this.postMessageToWebview({
                     command: 'showConfiguration',
-                    configurationData: config
-                }, viewType, windowId);
-                
-                // Send error to be displayed in the dialog
-                this.postMessageToWebview({
-                    command: 'configurationError',
+                    configurationData: config,
                     error: '请先在设置中配置 API Key, Base URL 和模型名称'
                 }, viewType, windowId);
                 

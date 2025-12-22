@@ -96,9 +96,9 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
       return {
         ...state,
         showConfiguration: true,
-        configurationData: action.payload,
+        configurationData: action.payload.data,
         configurationLoading: false,
-        configurationError: undefined
+        configurationError: action.payload.error
       };
 	    case 'HIDE_CONFIGURATION':
 	      return {
@@ -204,7 +204,10 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
         case 'showConfiguration':
           dispatch({
             type: 'SHOW_CONFIGURATION',
-            payload: message.configurationData || stateRef.current.configurationData || {}
+            payload: {
+              data: message.configurationData || stateRef.current.configurationData || {},
+              error: message.error
+            }
           });
           break;
         case 'configurationUpdated':
@@ -266,7 +269,10 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
 
   // Configuration handlers
   const handleConfigurationOpen = useCallback(() => {
-    dispatch({ type: 'SHOW_CONFIGURATION', payload: state.configurationData || {} });
+    dispatch({ 
+      type: 'SHOW_CONFIGURATION', 
+      payload: { data: state.configurationData || {} } 
+    });
     vscode.postMessage({
       command: 'getConfiguration'
     });

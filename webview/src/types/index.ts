@@ -292,7 +292,7 @@ export type ChatAction =
   | { type: 'SET_SESSIONS_ERROR'; payload: string | undefined }
   | { type: 'SHOW_CONFIRMATION'; payload: ConfirmationRequest }
   | { type: 'HIDE_CONFIRMATION' }
-  | { type: 'SHOW_CONFIGURATION'; payload: ConfigurationData }
+  | { type: 'SHOW_CONFIGURATION'; payload: { data: ConfigurationData; error?: string } }
   | { type: 'HIDE_CONFIGURATION'; payload?: ConfigurationData }
   | { type: 'SET_CONFIGURATION_LOADING'; payload: boolean }
   | { type: 'SET_CONFIGURATION_ERROR'; payload: string | undefined }
