@@ -9,7 +9,12 @@ interface ViewInstance {
     agent: Agent | undefined;
     messages: Message[];
     sessionId: string | undefined;
-    pendingConfirmations: Map<string, { resolve: (decision: PermissionDecision) => void; toolName: string; }>;
+    pendingConfirmations: Map<string, { 
+        resolve: (decision: PermissionDecision) => void; 
+        toolName: string;
+        confirmationType: string;
+        toolInput: any;
+    }>;
     isStreaming: boolean;
     isInitializing: boolean;
     updateTimer: NodeJS.Timeout | undefined;
@@ -107,11 +112,6 @@ export class ChatProvider implements vscode.WebviewViewProvider {
 
         // Set sidebar visible context
         vscode.commands.executeCommand('setContext', 'waveChatSidebarVisible', true);
-
-        // Send initial state if we have data
-        if (this.sidebarInstance.messages.length > 0) {
-            this.updateChatMessages(this.sidebarInstance.messages, 'sidebar');
-        }
     }
 
     private postMessageToWebview(message: any, viewType?: 'sidebar' | 'tab' | 'window', windowId?: string) {
@@ -497,11 +497,6 @@ export class ChatProvider implements vscode.WebviewViewProvider {
                 null,
                 this.context.subscriptions
             );
-
-            // Send initial state to new panel
-            if (this.tabInstance.messages.length > 0) {
-                this.updateChatMessages(this.tabInstance.messages, 'tab');
-            }
         }
     }
 
@@ -961,12 +956,6 @@ export class ChatProvider implements vscode.WebviewViewProvider {
         return new Promise((resolve) => {
             const confirmationId = `confirmation_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-            // Store the resolve function to call later
-            instance.pendingConfirmations.set(confirmationId, {
-                resolve,
-                toolName: context.toolName
-            });
-
             // Determine confirmation message based on tool type
             let confirmationType: string;
             if (['Edit', 'MultiEdit', 'Write', 'Delete'].includes(context.toolName)) {
@@ -976,6 +965,14 @@ export class ChatProvider implements vscode.WebviewViewProvider {
             } else {
                 confirmationType = '操作待确认';
             }
+
+            // Store the resolve function to call later
+            instance.pendingConfirmations.set(confirmationId, {
+                resolve,
+                toolName: context.toolName,
+                confirmationType: confirmationType,
+                toolInput: context.toolInput
+            });
 
             // Send confirmation request to webview
             this.postMessageToWebview({
@@ -1155,55 +1152,58 @@ export class ChatProvider implements vscode.WebviewViewProvider {
         console.log(`${actualViewType} Webview ready, sending initial state...`, windowId ? `窗口ID: ${windowId}` : '');
         
         const instance = this.getViewInstance(actualViewType, windowId);
-        console.log(`${actualViewType} 实例状态:`, {
-            hasAgent: !!instance.agent,
-            messagesCount: instance.messages.length,
-            sessionId: instance.sessionId,
-            isStreaming: instance.isStreaming
-        });
         
         // Initialize agent if not yet initialized (fallback for race conditions)
         if (!instance.agent) {
             console.log(`${actualViewType} agent 未初始化，正在初始化...`);
             await this.initializeAgent(actualViewType, windowId);
         }
-        
-        // Send current messages if we have them
-        if (instance.messages.length > 0) {
-            console.log(`发送 ${instance.messages.length} 条历史消息到 ${actualViewType}`);
-            this.updateChatMessages(instance.messages, actualViewType, windowId);
-        }
-        
-        // Restore streaming state if still streaming
-        if (instance.isStreaming) {
-            console.log(`恢复 ${actualViewType} streaming 状态`);
-            this.postMessageToWebview({
-                command: 'startStreaming'
-            }, actualViewType, windowId);
-        }
-        
-        // Send current session info if available
-        if (instance.sessionId && instance.agent) {
-            console.log(`发送会话信息到 ${actualViewType}:`, instance.sessionId);
-            this.postMessageToWebview({
-                command: 'updateCurrentSession',
-                session: {
-                    id: instance.sessionId,
-                    sessionType: 'main',
-                    workdir: instance.agent.workingDirectory,
-                    lastActiveAt: new Date(),
-                    latestTotalTokens: instance.agent.latestTotalTokens
-                } as SessionMetadata
-            }, actualViewType, windowId);
-        }
-        
-        // Also trigger sessions list update
-        console.log(`触发 ${actualViewType} 会话列表更新...`);
-        await this.listSessions(actualViewType, windowId);
 
-        // Send configuration to webview
-        console.log(`发送配置到 ${actualViewType}...`);
-        await this.handleGetConfiguration(actualViewType, windowId);
+        // Load configuration
+        const configurationData = await this.loadConfiguration();
+
+        // Get sessions
+        let sessions: ExtendedSessionMetadata[] = [];
+        if (instance.agent) {
+            try {
+                const rawSessions = await instance.agent.listSessions();
+                sessions = await Promise.all(rawSessions.map(async (s) => ({
+                    ...s,
+                    firstMessageContent: await getFirstMessageContent(s.id)
+                })));
+            } catch (error) {
+                console.error('Error listing sessions for initial state:', error);
+            }
+        }
+
+        // Get pending confirmation (take the first one if multiple, though usually there's only one)
+        let pendingConfirmation = undefined;
+        if (instance.pendingConfirmations.size > 0) {
+            const [confirmationId, pending] = instance.pendingConfirmations.entries().next().value;
+            pendingConfirmation = {
+                confirmationId,
+                toolName: pending.toolName,
+                confirmationType: pending.confirmationType,
+                toolInput: pending.toolInput
+            };
+        }
+
+        // Send all-in-one initial state
+        this.postMessageToWebview({
+            command: 'setInitialState',
+            messages: instance.messages,
+            isStreaming: instance.isStreaming,
+            sessions: sessions,
+            session: instance.sessionId && instance.agent ? {
+                id: instance.sessionId,
+                sessionType: 'main',
+                workdir: instance.agent.workingDirectory,
+                lastActiveAt: new Date(),
+                latestTotalTokens: instance.agent.latestTotalTokens
+            } : undefined,
+            configurationData,
+            pendingConfirmation
+        }, actualViewType, windowId);
     }
 
     /**

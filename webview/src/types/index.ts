@@ -297,4 +297,12 @@ export type ChatAction =
   | { type: 'SET_CONFIGURATION_LOADING'; payload: boolean }
   | { type: 'SET_CONFIGURATION_ERROR'; payload: string | undefined }
   | { type: 'SET_CONFIGURATION_DATA'; payload: ConfigurationData }
-  | { type: 'UPDATE_SUBAGENT_MESSAGES'; payload: { subagentId: string; messages: Message[] } };
+  | { type: 'UPDATE_SUBAGENT_MESSAGES'; payload: { subagentId: string; messages: Message[] } }
+  | { type: 'SET_INITIAL_STATE'; payload: {
+      messages: Message[];
+      isStreaming: boolean;
+      sessions: ExtendedSessionMetadata[];
+      currentSession?: ExtendedSessionMetadata;
+      configurationData: ConfigurationData;
+      pendingConfirmation?: ConfirmationRequest;
+    } };

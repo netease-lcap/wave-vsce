@@ -124,6 +124,18 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
         configurationData: action.payload,
         configurationLoading: false
       };
+    case 'SET_INITIAL_STATE':
+      return {
+        ...state,
+        messages: action.payload.messages,
+        isStreaming: action.payload.isStreaming,
+        sessions: action.payload.sessions,
+        currentSession: action.payload.currentSession,
+        configurationData: action.payload.configurationData,
+        pendingConfirmation: action.payload.pendingConfirmation,
+        sessionsLoading: false,
+        configurationLoading: false
+      };
     case 'UPDATE_SUBAGENT_MESSAGES':
       const newSubagentMessages = new Map(state.subagentMessages);
       newSubagentMessages.set(action.payload.subagentId, action.payload.messages);
@@ -198,6 +210,19 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
           dispatch({
             type: 'SET_CONFIGURATION_DATA',
             payload: message.configurationData
+          });
+          break;
+        case 'setInitialState':
+          dispatch({
+            type: 'SET_INITIAL_STATE',
+            payload: {
+              messages: message.messages,
+              isStreaming: message.isStreaming,
+              sessions: message.sessions,
+              currentSession: message.session,
+              configurationData: message.configurationData,
+              pendingConfirmation: message.pendingConfirmation
+            }
           });
           break;
         case 'showConfiguration':
