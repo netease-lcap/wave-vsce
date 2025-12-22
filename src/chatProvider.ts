@@ -515,6 +515,9 @@ export class ChatProvider implements vscode.WebviewViewProvider {
             case 'uploadFilesToArtifacts':
                 await this.handleUploadFilesToArtifacts(message.files, actualViewType, windowId);
                 break;
+            case 'downloadKbFile':
+                await this.handleDownloadKbFile(message.fileId, message.fileName, message.kbLink, actualViewType, windowId);
+                break;
             case 'showError':
                 vscode.window.showErrorMessage(message.message);
                 break;
@@ -1055,20 +1058,27 @@ export class ChatProvider implements vscode.WebviewViewProvider {
 
             // Extract configuration from env field
             const env = settings.env || {};
+            
+            // Load backendLink from globalState
+            const backendLink = this.context.globalState.get<string>('backendLink') || '';
+
             return {
                 apiKey: env.AIGW_TOKEN || '',
                 baseURL: env.AIGW_URL || '',
                 agentModel: env.AIGW_MODEL || '',
-                fastModel: env.AIGW_FAST_MODEL || ''
+                fastModel: env.AIGW_FAST_MODEL || '',
+                backendLink
             };
         } catch (error) {
             // File doesn't exist or is invalid, return default config
             console.log('No configuration file found, using defaults');
+            const backendLink = this.context.globalState.get<string>('backendLink') || '';
             return {
                 apiKey: '',
                 baseURL: '',
                 agentModel: '',
-                fastModel: ''
+                fastModel: '',
+                backendLink
             };
         }
     }
@@ -1108,6 +1118,11 @@ export class ChatProvider implements vscode.WebviewViewProvider {
             }
             if (configData.fastModel !== undefined) {
                 settings.env.AIGW_FAST_MODEL = configData.fastModel;
+            }
+
+            // Save backendLink to globalState and remove from configData before saving to settings.json
+            if (configData.backendLink !== undefined) {
+                await this.context.globalState.update('backendLink', configData.backendLink);
             }
 
             // Write settings back to file
@@ -1264,6 +1279,49 @@ export class ChatProvider implements vscode.WebviewViewProvider {
     }
 
 
+
+    private async handleDownloadKbFile(fileId: string | number, fileName: string, backendLink: string, viewType?: 'sidebar' | 'tab' | 'window', windowId?: string) {
+        const actualViewType = viewType || 'tab';
+        try {
+            console.log(`正在从知识库下载文件: ${fileName} (ID: ${fileId})`);
+            
+            const url = `${backendLink}/api/knowledge-base/files/${fileId}/download`;
+            
+            // Use dynamic import for node-fetch or use global fetch if available (Node 18+)
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`下载失败: ${response.statusText}`);
+            }
+            
+            const arrayBuffer = await response.arrayBuffer();
+            const buffer = Buffer.from(arrayBuffer);
+            
+            // Create a temporary directory for downloaded files
+            const tempDir = path.join(os.tmpdir(), 'wave-kb-downloads');
+            if (!fs.existsSync(tempDir)) {
+                fs.mkdirSync(tempDir, { recursive: true });
+            }
+            
+            const tempPath = path.join(tempDir, fileName);
+            fs.writeFileSync(tempPath, buffer);
+            
+            console.log(`文件已下载到临时目录: ${tempPath}`);
+            
+            this.postMessageToWebview({
+                command: 'kbFileDownloaded',
+                tempPath: tempPath
+            }, actualViewType, windowId);
+            
+        } catch (error) {
+            console.error('下载知识库文件失败:', error);
+            vscode.window.showErrorMessage('下载知识库文件失败: ' + error);
+            
+            this.postMessageToWebview({
+                command: 'kbFileDownloadError',
+                error: '下载失败: ' + error
+            }, actualViewType, windowId);
+        }
+    }
 
     private getWebviewContent(webview: vscode.Webview): string {
         const scriptUri = webview.asWebviewUri(

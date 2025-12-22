@@ -16,7 +16,8 @@ export const FileSuggestionDropdown: React.FC<FileSuggestionDropdownProps> = ({
   onClose,
   position,
   filterText,
-  isLoading = false
+  isLoading = false,
+  hasKnowledgeBase = false
 }) => {
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -26,8 +27,8 @@ export const FileSuggestionDropdown: React.FC<FileSuggestionDropdownProps> = ({
       if (!isVisible) return;
 
       const hasUploadOption = !filterText;
-      const totalItems = suggestions.length + (hasUploadOption ? 1 : 0);
-      const minIndex = hasUploadOption ? -1 : 0;
+      const totalItems = suggestions.length + (hasUploadOption ? 1 : 0) + (hasUploadOption && hasKnowledgeBase ? 1 : 0);
+      const minIndex = hasUploadOption ? (hasKnowledgeBase ? -2 : -1) : 0;
 
       switch (event.key) {
         case 'ArrowUp':
@@ -54,6 +55,17 @@ export const FileSuggestionDropdown: React.FC<FileSuggestionDropdownProps> = ({
               icon: 'codicon-cloud-upload',
               isDirectory: false,
               isUploadOption: true
+            });
+          } else if (hasUploadOption && hasKnowledgeBase && selectedIndex === -2) {
+            // Handle knowledge base option selection
+            onSelect({
+              path: '__kb__',
+              relativePath: '__kb__',
+              name: '知识库',
+              extension: '',
+              icon: 'codicon-library',
+              isDirectory: true,
+              isKnowledgeBaseOption: true
             });
           } else if (suggestions[selectedIndex]) {
             onSelect(suggestions[selectedIndex]);
@@ -88,9 +100,17 @@ export const FileSuggestionDropdown: React.FC<FileSuggestionDropdownProps> = ({
 
   // Scroll selected item into view
   useEffect(() => {
-    if (dropdownRef.current && selectedIndex >= -1) {
+    if (dropdownRef.current && selectedIndex >= -2) {
       const hasUploadOption = !filterText;
-      const actualIndex = hasUploadOption ? selectedIndex + 1 : selectedIndex;
+      const hasKB = hasUploadOption && hasKnowledgeBase;
+      let actualIndex = selectedIndex;
+      if (hasUploadOption) {
+        if (hasKB) {
+          actualIndex = selectedIndex + 2;
+        } else {
+          actualIndex = selectedIndex + 1;
+        }
+      }
       
       if (actualIndex >= 0 && actualIndex < dropdownRef.current.children.length) {
         const selectedElement = dropdownRef.current.children[actualIndex] as HTMLElement;
@@ -149,6 +169,29 @@ export const FileSuggestionDropdown: React.FC<FileSuggestionDropdownProps> = ({
         left: `${position.left}px`,
       }}
     >
+      {/* Show knowledge base option only when there's no filter text and it's configured */}
+      {!filterText && hasKnowledgeBase && (
+        <div
+          key="kb-option"
+          className={`suggestion-item kb-option ${selectedIndex === -2 ? 'selected' : ''}`}
+          onClick={() => onSelect({
+            path: '__kb__',
+            relativePath: '__kb__',
+            name: '知识库',
+            extension: '',
+            icon: 'codicon-library',
+            isDirectory: true,
+            isKnowledgeBaseOption: true
+          })}
+        >
+          <span className="suggestion-icon codicon codicon-library"></span>
+          <div className="suggestion-content">
+            <div className="suggestion-name">知识库</div>
+            <div className="suggestion-path">浏览并选择知识库中的文件</div>
+          </div>
+        </div>
+      )}
+
       {/* Show upload option only when there's no filter text */}
       {!filterText && (
         <div

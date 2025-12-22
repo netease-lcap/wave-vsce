@@ -44,6 +44,16 @@ export interface FileItem {
   isDirectory: boolean;
   /** Flag to identify if this is the upload local files option */
   isUploadOption?: boolean;
+  /** Flag to identify if this is a knowledge base option */
+  isKnowledgeBaseOption?: boolean;
+  /** Knowledge base item type: 'kb', 'folder', 'file' */
+  kbType?: 'kb' | 'folder' | 'file';
+  /** ID of the knowledge base item */
+  kbId?: string | number;
+  /** ID of the folder in knowledge base */
+  folderId?: string | number;
+  /** ID of the file in knowledge base */
+  fileId?: string | number;
 }
 
 /**
@@ -173,6 +183,7 @@ export interface FileSuggestionDropdownProps {
   position: { top: number; left: number };
   filterText: string;
   isLoading?: boolean;
+  hasKnowledgeBase?: boolean;
 }
 
 export interface ChatHeaderProps {
@@ -244,6 +255,8 @@ export interface ConfigurationData {
   agentModel?: string;
   /** Fast model for quick responses -> env.AIGW_FAST_MODEL */
   fastModel?: string;
+  /** Backend link for @ mention integration and other services */
+  backendLink?: string;
 }
 
 /**

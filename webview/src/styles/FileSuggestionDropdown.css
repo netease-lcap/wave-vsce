@@ -116,3 +116,28 @@
 .suggestion-item.upload-option .suggestion-path {
     color: var(--vscode-button-secondaryForeground);
 }
+
+/* Knowledge base option specific styles */
+.suggestion-item.kb-option {
+    border-bottom: 2px solid var(--vscode-panel-border);
+    background: var(--vscode-list-inactiveSelectionBackground);
+}
+
+.suggestion-item.kb-option:hover,
+.suggestion-item.kb-option.selected {
+    background: var(--vscode-list-activeSelectionBackground);
+}
+
+.suggestion-item.kb-option .suggestion-icon {
+    color: var(--vscode-list-activeSelectionForeground);
+}
+
+.suggestion-item.kb-option .suggestion-name {
+    color: var(--vscode-list-activeSelectionForeground);
+    font-weight: 600;
+}
+
+.suggestion-item.kb-option .suggestion-path {
+    color: var(--vscode-list-activeSelectionForeground);
+    opacity: 0.8;
+}

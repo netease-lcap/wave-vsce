@@ -23,7 +23,8 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps> = ({
     apiKey: '',
     baseURL: '',
     agentModel: '',
-    fastModel: ''
+    fastModel: '',
+    backendLink: ''
   });
 
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -125,7 +126,7 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps> = ({
             type="text"
             value={formData.agentModel || ''}
             onChange={(e) => handleInputChange('agentModel', e.target.value)}
-            placeholder="claude-3-sonnet"
+            placeholder="请输入模型名称"
             disabled={isLoading}
           />
         </div>
@@ -137,7 +138,19 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps> = ({
             type="text"
             value={formData.fastModel || ''}
             onChange={(e) => handleInputChange('fastModel', e.target.value)}
-            placeholder="claude-3-haiku"
+            placeholder="请输入快速模型名称"
+            disabled={isLoading}
+          />
+        </div>
+
+        <div className="configuration-field">
+          <label htmlFor="backendLink">后台链接:</label>
+          <input
+            id="backendLink"
+            type="url"
+            value={formData.backendLink || ''}
+            onChange={(e) => handleInputChange('backendLink', e.target.value)}
+            placeholder="知识库、代码地图后台链接"
             disabled={isLoading}
           />
         </div>
