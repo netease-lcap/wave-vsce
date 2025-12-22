@@ -122,8 +122,7 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
       return {
         ...state,
         configurationData: action.payload,
-        configurationLoading: false,
-        configurationError: undefined
+        configurationLoading: false
       };
     case 'UPDATE_SUBAGENT_MESSAGES':
       const newSubagentMessages = new Map(state.subagentMessages);
