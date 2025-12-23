@@ -16,7 +16,12 @@ export const test = base.extend<WebviewTestContext>({
     webviewPage: async ({ page }, use) => {
         // Only log actual errors, skip expected warnings and debug info
         page.on('console', (msg) => {
-            console.log(`Console [${msg.type()}]:`, msg.text());
+            const text = msg.text();
+            // Skip font loading errors in tests as they are expected due to mock protocol
+            if (text.includes('codicon.ttf') || text.includes('CORS policy') || text.includes('net::ERR_FAILED')) {
+                return;
+            }
+            console.log(`Console [${msg.type()}]:`, text);
         });
 
         // Enable error tracking
@@ -44,10 +49,16 @@ export const test = base.extend<WebviewTestContext>({
                 let contentType = 'application/octet-stream';
                 if (ext === '.js') contentType = 'application/javascript';
                 else if (ext === '.css') contentType = 'text/css';
+                else if (ext === '.ttf') contentType = 'font/ttf';
+                else if (ext === '.woff') contentType = 'font/woff';
+                else if (ext === '.woff2') contentType = 'font/woff2';
                 
                 route.fulfill({
                     status: 200,
                     contentType,
+                    headers: {
+                        'Access-Control-Allow-Origin': '*'
+                    },
                     body: content
                 });
             } else {
