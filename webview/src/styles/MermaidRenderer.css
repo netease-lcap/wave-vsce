@@ -55,32 +55,45 @@
 
 /* Action Buttons */
 .mermaid-actions {
+  position: absolute;
+  top: 8px;
+  right: 8px;
   display: flex;
-  justify-content: center;
-  gap: 8px;
-  margin-bottom: 12px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid var(--vscode-widget-border);
+  gap: 4px;
+  z-index: 10;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  background: var(--vscode-editor-background);
+  padding: 2px;
+  border-radius: 4px;
+  border: 1px solid var(--vscode-panel-border);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.mermaid-preview:hover .mermaid-actions {
+  opacity: 1;
 }
 
 .action-button {
-  background: var(--vscode-button-secondaryBackground);
-  color: var(--vscode-button-secondaryForeground);
-  border: 1px solid var(--vscode-button-border, transparent);
-  border-radius: 4px;
-  padding: 6px 12px;
-  font-size: 12px;
-  font-family: var(--vscode-font-family);
+  background: transparent;
+  color: var(--vscode-foreground);
+  border: none;
+  border-radius: 3px;
+  padding: 4px;
   cursor: pointer;
   transition: all 0.2s ease;
   display: flex;
   align-items: center;
-  gap: 4px;
+  justify-content: center;
 }
 
 .action-button:hover {
-  background: var(--vscode-button-secondaryHoverBackground);
-  border-color: var(--vscode-focusBorder);
+  background: var(--vscode-toolbar-hoverBackground);
+  color: var(--vscode-foreground);
+}
+
+.action-button i.codicon {
+  font-size: 14px;
 }
 
 .action-button:active {
@@ -88,14 +101,13 @@
 }
 
 .mermaid-container {
-  display: inline-block;
+  display: block;
   max-width: 100%;
   overflow: auto;
-  transition: opacity 0.2s ease;
 }
 
 .mermaid-container:hover {
-  opacity: 0.9;
+  opacity: 1;
 }
 
 .mermaid-container svg {
@@ -321,14 +333,18 @@
   color: var(--vscode-button-secondaryForeground);
   border: 1px solid var(--vscode-button-border, transparent);
   border-radius: 4px;
-  padding: 6px 12px;
+  padding: 4px 10px;
   font-size: 12px;
   font-family: var(--vscode-font-family);
   cursor: pointer;
   transition: all 0.2s ease;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
+}
+
+.control-btn i.codicon {
+  font-size: 14px;
 }
 
 .control-btn:hover {

@@ -197,14 +197,14 @@ const FullscreenModal: React.FC<FullscreenModalProps> = ({ isOpen, onClose, svgC
     >
       <div className="fullscreen-header">
         <div className="fullscreen-controls">
-          <button onClick={downloadSvg} className="control-btn" title="下载SVG">
-            📄 SVG
+          <button onClick={downloadSvg} className="control-btn" title="下载 SVG">
+            <i className="codicon codicon-file-code"></i> SVG
           </button>
-          <button onClick={downloadPng} className="control-btn" title="下载PNG">
-            🖼️ PNG
+          <button onClick={downloadPng} className="control-btn" title="下载 PNG">
+            <i className="codicon codicon-file-media"></i> PNG
           </button>
           <button onClick={resetView} className="control-btn" title="重置视图">
-            🔄 重置
+            <i className="codicon codicon-refresh"></i> 重置
           </button>
           <span className="zoom-info">{Math.round(scale * 100)}%</span>
         </div>
@@ -547,23 +547,23 @@ export const MermaidRenderer: React.FC<MermaidRendererProps> = ({ content, class
             <button 
               onClick={downloadSvg} 
               className="action-button" 
-              title="下载SVG格式"
+              title="下载 SVG"
             >
-              📄 SVG
+              <i className="codicon codicon-file-code"></i>
             </button>
             <button 
               onClick={downloadPng} 
               className="action-button" 
-              title="下载PNG格式"
+              title="下载 PNG"
             >
-              🖼️ PNG
+              <i className="codicon codicon-file-media"></i>
             </button>
             <button 
               onClick={() => setIsFullscreen(true)} 
               className="action-button" 
               title="全屏查看"
             >
-              🔍 全屏
+              <i className="codicon codicon-screen-full"></i>
             </button>
           </div>
         )}
