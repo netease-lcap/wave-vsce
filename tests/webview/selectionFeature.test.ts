@@ -25,21 +25,21 @@ test.describe('Selection Feature', () => {
             }, '*');
         }, selection);
 
-        // Wait for selection tag to appear
-        await webviewPage.waitForSelector('.selection-tag');
+        // Wait for selection tag to appear and verify content
+        const selectionTag = webviewPage.locator('.selection-tag');
+        await expect(selectionTag).toBeVisible();
+        await expect(selectionTag).toContainText('file.ts#10-20');
         
-        // Take screenshot of the selection tag (enabled)
-        await webviewPage.screenshot({ path: 'selection-tag-enabled.png' });
+        // Verify it's enabled by default
+        await expect(selectionTag).toHaveClass(/enabled/);
+        await expect(selectionTag).not.toHaveClass(/disabled/);
 
         // 2. Toggle selection off
-        await webviewPage.click('.selection-tag');
+        await selectionTag.click();
         
-        // Verify it's disabled (has 'disabled' class)
-        const isDisabled = await webviewPage.locator('.selection-tag').evaluate(el => el.classList.contains('disabled'));
-        expect(isDisabled).toBe(true);
-        
-        // Take screenshot of the selection tag (disabled)
-        await webviewPage.screenshot({ path: 'selection-tag-disabled.png' });
+        // Verify it's disabled
+        await expect(selectionTag).toHaveClass(/disabled/);
+        await expect(selectionTag).not.toHaveClass(/enabled/);
 
         // 3. Send message and verify selection is NOT included when disabled
         await injector.clearMessageLog();
@@ -50,7 +50,8 @@ test.describe('Selection Feature', () => {
         expect(sentMessages[0].selection).toBeUndefined();
 
         // 4. Toggle selection back on
-        await webviewPage.click('.selection-tag');
+        await selectionTag.click();
+        await expect(selectionTag).toHaveClass(/enabled/);
         
         // 5. Send message and verify selection IS included when enabled
         await injector.clearMessageLog();
@@ -67,17 +68,20 @@ test.describe('Selection Feature', () => {
                 blocks: [
                     { 
                         type: 'text', 
-                        content: 'Hello again\n\n[Selection: file.ts#10-20]\n```\nconst x = 1;\nconst y = 2;\n```' 
+                        content: 'Hello again\n\n[Selection: file.ts#10-20]' 
                     }
                 ]
             }
         ];
         await injector.updateMessages(messages);
         
-        // Wait for message to render
-        await webviewPage.waitForSelector('.selection-reference');
+        // Wait for message to render and verify reference block
+        const selectionRef = webviewPage.locator('.selection-reference');
+        await expect(selectionRef).toBeVisible();
+        await expect(selectionRef.locator('.selection-header')).toContainText('file.ts#10-20');
         
-        // Take screenshot of the message with selection reference
-        await webviewPage.screenshot({ path: 'message-with-selection.png' });
+        // Verify no code block is rendered (as per latest requirement)
+        const selectionCode = selectionRef.locator('.selection-code');
+        await expect(selectionCode).not.toBeVisible();
     });
 });
