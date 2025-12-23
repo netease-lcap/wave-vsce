@@ -143,6 +143,11 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
         ...state,
         subagentMessages: newSubagentMessages
       };
+    case 'UPDATE_SELECTION':
+      return {
+        ...state,
+        selection: action.payload
+      };
     default:
       return state;
   }
@@ -166,6 +171,9 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
       switch (message.command) {
         case 'updateMessages':
           dispatch({ type: 'SET_MESSAGES', payload: message.messages });
+          break;
+        case 'updateSelection':
+          dispatch({ type: 'UPDATE_SELECTION', payload: message.selection });
           break;
         case 'updateSubagentMessages':
           dispatch({
@@ -221,7 +229,8 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
               sessions: message.sessions,
               currentSession: message.session,
               configurationData: message.configurationData,
-              pendingConfirmations: message.pendingConfirmations || (message.pendingConfirmation ? [message.pendingConfirmation] : [])
+              pendingConfirmations: message.pendingConfirmations || (message.pendingConfirmation ? [message.pendingConfirmation] : []),
+              selection: message.selection
             }
           });
           break;
@@ -253,7 +262,7 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
     return () => window.removeEventListener('message', handleMessage);
   }, []);
 
-  const handleSendMessage = useCallback((text: string, images?: Array<{ data: string; mediaType: string; }>) => {
+  const handleSendMessage = useCallback((text: string, images?: Array<{ data: string; mediaType: string; }>, selection?: any) => {
     if (state.isStreaming || (!text.trim() && (!images || images.length === 0))) return;
 
     // Add user message to display immediately
@@ -271,7 +280,8 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
     vscode.postMessage({
       command: 'sendMessage',
       text: text.trim(),
-      images: images
+      images: images,
+      selection: selection
     });
   }, [state.messages, state.isStreaming, vscode]);
 
@@ -395,6 +405,7 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
           onConfigurationOpen={handleConfigurationOpen}
           onConfigurationSave={handleConfigurationSave}
           onConfigurationCancel={handleConfigurationCancel}
+          selection={state.selection}
         />
       )}
 

@@ -34,9 +34,11 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
   configurationError,
   onConfigurationOpen,
   onConfigurationSave,
-  onConfigurationCancel
+  onConfigurationCancel,
+  selection
 }, ref) => {
   const [message, setMessage] = useState('');
+  const [isSelectionEnabled, setIsSelectionEnabled] = useState(true);
   const [atMention, setAtMention] = useState<AtMentionState>({
     isActive: false,
     filterText: '',
@@ -629,12 +631,12 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
         mediaType: img.mimeType
       }));
       
-      onSendMessage(message, images.length > 0 ? images : undefined);
+      onSendMessage(message, images.length > 0 ? images : undefined, isSelectionEnabled ? selection : undefined);
       setMessage('');
       setAttachedImages([]);
       closeDropdown();
     }
-  }, [message, attachedImages, disabled, isStreaming, onSendMessage, closeDropdown]);
+  }, [message, attachedImages, disabled, isStreaming, onSendMessage, closeDropdown, isSelectionEnabled, selection]);
 
   const handleKeyDown = useCallback((event: KeyboardEvent<HTMLTextAreaElement>) => {
     // Handle 指令 navigation
@@ -849,6 +851,23 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
 
   return (
     <div className="input-container" data-testid="input-container">
+      {/* Selection Tag */}
+      {selection && (
+        <div 
+          className={`selection-tag ${isSelectionEnabled ? 'enabled' : 'disabled'}`}
+          onClick={() => setIsSelectionEnabled(!isSelectionEnabled)}
+          title={isSelectionEnabled 
+            ? `正在向 AI 展示您的当前选择 (${selection.fileName}${selection.isEmpty ? '' : `:${selection.startLine}-${selection.endLine}`})` 
+            : `未向 AI 展示您的当前选择. 点击以附加.`}
+        >
+          <i className={`codicon ${isSelectionEnabled ? 'codicon-code' : 'codicon-circle-slash'}`}></i>
+          <span>
+            {selection.fileName}
+            {!selection.isEmpty && `#${selection.startLine}-${selection.endLine}`}
+          </span>
+        </div>
+      )}
+
       {/* Attached Images */}
       {attachedImages.length > 0 && (
         <AttachedImages

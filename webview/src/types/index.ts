@@ -148,7 +148,7 @@ export interface AttachedImage {
 }
 
 export interface MessageInputProps {
-  onSendMessage: (text: string, images?: Array<{ data: string; mediaType: string; }>) => void;
+  onSendMessage: (text: string, images?: Array<{ data: string; mediaType: string; }>, selection?: SelectionInfo) => void;
   disabled: boolean;
   isStreaming: boolean;
   onAbortMessage: () => void;
@@ -163,6 +163,8 @@ export interface MessageInputProps {
   onConfigurationOpen: () => void;
   onConfigurationSave: (config: ConfigurationData) => void;
   onConfigurationCancel: () => void;
+  // Selection props
+  selection?: SelectionInfo;
 }
 
 /**
@@ -228,6 +230,8 @@ export interface ChatState {
   configurationError?: string;
   // Subagent state
   subagentMessages: Map<string, Message[]>;
+  // Selection state
+  selection?: SelectionInfo;
 }
 
 export interface ConfirmationRequest {
@@ -260,6 +264,16 @@ export interface ConfigurationData {
   fastModel?: string;
   /** Backend link for @ mention integration and other services */
   backendLink?: string;
+}
+
+export interface SelectionInfo {
+  filePath: string;
+  fileName: string;
+  startLine: number;
+  endLine: number;
+  lineCount: number;
+  selectedText: string;
+  isEmpty: boolean;
 }
 
 /**
@@ -300,6 +314,7 @@ export type ChatAction =
   | { type: 'SET_CONFIGURATION_ERROR'; payload: string | undefined }
   | { type: 'SET_CONFIGURATION_DATA'; payload: ConfigurationData }
   | { type: 'UPDATE_SUBAGENT_MESSAGES'; payload: { subagentId: string; messages: Message[] } }
+  | { type: 'UPDATE_SELECTION'; payload: SelectionInfo | undefined }
   | { type: 'SET_INITIAL_STATE'; payload: {
       messages: Message[];
       isStreaming: boolean;
@@ -307,4 +322,5 @@ export type ChatAction =
       currentSession?: ExtendedSessionMetadata;
       configurationData: ConfigurationData;
       pendingConfirmations: ConfirmationRequest[];
+      selection?: SelectionInfo;
     } };

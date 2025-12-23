@@ -5,6 +5,7 @@ import { ConfigurationService } from './services/configurationService';
 import { FileService } from './services/fileService';
 import { KnowledgeBaseService } from './services/kbService';
 import { SessionService } from './services/sessionService';
+import { SelectionService, SelectionInfo } from './services/selectionService';
 import { WebviewManager } from './session/webviewManager';
 import { MessageHandler } from './session/messageHandler';
 
@@ -20,6 +21,7 @@ export class ChatProvider implements vscode.WebviewViewProvider {
     private fileService: FileService;
     private kbService: KnowledgeBaseService;
     private sessionService: SessionService;
+    private selectionService: SelectionService;
     private webviewManager: WebviewManager;
     private messageHandler: MessageHandler;
 
@@ -29,6 +31,7 @@ export class ChatProvider implements vscode.WebviewViewProvider {
         this.fileService = new FileService();
         this.kbService = new KnowledgeBaseService();
         this.sessionService = new SessionService();
+        this.selectionService = new SelectionService(context);
 
         this.webviewManager = new WebviewManager(context, {
             onMessage: async (message, viewType, windowId) => {
@@ -63,7 +66,8 @@ export class ChatProvider implements vscode.WebviewViewProvider {
                     this.sidebarSession.updateConfig(config);
                     this.tabSession.updateConfig(config);
                     this.windowSessions.forEach(session => session.updateConfig(config));
-                }
+                },
+                getSelection: () => this.selectionService.getSelection()
             }
         );
 
@@ -86,6 +90,14 @@ export class ChatProvider implements vscode.WebviewViewProvider {
         });
         
         this.context.subscriptions.push(workspaceChangeListener);
+
+        // Listen for selection changes
+        this.selectionService.onSelectionChange((selection) => {
+            this.webviewManager.postMessage({
+                command: 'updateSelection',
+                selection
+            });
+        });
     }
 
     private createChatSession(viewType: 'sidebar' | 'tab' | 'window', windowId?: string): ChatSession {

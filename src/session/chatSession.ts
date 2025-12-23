@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { Agent, Message, PermissionDecision, ToolPermissionContext, AgentCallbacks } from 'wave-agent-sdk';
+import { SelectionInfo } from '../services/selectionService';
 import { ConfigurationData } from '../services/configurationService';
 
 export interface ChatSessionCallbacks {
@@ -91,7 +92,7 @@ export class ChatSession {
         }
     }
 
-    public async sendMessage(text: string, images?: Array<{ data: string; mediaType: string; }>) {
+    public async sendMessage(text: string, images?: Array<{ data: string; mediaType: string; }>, selection?: SelectionInfo) {
         if (!this.agent) {
             throw new Error('智能体未初始化');
         }
@@ -108,7 +109,13 @@ export class ChatSession {
                 }));
             }
             
-            await this.agent.sendMessage(text, processedImages);
+            let fullText = text;
+            if (selection) {
+                const selectionHeader = `\n\n[Selection: ${selection.fileName}#${selection.startLine}-${selection.endLine}]`;
+                fullText += selectionHeader;
+            }
+            
+            await this.agent.sendMessage(fullText, processedImages);
             
             this.isStreaming = false;
             this.callbacks.onStreamingChange(false);

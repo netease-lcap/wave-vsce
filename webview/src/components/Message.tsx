@@ -270,6 +270,31 @@ export const Message: React.FC<MessageProps> = (props) => {
         if (!content.trim()) return null;
         
         if (message.role === 'user') {
+          const selectionRegex = /\n\n\[Selection: (.*?)#(\d+)-(\d+)\](?:\n```\n([\s\S]*?)\n```)?$/;
+          const selectionMatch = content.match(selectionRegex);
+          
+          if (selectionMatch) {
+            const mainContent = content.substring(0, selectionMatch.index);
+            const fileName = selectionMatch[1];
+            const startLine = selectionMatch[2];
+            const endLine = selectionMatch[3];
+            const selectedText = selectionMatch[4];
+            
+            return (
+              <div key={index} className="user-message-wrapper">
+                <pre className="message-content user-content">
+                  {mainContent}
+                </pre>
+                <div className="selection-reference">
+                  <div className="selection-header">
+                    <i className="codicon codicon-code"></i>
+                    <span>{fileName}#{startLine}-{endLine}</span>
+                  </div>
+                </div>
+              </div>
+            );
+          }
+
           return (
             <pre key={index} className="message-content user-content">
               {content}
