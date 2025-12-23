@@ -67,7 +67,6 @@
     ]
   },
   "scripts": {
-    "vscode:prepublish": "npm run package",
     "clean": "node -e \"const fs=require('fs'); ['dist', 'webview/dist'].forEach(d => {try{fs.rmSync(d, {recursive:true, force:true})}catch(e){}})\"",
     "prepackage": "npm run clean",
     "compile": "npm run compile:backend && npm run compile:frontend",
@@ -77,7 +76,8 @@
     "watch:backend": "tsc --watch",
     "watch:frontend": "npm run compile:frontend -- --watch",
     "package": "webpack --mode production --devtool false",
-    "package:all": "node scripts/package.js",
+    "package:all": "node scripts/package.js --all",
+    "package:current": "node scripts/package.js --current",
     "test": "npm run test:playwright",
     "test:playwright": "playwright test",
     "test:playwright:ui": "playwright test --ui"

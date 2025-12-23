@@ -42,11 +42,27 @@ async function main() {
     // Ensure we are in the root directory
     process.chdir(rootDir);
 
+    const args = process.argv.slice(2);
+    const packageCurrent = args.includes('--current');
+    const packageAll = args.includes('--all') || (!packageCurrent);
+
+    let targetsToProcess = TARGETS;
+    if (packageCurrent) {
+        const currentTarget = `${os.platform()}-${os.arch()}`;
+        targetsToProcess = TARGETS.filter(t => t.vsceTarget === currentTarget);
+        if (targetsToProcess.length === 0) {
+            console.error(`Current platform ${currentTarget} is not in the supported targets list.`);
+            process.exit(1);
+        }
+    }
+
     // Run build first
     console.log('Running npm run package...');
     execSync('npm run package', { stdio: 'inherit' });
     
-    for (const target of TARGETS) {
+    const vsceArgs = packageCurrent ? '' : '--no-dependencies';
+
+    for (const target of targetsToProcess) {
         console.log(`\n=== Processing ${target.vsceTarget} ===`);
         
         if (fs.existsSync(binDir)) {
@@ -96,19 +112,21 @@ async function main() {
         
         console.log(`Packaging for ${target.vsceTarget}...`);
         const vsixName = `wave-vscode-chat-${target.vsceTarget}-${require('./../package.json').version}.vsix`;
-        execSync(`npx vsce package --target ${target.vsceTarget} --out ${vsixName}`, { stdio: 'inherit' });
+        execSync(`npx vsce package --target ${target.vsceTarget} --out ${vsixName} ${vsceArgs}`, { stdio: 'inherit' });
     }
     
-    console.log('\n=== Creating final zip archive ===');
-    const version = require('./../package.json').version;
-    const zipName = `wave-vscode-chat-all-platforms-${version}.zip`;
-    
-    if (os.platform() === 'win32') {
-        execSync(`powershell -Command "Compress-Archive -Path wave-vscode-chat-*-${version}.vsix -DestinationPath ${zipName} -Force"`);
-    } else {
-        execSync(`zip ${zipName} wave-vscode-chat-*-${version}.vsix`);
+    if (packageAll && targetsToProcess.length > 1) {
+        console.log('\n=== Creating final zip archive ===');
+        const version = require('./../package.json').version;
+        const zipName = `wave-vscode-chat-all-platforms-${version}.zip`;
+        
+        if (os.platform() === 'win32') {
+            execSync(`powershell -Command "Compress-Archive -Path wave-vscode-chat-*-${version}.vsix -DestinationPath ${zipName} -Force"`);
+        } else {
+            execSync(`zip ${zipName} wave-vscode-chat-*-${version}.vsix`);
+        }
+        console.log(`Created ${zipName}`);
     }
-    console.log(`Created ${zipName}`);
     
     console.log('\nAll targets processed successfully!');
 }
