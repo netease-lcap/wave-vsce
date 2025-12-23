@@ -26,6 +26,7 @@ export class ChatSession {
 
     private updateTimer: NodeJS.Timeout | undefined;
     private pendingUpdate: boolean = false;
+    private forceNextUpdateImmediate: boolean = false;
 
     constructor(
         public readonly viewType: 'sidebar' | 'tab' | 'window',
@@ -126,12 +127,14 @@ export class ChatSession {
 
     public async clearChat() {
         if (this.agent) {
+            this.forceNextUpdateImmediate = true;
             await this.agent.sendMessage('/clear');
         }
     }
 
     public async restoreSession(sessionId: string) {
         if (this.agent) {
+            this.forceNextUpdateImmediate = true;
             await this.agent.restoreSession(sessionId);
         }
     }
@@ -158,9 +161,24 @@ export class ChatSession {
         return [];
     }
 
+    private immediateUpdateChatMessages() {
+        if (this.updateTimer) {
+            clearTimeout(this.updateTimer);
+            this.updateTimer = undefined;
+        }
+        this.pendingUpdate = false;
+        this.callbacks.onMessagesChange(this.messages);
+    }
+
     private throttledUpdateChatMessages(messages: Message[]) {
         this.messages = messages;
         
+        if (this.forceNextUpdateImmediate) {
+            this.forceNextUpdateImmediate = false;
+            this.immediateUpdateChatMessages();
+            return;
+        }
+
         if (this.pendingUpdate) {
             return;
         }
@@ -170,7 +188,7 @@ export class ChatSession {
             this.callbacks.onMessagesChange(this.messages);
             this.pendingUpdate = false;
             this.updateTimer = undefined;
-        }, 1000);
+        }, 100);
     }
 
     public async destroy() {
