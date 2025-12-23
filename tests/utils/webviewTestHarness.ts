@@ -14,15 +14,6 @@ type WebviewTestContext = {
  */
 export const test = base.extend<WebviewTestContext>({
     webviewPage: async ({ page }, use) => {
-        // Only log actual errors, skip expected warnings and debug info
-        page.on('console', (msg) => {
-            const text = msg.text();
-            // Skip font loading errors in tests as they are expected due to mock protocol
-            if (text.includes('codicon.ttf') || text.includes('CORS policy') || text.includes('net::ERR_FAILED')) {
-                return;
-            }
-            console.log(`Console [${msg.type()}]:`, text);
-        });
 
         // Enable error tracking
         page.on('pageerror', (error) => {
