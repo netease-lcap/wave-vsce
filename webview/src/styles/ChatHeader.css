@@ -20,24 +20,30 @@
 }
 
 .header-button {
-    background-color: var(--vscode-button-secondaryBackground);
-    color: var(--vscode-button-secondaryForeground);
+    background-color: transparent;
+    color: var(--vscode-foreground);
     border: none;
-    padding: 4px 8px;
+    padding: 4px;
     border-radius: 3px;
     cursor: pointer;
-    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .header-button:hover {
-    background-color: var(--vscode-button-secondaryHoverBackground);
+    background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+.header-button .codicon {
+    font-size: 16px;
 }
 
 .header-button:disabled {
-    opacity: 0.5;
+    opacity: 0.4;
     cursor: not-allowed;
 }
 
 .header-button:disabled:hover {
-    background-color: var(--vscode-button-secondaryBackground);
+    background-color: transparent;
 }

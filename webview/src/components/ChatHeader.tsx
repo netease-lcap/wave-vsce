@@ -31,8 +31,9 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
           onClick={onClearChat}
           disabled={isStreaming}
           data-testid="clear-chat-btn"
+          title="清除聊天"
         >
-          清除聊天
+          <span className="codicon codicon-clear-all"></span>
         </button>
       </div>
     </div>
