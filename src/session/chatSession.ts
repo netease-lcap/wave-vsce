@@ -19,6 +19,7 @@ export class ChatSession {
     public isStreaming: boolean = false;
     public isInitializing: boolean = false;
     public subagentMessages: Map<string, Message[]> = new Map();
+    public inputContent: string = '';
     public pendingConfirmations: Map<string, { 
         resolve: (decision: PermissionDecision) => void; 
         toolName: string;
@@ -137,6 +138,7 @@ export class ChatSession {
         if (this.agent) {
             this.forceNextUpdateImmediate = true;
             this.subagentMessages.clear();
+            this.inputContent = '';
             await this.agent.sendMessage('/clear');
         }
     }
@@ -145,6 +147,7 @@ export class ChatSession {
         if (this.agent) {
             this.forceNextUpdateImmediate = true;
             this.subagentMessages.clear();
+            this.inputContent = '';
             await this.agent.restoreSession(sessionId);
         }
     }
@@ -218,6 +221,7 @@ export class ChatSession {
         
         this.messages = [];
         this.subagentMessages.clear();
+        this.inputContent = '';
         this.sessionId = undefined;
         this.pendingConfirmations.clear();
         this.isStreaming = false;

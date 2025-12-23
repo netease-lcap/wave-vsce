@@ -165,6 +165,7 @@ export interface MessageInputProps {
   onConfigurationCancel: () => void;
   // Selection props
   selection?: SelectionInfo;
+  inputContent?: string;
 }
 
 /**
@@ -230,6 +231,8 @@ export interface ChatState {
   configurationError?: string;
   // Subagent state
   subagentMessages: Map<string, Message[]>;
+  // Input state
+  inputContent?: string;
   // Selection state
   selection?: SelectionInfo;
 }
@@ -324,4 +327,5 @@ export type ChatAction =
       pendingConfirmations: ConfirmationRequest[];
       selection?: SelectionInfo;
       subagentMessages?: Record<string, Message[]>;
+      inputContent?: string;
     } };

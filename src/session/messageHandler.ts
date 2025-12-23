@@ -89,7 +89,15 @@ export class MessageHandler {
             case 'webviewReady':
                 await this.handleWebviewReady(viewType, windowId);
                 break;
+            case 'updateInputContent':
+                this.handleUpdateInputContent(message.content, viewType, windowId);
+                break;
         }
+    }
+
+    private handleUpdateInputContent(content: string, viewType?: 'sidebar' | 'tab' | 'window', windowId?: string) {
+        const session = this.context.getChatSession(viewType || 'tab', windowId);
+        session.inputContent = content;
     }
 
     private async handleDownloadMermaid(content: string, format: 'svg' | 'png', viewType?: 'sidebar' | 'tab' | 'window', windowId?: string) {
@@ -285,6 +293,7 @@ export class MessageHandler {
             command: 'setInitialState',
             messages: session.messages,
             subagentMessages,
+            inputContent: session.inputContent,
             isStreaming: session.isStreaming,
             sessions: sessions,
             session: session.sessionId && session.agent ? {

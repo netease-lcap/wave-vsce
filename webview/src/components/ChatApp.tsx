@@ -140,6 +140,7 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
         configurationData: action.payload.configurationData,
         pendingConfirmations: action.payload.pendingConfirmations,
         subagentMessages: subagentMessagesMap,
+        inputContent: action.payload.inputContent,
         selection: action.payload.selection,
         sessionsLoading: false,
         configurationLoading: false
@@ -239,7 +240,8 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
               configurationData: message.configurationData,
               pendingConfirmations: message.pendingConfirmations || (message.pendingConfirmation ? [message.pendingConfirmation] : []),
               selection: message.selection,
-              subagentMessages: message.subagentMessages
+              subagentMessages: message.subagentMessages,
+              inputContent: message.inputContent
             }
           });
           break;
@@ -415,6 +417,7 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
           onConfigurationSave={handleConfigurationSave}
           onConfigurationCancel={handleConfigurationCancel}
           selection={state.selection}
+          inputContent={state.inputContent}
         />
       )}
 

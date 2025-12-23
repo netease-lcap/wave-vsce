@@ -35,7 +35,8 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
   onConfigurationOpen,
   onConfigurationSave,
   onConfigurationCancel,
-  selection
+  selection,
+  inputContent
 }, ref) => {
   const [message, setMessage] = useState('');
   const [isSelectionEnabled, setIsSelectionEnabled] = useState(true);
@@ -101,15 +102,20 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
     }
   }, []);
 
-  // Handle input clearing when requested by parent
+  // Initialize message from inputContent prop
   useEffect(() => {
-    if (shouldClearInput) {
-      setMessage('');
-      setAttachedImages([]);
-      closeDropdown();
-      onInputCleared?.();
+    if (inputContent !== undefined && inputContent !== message) {
+      setMessage(inputContent);
+      
+      // Adjust textarea height after setting message
+      setTimeout(() => {
+        if (textareaRef.current) {
+          textareaRef.current.style.height = 'auto';
+          textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px';
+        }
+      }, 0);
     }
-  }, [shouldClearInput, onInputCleared]);
+  }, [inputContent]);
 
   // Close dropdown helper
   const closeDropdown = useCallback(() => {
@@ -223,6 +229,21 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
       left: textarea.offsetLeft
     };
   }, []);
+
+  // Handle input clearing when requested by parent
+  useEffect(() => {
+    if (shouldClearInput) {
+      setMessage('');
+      // Clear persisted input content
+      vscode.postMessage({
+        command: 'updateInputContent',
+        content: ''
+      });
+      setAttachedImages([]);
+      closeDropdown();
+      onInputCleared?.();
+    }
+  }, [shouldClearInput, onInputCleared, vscode, closeDropdown]);
 
   // Request file suggestions from extension
   const requestFileSuggestions = useCallback((filterText: string) => {
@@ -633,6 +654,11 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
       
       onSendMessage(message, images.length > 0 ? images : undefined, isSelectionEnabled ? selection : undefined);
       setMessage('');
+      // Clear persisted input content
+      vscode.postMessage({
+        command: 'updateInputContent',
+        content: ''
+      });
       setAttachedImages([]);
       closeDropdown();
     }
@@ -719,6 +745,12 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
     const cursorPos = event.target.selectionStart || 0;
 
     setMessage(newValue);
+    
+    // Send updated content to extension for persistence
+    vscode.postMessage({
+      command: 'updateInputContent',
+      content: newValue
+    });
 
     // Auto-resize textarea
     const target = event.target;
