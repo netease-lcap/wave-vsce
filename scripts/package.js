@@ -126,6 +126,13 @@ async function main() {
             execSync(`zip ${zipName} wave-vscode-chat-*-${version}.vsix`);
         }
         console.log(`Created ${zipName}`);
+
+        console.log('Cleaning up .vsix files...');
+        if (os.platform() === 'win32') {
+            execSync(`powershell -Command "Remove-Item wave-vscode-chat-*-${version}.vsix"`);
+        } else {
+            execSync(`rm wave-vscode-chat-*-${version}.vsix`);
+        }
     }
     
     console.log('\nAll targets processed successfully!');
