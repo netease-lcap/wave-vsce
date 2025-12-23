@@ -323,4 +323,5 @@ export type ChatAction =
       configurationData: ConfigurationData;
       pendingConfirmations: ConfirmationRequest[];
       selection?: SelectionInfo;
+      subagentMessages?: Record<string, Message[]>;
     } };

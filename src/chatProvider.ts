@@ -111,6 +111,8 @@ export class ChatProvider implements vscode.WebviewViewProvider {
                 );
             },
             onSubagentMessagesChange: (subagentId, messages) => {
+                const session = this.getChatSession(viewType, windowId);
+                session.subagentMessages.set(subagentId, messages);
                 this.webviewManager.postMessage({ command: 'updateSubagentMessages', subagentId, messages }, viewType, windowId);
             },
             onStreamingChange: (isStreaming) => {

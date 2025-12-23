@@ -276,9 +276,15 @@ export class MessageHandler {
             confirmationType: pending.confirmationType,
             toolInput: pending.toolInput
         }));
+        const subagentMessages: Record<string, any[]> = {};
+        session.subagentMessages.forEach((msgs, id) => {
+            subagentMessages[id] = msgs;
+        });
+
         this.context.postMessage({
             command: 'setInitialState',
             messages: session.messages,
+            subagentMessages,
             isStreaming: session.isStreaming,
             sessions: sessions,
             session: session.sessionId && session.agent ? {

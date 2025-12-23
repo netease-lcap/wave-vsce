@@ -125,6 +125,12 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
         configurationLoading: false
       };
     case 'SET_INITIAL_STATE':
+      const subagentMessagesMap = new Map<string, Message[]>();
+      if (action.payload.subagentMessages) {
+        Object.entries(action.payload.subagentMessages).forEach(([id, msgs]) => {
+          subagentMessagesMap.set(id, msgs);
+        });
+      }
       return {
         ...state,
         messages: action.payload.messages,
@@ -133,6 +139,8 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
         currentSession: action.payload.currentSession,
         configurationData: action.payload.configurationData,
         pendingConfirmations: action.payload.pendingConfirmations,
+        subagentMessages: subagentMessagesMap,
+        selection: action.payload.selection,
         sessionsLoading: false,
         configurationLoading: false
       };
@@ -230,7 +238,8 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
               currentSession: message.session,
               configurationData: message.configurationData,
               pendingConfirmations: message.pendingConfirmations || (message.pendingConfirmation ? [message.pendingConfirmation] : []),
-              selection: message.selection
+              selection: message.selection,
+              subagentMessages: message.subagentMessages
             }
           });
           break;
