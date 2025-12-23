@@ -162,8 +162,8 @@ export const Message: React.FC<MessageProps> = (props) => {
         return (
           <div key={index}>
             {toolHeader}
-            {errorContent}
             {bashContent}
+            {errorContent}
           </div>
         );
       }
@@ -174,8 +174,8 @@ export const Message: React.FC<MessageProps> = (props) => {
       return (
         <div key={index}>
           {toolHeader}
-          {errorContent}
           <TodoList toolBlock={toolBlock} />
+          {errorContent}
         </div>
       );
     }
@@ -185,8 +185,8 @@ export const Message: React.FC<MessageProps> = (props) => {
       return (
         <div key={index}>
           {toolHeader}
-          {errorContent}
           <DiffViewer toolBlock={toolBlock} />
+          {errorContent}
         </div>
       );
     }
