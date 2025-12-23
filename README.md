@@ -1,66 +1,28 @@
-# Wave AI Chat Extension
+# Wave 代码智聊
 
-A VS Code extension that provides an integrated chat interface for AI assistance using the Wave Agent SDK.
+Wave 代码智聊 是一款为 VS Code 深度定制的智能助手扩展，旨在通过集成化的聊天界面，为开发者提供高效的代码辅助、项目管理和自动化操作体验。
 
-## Features
+## 主要功能
 
-- **AI Chat Interface**: Interactive chat panel within VS Code
-- **Real-time Responses**: Streaming responses with live message updates
-- **File Operations**: AI can read, write, and modify files in your project
-- **Tool Integration**: View AI tool usage and results in the chat
+- **智能对话交互**：在 VS Code 侧边栏或独立窗口中与 AI 进行实时对话，支持流式响应，即时获取解答。
+- **深度文件操作**：AI 可以直接读取、编写和修改项目中的文件，帮助你快速实现功能、修复 Bug 或重构代码。
+- **自动化工具集成**：内置多种实用工具，支持执行终端命令、管理文件系统等操作，所有工具调用均需用户确认，确保安全可控。
+- **多会话管理**：支持创建、保存和切换多个聊天会话，方便在不同任务之间无缝切换并保留上下文。
+- **知识库集成**：能够关联项目相关的文档和知识库，提供更精准、更具上下文意识的建议。
+- **权限确认机制**：对于敏感操作（如修改代码、执行命令），提供清晰的确认界面，支持操作排队处理，确保每一项变更都经过你的审核。
 
-## Installation & Development
+## 使用方法
 
-1. Clone this repository
-2. Install dependencies: `npm install`
-3. Compile: `npm run compile`
-4. Press F5 to launch the extension in a new VS Code window
+1. 打开命令面板 (`Ctrl+Shift+P` / `Cmd+Shift+P`)。
+2. 搜索并运行 **"Wave: Open AI Chat"**。
+3. 在打开的聊天窗口中输入你的问题或指令，开始与 AI 协作。
 
-## Usage
+## 快捷操作
 
-1. Open the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`)
-2. Run "Wave: Open AI Chat"
-3. Start chatting with the AI about your project!
+- **清除聊天**：随时开启新的对话，清空当前上下文。
+- **中止响应**：如果 AI 的输出不符合预期，可以随时中止生成。
+- **配置管理**：通过界面轻松调整 AI 的行为偏好和相关设置。
 
-## Quick Actions
+## 系统要求
 
-- **Clear Chat**: Start a fresh conversation
-- **File Operations**: Ask AI to read, write, or modify files in your project
-
-## Requirements
-
-- VS Code 1.74.0 or higher
-- Wave Agent SDK (automatically installed via npm)
-
-## Development
-
-The extension consists of two main components:
-
-### Extension Backend (TypeScript)
-- Uses the Wave Agent SDK to communicate with AI agents
-- Manages VS Code webview and message passing
-- Located in `src/` directory
-
-### Webview Frontend (React + TypeScript)  
-- Modern React interface with TypeScript for type safety
-- Source code located in `webview/src/` directory
-- Built with webpack to produce `webview/dist/chat.js`
-
-### Build Process
-```bash
-npm install          # Install dependencies
-npm run compile      # Build both extension and webview
-npm run watch        # Watch mode for development
-npm test            # Run Playwright tests
-```
-
-**Note**: The webview build artifacts in `webview/dist/` are auto-generated and excluded from git.
-
-### Architecture
-- **Extension**: TypeScript compiled to `dist/extension.js`
-- **Webview**: React/TypeScript compiled to `webview/dist/chat.js`
-- **Tests**: Playwright tests in `tests/webview/` directory
-
-## License
-
-MIT
+- VS Code 1.107.0 或更高版本。
