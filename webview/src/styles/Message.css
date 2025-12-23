@@ -72,7 +72,7 @@
     background: none;     /* Remove background */
     border: none;         /* Remove border */
     white-space: pre-wrap; /* Preserve whitespace and line breaks */
-    word-wrap: break-word; /* Allow long lines to wrap */
+    overflow-wrap: anywhere;
 }
 
 /* Non-markdown content (fallback) */
