@@ -93,15 +93,9 @@ test.describe('Tool Block Error Rendering', () => {
     await expect(webviewPage.locator('.tool-block')).toContainText('🛠️ Write');
     await expect(webviewPage.locator('.tool-error')).toContainText('Permission denied');
     
-    // Check if diff viewer exists - it might not show if there's an error and no valid changes
-    const diffViewer = webviewPage.locator('.diff-viewer');
-    const diffViewerCount = await diffViewer.count();
-    
-    // Either diff viewer is visible OR not present (both are valid depending on tool error handling)
-    if (diffViewerCount > 0) {
-      await expect(diffViewer).toBeVisible();
-    }
-    // If diff viewer doesn't exist, that's also acceptable for error cases
+    // Verify diff viewer is NOT present when there's an error
+    const diffViewer = webviewPage.locator('.diff-viewer-container');
+    await expect(diffViewer).not.toBeVisible();
   });
 
   test('should render tool without error normally', async ({ webviewPage }) => {

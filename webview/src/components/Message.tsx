@@ -192,7 +192,7 @@ export const Message: React.FC<MessageProps> = (props) => {
       return (
         <div key={index}>
           {toolHeader}
-          <DiffViewer toolBlock={toolBlock} />
+          {!errorContent && <DiffViewer toolBlock={toolBlock} />}
           {errorContent}
         </div>
       );
