@@ -6,9 +6,10 @@ import '../styles/SubagentDisplay.css';
 interface SubagentDisplayProps {
   subagentBlock: SubagentBlock;
   subagentMessages?: Map<string, Message[]>;
+  vscode: any;
 }
 
-export const SubagentDisplay: React.FC<SubagentDisplayProps> = ({ subagentBlock, subagentMessages }) => {
+export const SubagentDisplay: React.FC<SubagentDisplayProps> = ({ subagentBlock, subagentMessages, vscode }) => {
   // Get subagent information directly from the SubagentBlock
   const subagentId = subagentBlock.subagentId;
   const subagentName = subagentBlock.subagentName;
@@ -79,7 +80,7 @@ export const SubagentDisplay: React.FC<SubagentDisplayProps> = ({ subagentBlock,
             
             return (
               <div key={index} className="subagent-message-wrapper">
-                <MessageComponent message={toolOnlyMessage} isStreaming={false} />
+                <MessageComponent message={toolOnlyMessage} isStreaming={false} vscode={vscode} />
               </div>
             );
           })}

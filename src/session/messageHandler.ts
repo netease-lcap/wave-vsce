@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import * as path from 'path';
 import { ChatSession } from './chatSession';
 import { ConfigurationService } from '../services/configurationService';
 import { FileService } from '../services/fileService';
@@ -80,9 +81,47 @@ export class MessageHandler {
             case 'showError':
                 vscode.window.showErrorMessage(message.message);
                 break;
+            case 'downloadMermaid':
+                await this.handleDownloadMermaid(message.content, message.format, viewType, windowId);
+                break;
             case 'webviewReady':
                 await this.handleWebviewReady(viewType, windowId);
                 break;
+        }
+    }
+
+    private async handleDownloadMermaid(content: string, format: 'svg' | 'png', viewType?: 'sidebar' | 'tab' | 'window', windowId?: string) {
+        const timestamp = Date.now();
+        const defaultFileName = `mermaid-diagram-${timestamp}.${format}`;
+        
+        const session = this.context.getChatSession(viewType || 'tab', windowId);
+        const workdir = session.agent?.workingDirectory;
+        
+        const defaultUri = workdir 
+            ? vscode.Uri.file(path.join(workdir, defaultFileName))
+            : vscode.Uri.file(defaultFileName);
+
+        const uri = await vscode.window.showSaveDialog({
+            defaultUri: defaultUri,
+            filters: format === 'svg' ? { 'SVG': ['svg'] } : { 'PNG': ['png'] }
+        });
+
+        if (uri) {
+            try {
+                let data: Uint8Array;
+                if (format === 'svg') {
+                    data = Buffer.from(content, 'utf8');
+                } else {
+                    // content is a data URL: data:image/png;base64,...
+                    const base64Data = content.split(',')[1];
+                    data = Buffer.from(base64Data, 'base64');
+                }
+                await vscode.workspace.fs.writeFile(uri, data);
+                vscode.window.showInformationMessage(`图表已保存至: ${uri.fsPath}`);
+            } catch (error) {
+                console.error('保存图表失败:', error);
+                vscode.window.showErrorMessage(`保存图表失败: ${error}`);
+            }
         }
     }
 

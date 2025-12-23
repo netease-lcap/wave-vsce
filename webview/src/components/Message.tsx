@@ -255,6 +255,7 @@ export const Message: React.FC<MessageProps> = (props) => {
         <SubagentDisplay 
           subagentBlock={subagentBlock} 
           subagentMessages={props.subagentMessages} 
+          vscode={props.vscode}
         />
       </div>
     );
@@ -284,6 +285,7 @@ export const Message: React.FC<MessageProps> = (props) => {
                 <MermaidRenderer 
                   key={element.id || `mermaid-${index}-${elIndex}`}
                   content={element.content}
+                  vscode={props.vscode}
                 />
               ) : (
                 <div 

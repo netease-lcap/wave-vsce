@@ -123,12 +123,14 @@ export interface MessageListProps {
   messages: Message[];
   streamingMessageIndex?: number;
   subagentMessages?: Map<string, Message[]>;
+  vscode: any;
 }
 
 export interface MessageProps {
   message: Message;
   isStreaming?: boolean;
   subagentMessages?: Map<string, Message[]>;
+  vscode: any;
 }
 
 // Image attachment types (uses base64 data directly)

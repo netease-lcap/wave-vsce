@@ -375,6 +375,7 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
         messages={state.messages} 
         streamingMessageIndex={streamingMessageIndex}
         subagentMessages={state.subagentMessages}
+        vscode={vscode}
       />
       
       {state.pendingConfirmations.length === 0 && (
