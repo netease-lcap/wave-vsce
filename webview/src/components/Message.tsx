@@ -57,12 +57,18 @@ const parseMarkdownWithMermaid = (content: string): ParsedMarkdownContent => {
       // This is regular markdown content
       const html = marked.parse(part);
       const sanitizedHtml = DOMPurify.sanitize(html, {
-        ALLOWED_TAGS: ['p', 'br', 'strong', 'b', 'em', 'i', 'code', 'pre', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'a', 'blockquote'],
-        ALLOWED_ATTR: ['href', 'title'],
-        ALLOW_DATA_ATTR: false
+        ALLOWED_TAGS: [
+          'p', 'br', 'strong', 'b', 'em', 'i', 'code', 'pre', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 
+          'ul', 'ol', 'li', 'a', 'blockquote',
+          'table', 'thead', 'tbody', 'tr', 'th', 'td', 'del'
+        ],
+        ALLOWED_ATTR: ['href', 'title', 'align'],
+        ALLOW_DATA_ATTR: false,
+        FORBID_ATTR: [],
+        FORBID_TAGS: []
       });
       
-      if (sanitizedHtml.trim()) {
+      if (typeof sanitizedHtml === 'string' && sanitizedHtml.trim()) {
         elements.push({
           type: 'html',
           content: sanitizedHtml
@@ -73,6 +79,7 @@ const parseMarkdownWithMermaid = (content: string): ParsedMarkdownContent => {
 
   return { elements };
 };
+
 
 export const Message: React.FC<MessageProps> = (props) => {
   const { message, isStreaming = false, subagentMessages } = props;

@@ -257,6 +257,10 @@
     font-style: italic;
 }
 
+.markdown-content del {
+    text-decoration: line-through;
+}
+
 /* Markdown Code */
 .markdown-content code {
     background-color: var(--vscode-textCodeBlock-background);
@@ -353,6 +357,46 @@
 .markdown-content p {
     margin: 8px 0;
     line-height: 1.5;
+}
+
+/* Markdown Tables */
+.markdown-content table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 12px 0;
+    font-size: 0.9em;
+    border: 1px solid var(--vscode-panel-border);
+}
+
+.markdown-content th,
+.markdown-content td {
+    padding: 8px 12px;
+    border: 1px solid var(--vscode-panel-border);
+}
+
+.markdown-content th[align="left"],
+.markdown-content td[align="left"] {
+    text-align: left;
+}
+
+.markdown-content th[align="center"],
+.markdown-content td[align="center"] {
+    text-align: center;
+}
+
+.markdown-content th[align="right"],
+.markdown-content td[align="right"] {
+    text-align: right;
+}
+
+.markdown-content th {
+    background-color: var(--vscode-editor-lineHighlightBackground);
+    font-weight: 600;
+}
+
+.markdown-content tr:nth-child(even) {
+    background-color: var(--vscode-editor-lineHighlightBackground);
+    opacity: 0.8;
 }
 
 .markdown-content p:first-child {
