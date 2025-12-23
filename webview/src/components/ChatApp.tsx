@@ -22,7 +22,7 @@ const initialState: ChatState = {
   currentSession: undefined,
   sessionsLoading: false,
   sessionsError: undefined,
-  pendingConfirmation: undefined,
+  pendingConfirmations: [],
   // Configuration state
   showConfiguration: false,
   configurationData: undefined,
@@ -85,12 +85,12 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
     case 'SHOW_CONFIRMATION':
       return {
         ...state,
-        pendingConfirmation: action.payload
+        pendingConfirmations: [...state.pendingConfirmations, action.payload]
       };
     case 'HIDE_CONFIRMATION':
       return {
         ...state,
-        pendingConfirmation: undefined
+        pendingConfirmations: state.pendingConfirmations.filter(c => c.confirmationId !== action.payload)
       };
     case 'SHOW_CONFIGURATION':
       return {
@@ -132,7 +132,7 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
         sessions: action.payload.sessions,
         currentSession: action.payload.currentSession,
         configurationData: action.payload.configurationData,
-        pendingConfirmation: action.payload.pendingConfirmation,
+        pendingConfirmations: action.payload.pendingConfirmations,
         sessionsLoading: false,
         configurationLoading: false
       };
@@ -221,7 +221,7 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
               sessions: message.sessions,
               currentSession: message.session,
               configurationData: message.configurationData,
-              pendingConfirmation: message.pendingConfirmation
+              pendingConfirmations: message.pendingConfirmations || (message.pendingConfirmation ? [message.pendingConfirmation] : [])
             }
           });
           break;
@@ -346,7 +346,7 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
       confirmationId,
       approved: true
     });
-    dispatch({ type: 'HIDE_CONFIRMATION' });
+    dispatch({ type: 'HIDE_CONFIRMATION', payload: confirmationId });
   }, [vscode]);
 
   const handleRejection = useCallback((confirmationId: string) => {
@@ -355,7 +355,7 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
       confirmationId,
       approved: false
     });
-    dispatch({ type: 'HIDE_CONFIRMATION' });
+    dispatch({ type: 'HIDE_CONFIRMATION', payload: confirmationId });
   }, [vscode]);
 
   return (
@@ -377,7 +377,7 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
         subagentMessages={state.subagentMessages}
       />
       
-      {!state.pendingConfirmation && (
+      {state.pendingConfirmations.length === 0 && (
         <MessageInput
           ref={messageInputRef}
           onSendMessage={handleSendMessage}
@@ -397,9 +397,11 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
         />
       )}
 
-      {state.pendingConfirmation && (
+      {state.pendingConfirmations.length > 0 && (
         <ConfirmationDialog
-          confirmation={state.pendingConfirmation}
+          key={state.pendingConfirmations[0].confirmationId}
+          data-confirmation-id={state.pendingConfirmations[0].confirmationId}
+          confirmation={state.pendingConfirmations[0]}
           onConfirm={handleConfirmation}
           onReject={handleRejection}
         />

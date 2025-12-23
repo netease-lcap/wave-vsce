@@ -16,9 +16,7 @@ export const test = base.extend<WebviewTestContext>({
     webviewPage: async ({ page }, use) => {
         // Only log actual errors, skip expected warnings and debug info
         page.on('console', (msg) => {
-            if (msg.type() === 'error') {
-                console.log('Console error:', msg.text());
-            }
+            console.log(`Console [${msg.type()}]:`, msg.text());
         });
 
         // Enable error tracking

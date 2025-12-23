@@ -167,6 +167,64 @@ test.describe('Confirmation Dialog', () => {
         });
     });
 
+    test('should handle multiple simultaneous confirmation requests in a queue', async ({ webviewPage }) => {
+        const injector = new MessageInjector(webviewPage);
+
+        // Clear message log
+        await injector.clearMessageLog();
+
+        // Send first confirmation request
+        await injector.simulateExtensionMessage('showConfirmation', {
+            confirmationId: 'conf_1',
+            toolName: 'Edit',
+            confirmationType: '代码修改待确认',
+            toolInput: { file_path: 'file1.ts' }
+        });
+
+        // Verify first confirmation is visible
+        await expect(webviewPage.locator('.confirmation-dialog')).toBeVisible();
+        await expect(webviewPage.locator('.confirmation-details')).toContainText('工具: Edit');
+
+        // Send second confirmation request while first is still showing
+        await injector.simulateExtensionMessage('showConfirmation', {
+            confirmationId: 'conf_2',
+            toolName: 'Bash',
+            confirmationType: '命令执行待确认',
+            toolInput: { command: 'ls' }
+        });
+
+        // Still should show first confirmation
+        await expect(webviewPage.locator('.confirmation-details')).toContainText('工具: Edit');
+
+        // Approve first confirmation
+        await webviewPage.locator('.confirmation-btn-apply').click();
+
+        // Verify second confirmation is now visible
+        await expect(webviewPage.locator('.confirmation-dialog')).toBeVisible();
+        await expect(webviewPage.locator('.confirmation-details')).toContainText('工具: Bash');
+
+        // Approve second confirmation
+        await webviewPage.locator('.confirmation-btn-apply').click();
+
+        // Verify dialog is hidden and input is visible
+        await expect(webviewPage.locator('.confirmation-dialog')).not.toBeVisible();
+        await expect(webviewPage.locator('textarea')).toBeVisible();
+
+        // Verify both responses were sent
+        const sentMessages = await injector.getMessagesSentToExtension();
+        expect(sentMessages).toHaveLength(2);
+        expect(sentMessages[0]).toEqual({
+            command: 'confirmationResponse',
+            confirmationId: 'conf_1',
+            approved: true
+        });
+        expect(sentMessages[1]).toEqual({
+            command: 'confirmationResponse',
+            confirmationId: 'conf_2',
+            approved: true
+        });
+    });
+
     test('should position confirmation dialog at bottom and not overlap messages', async ({ webviewPage }) => {
         const injector = new MessageInjector(webviewPage);
 

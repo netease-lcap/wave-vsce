@@ -229,19 +229,12 @@ export class MessageHandler {
         }
         const configurationData = await this.configService.loadConfiguration();
         const sessions = await this.sessionService.getSessionsList();
-        let pendingConfirmation = undefined;
-        if (session.pendingConfirmations.size > 0) {
-            const nextValue = session.pendingConfirmations.entries().next().value;
-            if (nextValue) {
-                const [confirmationId, pending] = nextValue;
-                pendingConfirmation = {
-                    confirmationId,
-                    toolName: pending.toolName,
-                    confirmationType: pending.confirmationType,
-                    toolInput: pending.toolInput
-                };
-            }
-        }
+        const pendingConfirmations = Array.from(session.pendingConfirmations.entries()).map(([confirmationId, pending]) => ({
+            confirmationId,
+            toolName: pending.toolName,
+            confirmationType: pending.confirmationType,
+            toolInput: pending.toolInput
+        }));
         this.context.postMessage({
             command: 'setInitialState',
             messages: session.messages,
@@ -255,7 +248,7 @@ export class MessageHandler {
                 latestTotalTokens: session.agent.latestTotalTokens
             } : undefined,
             configurationData,
-            pendingConfirmation
+            pendingConfirmations
         }, viewType, windowId);
     }
 

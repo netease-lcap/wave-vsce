@@ -218,7 +218,7 @@ export interface ChatState {
   currentSession?: ExtendedSessionMetadata;
   sessionsLoading: boolean;
   sessionsError?: string;
-  pendingConfirmation?: ConfirmationRequest;
+  pendingConfirmations: ConfirmationRequest[];
   // Configuration state
   showConfiguration: boolean;
   configurationData?: ConfigurationData;
@@ -291,7 +291,7 @@ export type ChatAction =
   | { type: 'SET_SESSIONS_LOADING'; payload: boolean }
   | { type: 'SET_SESSIONS_ERROR'; payload: string | undefined }
   | { type: 'SHOW_CONFIRMATION'; payload: ConfirmationRequest }
-  | { type: 'HIDE_CONFIRMATION' }
+  | { type: 'HIDE_CONFIRMATION'; payload: string }
   | { type: 'SHOW_CONFIGURATION'; payload: { data: ConfigurationData; error?: string } }
   | { type: 'HIDE_CONFIGURATION'; payload?: ConfigurationData }
   | { type: 'SET_CONFIGURATION_LOADING'; payload: boolean }
@@ -304,5 +304,5 @@ export type ChatAction =
       sessions: ExtendedSessionMetadata[];
       currentSession?: ExtendedSessionMetadata;
       configurationData: ConfigurationData;
-      pendingConfirmation?: ConfirmationRequest;
+      pendingConfirmations: ConfirmationRequest[];
     } };
