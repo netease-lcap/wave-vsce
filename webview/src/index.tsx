@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { ChatApp } from './components/ChatApp';
 import './styles/globals.css';
+import '@vscode/codicons/dist/codicon.css';
 
 // Initialize VS Code API
 declare global {

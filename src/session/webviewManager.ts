@@ -131,10 +131,6 @@ export class WebviewManager {
             vscode.Uri.joinPath(this.context.extensionUri, 'webview', 'dist', 'chat.js')
         );
 
-        const codiconUri = webview.asWebviewUri(
-            vscode.Uri.joinPath(this.context.extensionUri, 'node_modules', '@vscode', 'codicons', 'dist', 'codicon.css')
-        );
-
         return `<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -142,7 +138,6 @@ export class WebviewManager {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource} 'unsafe-inline'; script-src ${webview.cspSource}; font-src ${webview.cspSource};">
     <title>Wave AI Chat</title>
-    <link rel="stylesheet" href="${codiconUri}">
 </head>
 <body>
     <div id="root"></div>
