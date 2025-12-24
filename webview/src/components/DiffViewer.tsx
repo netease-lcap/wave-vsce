@@ -91,110 +91,123 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({ toolBlock }) => {
           );
 
           // Extract removed and added lines for word-level comparison
-          const removedLines: string[] = [];
-          const addedLines: string[] = [];
-          const contextLines: string[] = [];
+          const diffLinesElements: React.ReactNode[] = [];
+          let pendingRemoved: string[] = [];
+          let pendingAdded: string[] = [];
+          let groupIndex = 0;
+
+          const splitLines = (text: string) => {
+            if (!text) return [];
+            const lines = text.split("\n");
+            // If the last line is empty, it's usually because the text ended with a newline
+            if (lines.length > 0 && lines[lines.length - 1] === "") {
+              return lines.slice(0, -1);
+            }
+            return lines;
+          };
+
+          const flushPending = () => {
+            const maxLines = Math.max(pendingRemoved.length, pendingAdded.length);
+            for (let i = 0; i < maxLines; i++) {
+              const oldLine = pendingRemoved[i] || "";
+              const newLine = pendingAdded[i] || "";
+
+              if (i < pendingRemoved.length && i < pendingAdded.length) {
+                // Both lines exist - do word-level diff
+                const { removedParts, addedParts } = renderWordLevelDiff(
+                  oldLine,
+                  newLine,
+                  `paired-${changeIndex}-${groupIndex}-${i}`
+                );
+
+                diffLinesElements.push(
+                  <div
+                    key={`removed-${changeIndex}-${groupIndex}-${i}`}
+                    className="diff-line diff-line-removed"
+                  >
+                    <span className="diff-prefix">-</span>
+                    <span className="diff-content">{removedParts}</span>
+                  </div>
+                );
+
+                diffLinesElements.push(
+                  <div
+                    key={`added-${changeIndex}-${groupIndex}-${i}`}
+                    className="diff-line diff-line-added"
+                  >
+                    <span className="diff-prefix">+</span>
+                    <span className="diff-content">{addedParts}</span>
+                  </div>
+                );
+              } else if (i < pendingRemoved.length) {
+                // Only removed line
+                const { removedParts } = renderWordLevelDiff(
+                  oldLine,
+                  "",
+                  `removed-only-${changeIndex}-${groupIndex}-${i}`
+                );
+
+                diffLinesElements.push(
+                  <div
+                    key={`removed-only-${changeIndex}-${groupIndex}-${i}`}
+                    className="diff-line diff-line-removed"
+                  >
+                    <span className="diff-prefix">-</span>
+                    <span className="diff-content">{removedParts}</span>
+                  </div>
+                );
+              } else if (i < pendingAdded.length) {
+                // Only added line
+                const { addedParts } = renderWordLevelDiff(
+                  "",
+                  newLine,
+                  `added-only-${changeIndex}-${groupIndex}-${i}`
+                );
+
+                diffLinesElements.push(
+                  <div
+                    key={`added-only-${changeIndex}-${groupIndex}-${i}`}
+                    className="diff-line diff-line-added"
+                  >
+                    <span className="diff-prefix">+</span>
+                    <span className="diff-content">{addedParts}</span>
+                  </div>
+                );
+              }
+            }
+            pendingRemoved = [];
+            pendingAdded = [];
+            groupIndex++;
+          };
 
           lineDiffsResult.forEach((part: any) => {
             if (part.removed) {
-              removedLines.push(...part.value.split("\n").filter((line: string) => line !== ""));
+              pendingRemoved.push(...splitLines(part.value));
             } else if (part.added) {
-              addedLines.push(...part.value.split("\n").filter((line: string) => line !== ""));
+              pendingAdded.push(...splitLines(part.value));
             } else {
-              contextLines.push(...part.value.split("\n").filter((line: string) => line !== ""));
+              flushPending();
+              const lines = splitLines(part.value);
+              lines.forEach((line, lineIndex) => {
+                const { addedParts } = renderWordLevelDiff(
+                  line, 
+                  line, 
+                  `context-${changeIndex}-${groupIndex}-${lineIndex}`
+                );
+                diffLinesElements.push(
+                  <div
+                    key={`context-${changeIndex}-${groupIndex}-${lineIndex}`}
+                    className="diff-line diff-line-context"
+                  >
+                    <span className="diff-prefix"> </span>
+                    <span className="diff-content">{addedParts}</span>
+                  </div>
+                );
+              });
+              groupIndex++;
             }
           });
-
-          const diffLinesElements: React.ReactNode[] = [];
-
-          // Handle context lines first
-          contextLines.forEach((line, lineIndex) => {
-            const { addedParts } = renderWordLevelDiff(
-              line, 
-              line, 
-              `context-${changeIndex}-${lineIndex}`
-            );
-            diffLinesElements.push(
-              <div
-                key={`context-${changeIndex}-${lineIndex}`}
-                className="diff-line diff-line-context"
-              >
-                <span className="diff-prefix"> </span>
-                <span className="diff-content">{addedParts}</span>
-              </div>
-            );
-          });
-
-          // Pair removed and added lines for word-level diff
-          const maxLines = Math.max(removedLines.length, addedLines.length);
-          
-          for (let i = 0; i < maxLines; i++) {
-            const oldLine = removedLines[i] || "";
-            const newLine = addedLines[i] || "";
-
-            if (oldLine && newLine) {
-              // Both lines exist - do word-level diff
-              const { removedParts, addedParts } = renderWordLevelDiff(
-                oldLine,
-                newLine,
-                `paired-${changeIndex}-${i}`
-              );
-
-              diffLinesElements.push(
-                <div
-                  key={`removed-${changeIndex}-${i}`}
-                  className="diff-line diff-line-removed"
-                >
-                  <span className="diff-prefix">-</span>
-                  <span className="diff-content">{removedParts}</span>
-                </div>
-              );
-
-              diffLinesElements.push(
-                <div
-                  key={`added-${changeIndex}-${i}`}
-                  className="diff-line diff-line-added"
-                >
-                  <span className="diff-prefix">+</span>
-                  <span className="diff-content">{addedParts}</span>
-                </div>
-              );
-            } else if (oldLine) {
-              // Only removed line
-              const { removedParts } = renderWordLevelDiff(
-                oldLine,
-                "",
-                `removed-only-${changeIndex}-${i}`
-              );
-
-              diffLinesElements.push(
-                <div
-                  key={`removed-only-${changeIndex}-${i}`}
-                  className="diff-line diff-line-removed"
-                >
-                  <span className="diff-prefix">-</span>
-                  <span className="diff-content">{removedParts}</span>
-                </div>
-              );
-            } else if (newLine) {
-              // Only added line
-              const { addedParts } = renderWordLevelDiff(
-                "",
-                newLine,
-                `added-only-${changeIndex}-${i}`
-              );
-
-              diffLinesElements.push(
-                <div
-                  key={`added-only-${changeIndex}-${i}`}
-                  className="diff-line diff-line-added"
-                >
-                  <span className="diff-prefix">+</span>
-                  <span className="diff-content">{addedParts}</span>
-                </div>
-              );
-            }
-          }
+          flushPending();
 
           return (
             <div key={changeIndex} className="diff-change">
