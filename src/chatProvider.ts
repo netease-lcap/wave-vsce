@@ -161,7 +161,7 @@ export class ChatProvider implements vscode.WebviewViewProvider {
                 return;
             }
             
-            await session.initialize(config, restoreSessionId);
+            await session.initialize(config, this.context.extensionMode, restoreSessionId);
         } catch (error) {
             console.error(`初始化 ${viewType} 智能体失败:`, error);
             vscode.window.showErrorMessage(`初始化 ${viewType} AI 智能体失败: ` + error);

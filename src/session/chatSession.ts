@@ -38,7 +38,7 @@ export class ChatSession {
         private callbacks: ChatSessionCallbacks
     ) {}
 
-    public async initialize(config: ConfigurationData, restoreSessionId?: string) {
+    public async initialize(config: ConfigurationData, extensionMode: vscode.ExtensionMode, restoreSessionId?: string) {
         if (this.isInitializing) {
             return;
         }
@@ -72,7 +72,12 @@ export class ChatSession {
             };
 
             this.agent = await Agent.create({
-                logger: console,
+                logger: extensionMode === vscode.ExtensionMode.Development ? console : {
+                    info: (...args: any[]) => console.info(...args),
+                    warn: (...args: any[]) => console.warn(...args),
+                    error: (...args: any[]) => console.error(...args),
+                    debug: () => {},
+                },
                 callbacks: agentCallbacks,
                 workdir,
                 restoreSessionId,
