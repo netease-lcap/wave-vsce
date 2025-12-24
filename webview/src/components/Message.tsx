@@ -9,9 +9,17 @@ import { MermaidRenderer } from './MermaidRenderer';
 import '../styles/Message.css';
 
 // Configure marked for VS Code webview context
-marked.setOptions({
-  breaks: true, // Convert line breaks to <br>
-  gfm: true // GitHub Flavored Markdown
+marked.use({
+  gfm: true,
+  breaks: true,
+  renderer: {
+    listitem(text: string, task: boolean, checked: boolean) {
+      if (task) {
+        return `<li class="task-list-item${checked ? ' checked' : ''}">${text}</li>`;
+      }
+      return `<li>${text}</li>`;
+    }
+  }
 });
 
 const escapeHtml = (text: string): string => {
@@ -60,9 +68,9 @@ const parseMarkdownWithMermaid = (content: string): ParsedMarkdownContent => {
         ALLOWED_TAGS: [
           'p', 'br', 'strong', 'b', 'em', 'i', 'code', 'pre', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 
           'ul', 'ol', 'li', 'a', 'blockquote',
-          'table', 'thead', 'tbody', 'tr', 'th', 'td', 'del'
+          'table', 'thead', 'tbody', 'tr', 'th', 'td', 'del', 'input'
         ],
-        ALLOWED_ATTR: ['href', 'title', 'align'],
+        ALLOWED_ATTR: ['href', 'title', 'align', 'type', 'checked', 'disabled', 'class'],
         ALLOW_DATA_ATTR: false,
         FORBID_ATTR: [],
         FORBID_TAGS: []
