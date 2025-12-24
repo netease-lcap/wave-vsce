@@ -11,7 +11,11 @@ test.describe('Webview Ready Streaming State Restoration', () => {
         const ui = new UIStateVerifier(webviewPage);
 
         // Send initial message to establish conversation
-        await ui.sendMessage('Hello');
+        await ui.typeMessage('Hello');
+        await ui.clickSend();
+        await injector.updateMessages([
+            MockDataGenerator.createUserMessage('Hello')
+        ]);
         await ui.verifyMessageCount(2); // Welcome + user message
 
         // Start streaming response
@@ -81,7 +85,11 @@ test.describe('Webview Ready Streaming State Restoration', () => {
         const ui = new UIStateVerifier(webviewPage);
 
         // Start conversation and streaming
-        await ui.sendMessage('Long running task');
+        await ui.typeMessage('Long running task');
+        await ui.clickSend();
+        await injector.updateMessages([
+            MockDataGenerator.createUserMessage('Long running task')
+        ]);
         await injector.startStreaming();
         
         await injector.updateMessages([

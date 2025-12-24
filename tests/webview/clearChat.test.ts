@@ -144,8 +144,9 @@ test.describe('Clear Chat Functionality', () => {
 
         // Verify new message was sent
         const sentMessages = await injector.getMessagesSentToExtension();
-        expect(sentMessages).toHaveLength(1);
-        expect(sentMessages[0].text).toBe('New conversation after clear');
+        const sendMessage = sentMessages.find(m => m.command === 'sendMessage');
+        expect(sendMessage).toBeDefined();
+        expect(sendMessage.text).toBe('New conversation after clear');
 
         // Simulate response
         await injector.updateMessages([

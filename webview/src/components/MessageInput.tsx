@@ -39,7 +39,7 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
   inputContent
 }, ref) => {
   const [message, setMessage] = useState('');
-  const [isSelectionEnabled, setIsSelectionEnabled] = useState(true);
+  const [isSelectionEnabled, setIsSelectionEnabled] = useState(false);
   const [atMention, setAtMention] = useState<AtMentionState>({
     isActive: false,
     filterText: '',
@@ -894,7 +894,7 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
         >
           <i className={`codicon ${isSelectionEnabled ? 'codicon-code' : 'codicon-circle-slash'}`}></i>
           <span>
-            {selection.fileName}
+            {selection.fileName.split(/[/\\]/).pop()}
             {!selection.isEmpty && `#${selection.startLine}-${selection.endLine}`}
           </span>
         </div>

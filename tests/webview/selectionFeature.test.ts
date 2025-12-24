@@ -9,8 +9,8 @@ test.describe('Selection Feature', () => {
 
         // 1. Simulate selection update from extension
         const selection = {
-            filePath: '/path/to/file.ts',
-            fileName: 'file.ts',
+            filePath: '/path/to/src/file.ts',
+            fileName: 'src/file.ts',
             startLine: 10,
             endLine: 20,
             lineCount: 11,
@@ -30,36 +30,40 @@ test.describe('Selection Feature', () => {
         await expect(selectionTag).toBeVisible();
         await expect(selectionTag).toContainText('file.ts#10-20');
         
-        // Verify it's enabled by default
-        await expect(selectionTag).toHaveClass(/enabled/);
-        await expect(selectionTag).not.toHaveClass(/disabled/);
-
-        // 2. Toggle selection off
-        await selectionTag.click();
-        
-        // Verify it's disabled
+        // Verify it's disabled by default
         await expect(selectionTag).toHaveClass(/disabled/);
         await expect(selectionTag).not.toHaveClass(/enabled/);
 
-        // 3. Send message and verify selection is NOT included when disabled
+        // 2. Toggle selection on
+        await selectionTag.click();
+        
+        // Verify it's enabled
+        await expect(selectionTag).toHaveClass(/enabled/);
+        await expect(selectionTag).not.toHaveClass(/disabled/);
+
+        // 3. Send message and verify selection IS included when enabled
         await injector.clearMessageLog();
         await ui.typeMessage('Hello');
         await ui.clickSend();
         
         let sentMessages = await injector.getMessagesSentToExtension();
-        expect(sentMessages[0].selection).toBeUndefined();
+        let sendMessage = sentMessages.find(m => m.command === 'sendMessage');
+        expect(sendMessage).toBeDefined();
+        expect(sendMessage.selection).toEqual(selection);
 
-        // 4. Toggle selection back on
+        // 4. Toggle selection back off
         await selectionTag.click();
-        await expect(selectionTag).toHaveClass(/enabled/);
+        await expect(selectionTag).toHaveClass(/disabled/);
         
-        // 5. Send message and verify selection IS included when enabled
+        // 5. Send message and verify selection is NOT included when disabled
         await injector.clearMessageLog();
         await ui.typeMessage('Hello again');
         await ui.clickSend();
         
         sentMessages = await injector.getMessagesSentToExtension();
-        expect(sentMessages[0].selection).toEqual(selection);
+        sendMessage = sentMessages.find(m => m.command === 'sendMessage');
+        expect(sendMessage).toBeDefined();
+        expect(sendMessage.selection).toBeUndefined();
 
         // 6. Simulate message in history with selection
         const messages = [

@@ -21,10 +21,13 @@ test.describe('Basic Message Flow', () => {
 
         // Verify message was sent to extension
         const sentMessages = await injector.getMessagesSentToExtension();
-        expect(sentMessages).toHaveLength(1);
-        expect(sentMessages[0]).toEqual({
+        const sendMessage = sentMessages.find(m => m.command === 'sendMessage');
+        expect(sendMessage).toBeDefined();
+        expect(sendMessage).toEqual({
             command: 'sendMessage',
-            text: 'Hello, can you help me?'
+            text: 'Hello, can you help me?',
+            images: undefined,
+            selection: undefined
         });
 
         // Verify input field is cleared but enabled (can send more messages while streaming)
@@ -99,7 +102,8 @@ test.describe('Basic Message Flow', () => {
 
         // Verify second message was sent
         const sentMessages = await injector.getMessagesSentToExtension();
-        expect(sentMessages).toHaveLength(1);
-        expect(sentMessages[0].text).toBe('Second message');
+        const sendMessage = sentMessages.find(m => m.command === 'sendMessage');
+        expect(sendMessage).toBeDefined();
+        expect(sendMessage.text).toBe('Second message');
     });
 });

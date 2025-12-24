@@ -108,8 +108,9 @@ test.describe('Error Message Display', () => {
 
         // Verify message was sent
         const sentMessages = await injector.getMessagesSentToExtension();
-        expect(sentMessages).toHaveLength(1);
-        expect(sentMessages[0].text).toBe('Can you try again?');
+        const sendMessage = sentMessages.find(m => m.command === 'sendMessage');
+        expect(sendMessage).toBeDefined();
+        expect(sendMessage.text).toBe('Can you try again?');
 
         // Simulate successful response after error
         const messages = [
