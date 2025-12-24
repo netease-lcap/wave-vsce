@@ -112,6 +112,15 @@
     font-style: italic;
 }
 
+/* Ellipsis line for truncated context */
+.diff-line-ellipsis {
+    color: var(--vscode-descriptionForeground);
+    padding: 2px 28px;
+    font-style: italic;
+    user-select: none;
+    font-size: 11px;
+}
+
 /* Scrollbar styling */
 .diff-viewer-content::-webkit-scrollbar {
     width: 10px;

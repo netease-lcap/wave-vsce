@@ -180,7 +180,7 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({ toolBlock }) => {
             groupIndex++;
           };
 
-          lineDiffsResult.forEach((part: any) => {
+          lineDiffsResult.forEach((part: any, partIndex: number) => {
             if (part.removed) {
               pendingRemoved.push(...splitLines(part.value));
             } else if (part.added) {
@@ -188,7 +188,48 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({ toolBlock }) => {
             } else {
               flushPending();
               const lines = splitLines(part.value);
-              lines.forEach((line, lineIndex) => {
+              const contextLimit = 3;
+              
+              let displayLines = lines;
+              let showEllipsisBefore = false;
+              let showEllipsisAfter = false;
+
+              if (partIndex === 0) {
+                // Start of diff: show last N lines
+                if (lines.length > contextLimit) {
+                  displayLines = lines.slice(-contextLimit);
+                  showEllipsisBefore = true;
+                }
+              } else if (partIndex === lineDiffsResult.length - 1) {
+                // End of diff: show first N lines
+                if (lines.length > contextLimit) {
+                  displayLines = lines.slice(0, contextLimit);
+                  showEllipsisAfter = true;
+                }
+              } else {
+                // Middle of diff: show first N and last N lines
+                if (lines.length > contextLimit * 2) {
+                  displayLines = [...lines.slice(0, contextLimit), "...", ...lines.slice(-contextLimit)];
+                }
+              }
+
+              if (showEllipsisBefore) {
+                diffLinesElements.push(
+                  <div key={`ellipsis-before-${changeIndex}-${groupIndex}`} className="diff-line-ellipsis">
+                    ...
+                  </div>
+                );
+              }
+
+              displayLines.forEach((line, lineIndex) => {
+                if (line === "...") {
+                  diffLinesElements.push(
+                    <div key={`ellipsis-middle-${changeIndex}-${groupIndex}-${lineIndex}`} className="diff-line-ellipsis">
+                      ...
+                    </div>
+                  );
+                  return;
+                }
                 const { addedParts } = renderWordLevelDiff(
                   line, 
                   line, 
@@ -204,6 +245,14 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({ toolBlock }) => {
                   </div>
                 );
               });
+
+              if (showEllipsisAfter) {
+                diffLinesElements.push(
+                  <div key={`ellipsis-after-${changeIndex}-${groupIndex}`} className="diff-line-ellipsis">
+                    ...
+                  </div>
+                );
+              }
               groupIndex++;
             }
           });
