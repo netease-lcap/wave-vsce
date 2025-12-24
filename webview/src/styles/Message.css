@@ -227,6 +227,22 @@
     font-family: var(--vscode-editor-font-family);
 }
 
+.lsp-output {
+    padding: 4px 8px;
+    background-color: var(--vscode-textCodeBlock-background);
+    color: var(--vscode-textPreformat-foreground);
+    border: 1px solid var(--vscode-textBlockQuote-border);
+    border-radius: 4px;
+    font-size: 12px;
+    line-height: 1.2;
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: 100px;
+    overflow: hidden;
+    font-weight: normal;
+    font-family: var(--vscode-editor-font-family);
+}
+
 /* Markdown Styling for Message Content */
 .markdown-content {
     white-space: normal; /* Override pre-wrap for markdown content */

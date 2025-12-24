@@ -1,0 +1,243 @@
+import * as vscode from 'vscode';
+import * as path from 'path';
+import { ILspManager } from 'wave-agent-sdk';
+
+export class VscodeLspAdapter implements ILspManager {
+  async execute(args: {
+    operation: string;
+    filePath: string;
+    line: number;
+    character: number;
+  }) {
+    try {
+      const uri = this.resolveUri(args.filePath);
+      const position = new vscode.Position(args.line - 1, args.character - 1);
+
+      let result: any;
+      switch (args.operation) {
+        case "goToDefinition":
+          result = await vscode.commands.executeCommand('vscode.executeDefinitionProvider', uri, position);
+          break;
+        case "hover":
+          const hovers = await vscode.commands.executeCommand<vscode.Hover[]>('vscode.executeHoverProvider', uri, position);
+          // The SDK expects a single Hover object, not an array.
+          // We take the first one if available.
+          result = (hovers && hovers.length > 0) ? hovers[0] : null;
+          break;
+        case "findReferences":
+          result = await vscode.commands.executeCommand('vscode.executeReferenceProvider', uri, position, { includeDeclaration: true });
+          break;
+        case "documentSymbol":
+          result = await vscode.commands.executeCommand('vscode.executeDocumentSymbolProvider', uri);
+          break;
+        case "workspaceSymbol":
+          // The SDK might pass a query in some cases, but for now we use the symbol at position if possible
+          // or a generic search. However, executeWorkspaceSymbolProvider usually takes a string query.
+          // Since the tool args only provide filePath/line/character, we might need to get the word at that position.
+          const document = await vscode.workspace.openTextDocument(uri);
+          const range = document.getWordRangeAtPosition(position);
+          const query = range ? document.getText(range) : '';
+          result = await vscode.commands.executeCommand('vscode.executeWorkspaceSymbolProvider', query);
+          break;
+        case "goToImplementation":
+          result = await vscode.commands.executeCommand('vscode.executeImplementationProvider', uri, position);
+          break;
+        case "prepareCallHierarchy":
+          result = await vscode.commands.executeCommand('vscode.prepareCallHierarchy', uri, position);
+          break;
+        case "incomingCalls":
+          const itemsIn = await vscode.commands.executeCommand<vscode.CallHierarchyItem[]>('vscode.prepareCallHierarchy', uri, position);
+          if (itemsIn && itemsIn.length > 0) {
+            result = await vscode.commands.executeCommand('vscode.provideIncomingCalls', itemsIn[0]);
+          } else {
+            result = null;
+          }
+          break;
+        case "outgoingCalls":
+          const itemsOut = await vscode.commands.executeCommand<vscode.CallHierarchyItem[]>('vscode.prepareCallHierarchy', uri, position);
+          if (itemsOut && itemsOut.length > 0) {
+            result = await vscode.commands.executeCommand('vscode.provideOutgoingCalls', itemsOut[0]);
+          } else {
+            result = null;
+          }
+          break;
+        default:
+          return { success: false, content: `VSCode adapter does not support ${args.operation}` };
+      }
+
+      return { 
+        success: true, 
+        content: JSON.stringify(this.transformResult(result) || null) 
+      };
+    } catch (error: any) {
+      console.error(`LSP operation ${args.operation} failed:`, error);
+      return {
+        success: false,
+        content: error?.message || String(error)
+      };
+    }
+  }
+
+  private resolveUri(filePath: string): vscode.Uri {
+    if (filePath.startsWith('file://') || filePath.startsWith('vscode-remote://')) {
+      return vscode.Uri.parse(filePath);
+    }
+
+    if (path.isAbsolute(filePath)) {
+      return vscode.Uri.file(filePath);
+    }
+
+    // Try to resolve relative to workspace folders
+    const workspaceFolders = vscode.workspace.workspaceFolders;
+    if (workspaceFolders && workspaceFolders.length > 0) {
+      return vscode.Uri.joinPath(workspaceFolders[0].uri, filePath);
+    }
+
+    return vscode.Uri.file(filePath);
+  }
+
+  private transformResult(result: any): any {
+    if (result === undefined || result === null) {
+      return result;
+    }
+
+    if (Array.isArray(result)) {
+      return result.map(item => this.transformResult(item));
+    }
+
+    // Handle VS Code Uri
+    if (result instanceof vscode.Uri) {
+      return result.toString();
+    }
+
+    // Handle VS Code Position
+    if (result instanceof vscode.Position) {
+      return {
+        line: result.line,
+        character: result.character
+      };
+    }
+
+    // Handle VS Code Range
+    if (result instanceof vscode.Range) {
+      return {
+        start: this.transformResult(result.start),
+        end: this.transformResult(result.end)
+      };
+    }
+
+    // Handle VS Code Location
+    if (result instanceof vscode.Location) {
+      return {
+        uri: this.transformResult(result.uri),
+        range: this.transformResult(result.range)
+      };
+    }
+
+    // Handle VS Code LocationLink
+    if ('targetUri' in result && 'targetRange' in result) {
+      return {
+        targetUri: this.transformResult(result.targetUri),
+        targetRange: this.transformResult(result.targetRange),
+        targetSelectionRange: this.transformResult(result.targetSelectionRange),
+        originSelectionRange: this.transformResult(result.originSelectionRange)
+      };
+    }
+
+    // Handle VS Code Hover
+    if (result instanceof vscode.Hover) {
+      return {
+        contents: this.transformHoverContents(result.contents),
+        range: this.transformResult(result.range)
+      };
+    }
+
+    // Handle VS Code DocumentSymbol
+    if (result instanceof vscode.DocumentSymbol) {
+      return {
+        name: result.name,
+        detail: result.detail,
+        kind: result.kind,
+        range: this.transformResult(result.range),
+        selectionRange: this.transformResult(result.selectionRange),
+        children: this.transformResult(result.children)
+      };
+    }
+
+    // Handle VS Code CallHierarchyItem
+    if (result instanceof vscode.CallHierarchyItem) {
+      return {
+        name: result.name,
+        kind: result.kind,
+        detail: result.detail,
+        uri: this.transformResult(result.uri),
+        range: this.transformResult(result.range),
+        selectionRange: this.transformResult(result.selectionRange)
+      };
+    }
+
+    // Handle VS Code CallHierarchyIncomingCall
+    if ('from' in result && 'fromRanges' in result) {
+      return {
+        from: this.transformResult(result.from),
+        fromRanges: this.transformResult(result.fromRanges)
+      };
+    }
+
+    // Handle VS Code CallHierarchyOutgoingCall
+    if ('to' in result && 'fromRanges' in result) {
+      return {
+        to: this.transformResult(result.to),
+        fromRanges: this.transformResult(result.fromRanges)
+      };
+    }
+
+    // Handle SymbolInformation
+    if ('location' in result && 'name' in result && 'kind' in result) {
+        return {
+            name: result.name,
+            kind: result.kind,
+            location: this.transformResult(result.location),
+            containerName: result.containerName
+        };
+    }
+
+    // Generic object transformation
+    if (typeof result === 'object') {
+      const transformed: any = {};
+      for (const key in result) {
+        if (Object.prototype.hasOwnProperty.call(result, key)) {
+          transformed[key] = this.transformResult(result[key]);
+        }
+      }
+      return transformed;
+    }
+
+    return result;
+  }
+
+  private transformHoverContents(contents: any): any {
+    if (Array.isArray(contents)) {
+      return contents.map(c => this.transformHoverContents(c));
+    }
+
+    if (typeof contents === 'string') {
+      return contents;
+    }
+
+    // Handle MarkdownString
+    if (contents && typeof contents === 'object' && 'value' in contents) {
+      return {
+        kind: 'markdown',
+        value: contents.value
+      };
+    }
+
+    // Handle MarkedString (deprecated but still used)
+    if (contents && typeof contents === 'object' && 'language' in contents) {
+        return `\`\`\`${contents.language}\n${contents.value}\n\`\`\``;
+    }
+
+    return String(contents);
+  }
+}

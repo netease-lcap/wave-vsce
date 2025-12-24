@@ -184,6 +184,21 @@ export const Message: React.FC<MessageProps> = (props) => {
       }
     }
     
+    // For LSP tools, show output with max height and no scrolling
+    if (toolBlock.name === 'LSP') {
+      return (
+        <div key={index} className="tool-container">
+          {toolHeader}
+          {!errorContent && (
+            <div className="lsp-output">
+              {(toolBlock.result || '').trim()}
+            </div>
+          )}
+          {errorContent}
+        </div>
+      );
+    }
+    
     // For TodoWrite tools, add the todo list below the header
     if (toolBlock.name === 'TodoWrite') {
       return (

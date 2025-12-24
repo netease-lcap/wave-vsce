@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { Agent, Message, PermissionDecision, ToolPermissionContext, AgentCallbacks } from 'wave-agent-sdk';
 import { SelectionInfo } from '../services/selectionService';
 import { ConfigurationData } from '../services/configurationService';
+import { VscodeLspAdapter } from '../services/lspAdapter';
 
 export interface ChatSessionCallbacks {
     onMessagesChange: (messages: Message[]) => void;
@@ -79,6 +80,7 @@ export class ChatSession {
                 baseURL: config.baseURL,
                 agentModel: config.agentModel,
                 fastModel: config.fastModel,
+                lspManager: new VscodeLspAdapter(),
                 canUseTool: async (context: ToolPermissionContext): Promise<PermissionDecision> => {
                     return await this.callbacks.onToolPermissionRequest(context);
                 }
