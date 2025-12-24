@@ -274,27 +274,17 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
   }, []);
 
   const handleSendMessage = useCallback((text: string, images?: Array<{ data: string; mediaType: string; }>, selection?: any) => {
-    if (state.isStreaming || (!text.trim() && (!images || images.length === 0))) return;
-
-    // Add user message to display immediately
-    const userMessage: Message = {
-      role: 'user',
-      blocks: [{ type: 'text', content: text.trim() }]
-    };
-    
-    dispatch({ 
-      type: 'SET_MESSAGES', 
-      payload: [...state.messages, userMessage] 
-    });
+    const trimmedText = text.trim();
+    if (state.isStreaming || (!trimmedText && (!images || images.length === 0))) return;
 
     // Send to extension
     vscode.postMessage({
       command: 'sendMessage',
-      text: text.trim(),
+      text: trimmedText,
       images: images,
       selection: selection
     });
-  }, [state.messages, state.isStreaming, vscode]);
+  }, [state.isStreaming, vscode]);
 
   const handleClearChat = useCallback(() => {
     if (state.isStreaming) return;
