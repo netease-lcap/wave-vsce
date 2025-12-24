@@ -175,7 +175,7 @@ export const Message: React.FC<MessageProps> = (props) => {
       const bashContent = renderBashIO(toolBlock);
       if (bashContent || errorContent) {
         return (
-          <div key={index}>
+          <div key={index} className="tool-container">
             {toolHeader}
             {bashContent}
             {errorContent}
@@ -187,7 +187,7 @@ export const Message: React.FC<MessageProps> = (props) => {
     // For TodoWrite tools, add the todo list below the header
     if (toolBlock.name === 'TodoWrite') {
       return (
-        <div key={index}>
+        <div key={index} className="tool-container">
           {toolHeader}
           <TodoList toolBlock={toolBlock} />
           {errorContent}
@@ -198,7 +198,7 @@ export const Message: React.FC<MessageProps> = (props) => {
     // For file editing tools, show diff below the header
     if (toolBlock.name && ['Write', 'Edit', 'MultiEdit'].includes(toolBlock.name)) {
       return (
-        <div key={index}>
+        <div key={index} className="tool-container">
           {toolHeader}
           {!errorContent && <DiffViewer toolBlock={toolBlock} />}
           {errorContent}

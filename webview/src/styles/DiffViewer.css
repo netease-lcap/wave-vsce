@@ -2,9 +2,9 @@
 
 /* Main container */
 .diff-viewer-container {
-    margin: 8px 0;
+    margin: 4px 0;
     border: 1px solid var(--vscode-panel-border);
-    border-radius: 6px;
+    border-radius: 4px;
     overflow: hidden;
     background-color: var(--vscode-editor-background);
     max-height: 300px;
@@ -17,8 +17,8 @@
     flex: 1;
     overflow-y: auto;
     font-family: var(--vscode-editor-font-family, 'Consolas', 'Monaco', monospace);
-    font-size: 13px;
-    line-height: 1.4;
+    font-size: 12px;
+    line-height: 1.2;
 }
 
 /* Diff changes container */

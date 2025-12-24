@@ -93,6 +93,13 @@ The React frontend uses **useReducer pattern** with 10 action types:
 - `SET_SESSIONS_LOADING` / `SET_SESSIONS_ERROR` - Async operation states
 - `SHOW_CONFIRMATION` / `HIDE_CONFIRMATION` - Tool permission confirmation dialogs
 
+### UI Design Principles
+
+- **Compactness**: Prefer compact layouts to save vertical space. Use smaller padding (e.g., 4px-8px) and font sizes (e.g., 12px) for technical content like logs, diffs, and tool outputs.
+- **Information Density**: Maximize information density without sacrificing readability. Use consistent spacing and alignment to maintain a clean look.
+- **Visual Hierarchy**: Use subtle borders and background colors to distinguish between different types of content (e.g., user messages vs. assistant responses, tool inputs vs. outputs).
+- **Consistency**: Ensure that similar components (e.g., different tool outputs) follow the same styling patterns for a cohesive user experience.
+
 ## Build System
 
 ### Webpack Configuration
