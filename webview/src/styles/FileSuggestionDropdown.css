@@ -96,7 +96,7 @@
 /* Upload option specific styles */
 .suggestion-item.upload-option {
     border-bottom: 2px solid var(--vscode-panel-border);
-    background: var(--vscode-badge-background);
+    background: var(--vscode-button-background);
 }
 
 .suggestion-item.upload-option:hover,
@@ -114,30 +114,31 @@
 }
 
 .suggestion-item.upload-option .suggestion-path {
-    color: var(--vscode-button-secondaryForeground);
+    color: var(--vscode-button-foreground);
+    opacity: 0.8;
 }
 
 /* Knowledge base option specific styles */
 .suggestion-item.kb-option {
     border-bottom: 2px solid var(--vscode-panel-border);
-    background: var(--vscode-list-inactiveSelectionBackground);
+    background: var(--vscode-button-secondaryBackground);
 }
 
 .suggestion-item.kb-option:hover,
 .suggestion-item.kb-option.selected {
-    background: var(--vscode-list-activeSelectionBackground);
+    background: var(--vscode-button-secondaryHoverBackground);
 }
 
 .suggestion-item.kb-option .suggestion-icon {
-    color: var(--vscode-list-activeSelectionForeground);
+    color: var(--vscode-button-secondaryForeground);
 }
 
 .suggestion-item.kb-option .suggestion-name {
-    color: var(--vscode-list-activeSelectionForeground);
+    color: var(--vscode-button-secondaryForeground);
     font-weight: 600;
 }
 
 .suggestion-item.kb-option .suggestion-path {
-    color: var(--vscode-list-activeSelectionForeground);
+    color: var(--vscode-button-secondaryForeground);
     opacity: 0.8;
 }
