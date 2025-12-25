@@ -40,6 +40,23 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
 }, ref) => {
   const [message, setMessage] = useState('');
   const [isSelectionEnabled, setIsSelectionEnabled] = useState(false);
+  const lastSelectionRef = useRef<any>(null);
+
+  // Automatically enable selection tag when selection changes
+  useEffect(() => {
+    if (selection && !selection.isEmpty) {
+      const selectionChanged = !lastSelectionRef.current ||
+        lastSelectionRef.current.filePath !== selection.filePath ||
+        lastSelectionRef.current.startLine !== selection.startLine ||
+        lastSelectionRef.current.endLine !== selection.endLine ||
+        lastSelectionRef.current.selectedText !== selection.selectedText;
+
+      if (selectionChanged) {
+        setIsSelectionEnabled(true);
+      }
+    }
+    lastSelectionRef.current = selection;
+  }, [selection]);
   const [atMention, setAtMention] = useState<AtMentionState>({
     isActive: false,
     filterText: '',
@@ -654,6 +671,7 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
       
       onSendMessage(message, images.length > 0 ? images : undefined, isSelectionEnabled ? selection : undefined);
       setMessage('');
+      setIsSelectionEnabled(false);
       // Clear persisted input content
       vscode.postMessage({
         command: 'updateInputContent',

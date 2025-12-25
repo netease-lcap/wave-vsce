@@ -30,18 +30,22 @@ test.describe('Selection Feature', () => {
         await expect(selectionTag).toBeVisible();
         await expect(selectionTag).toContainText('file.ts#10-20');
         
-        // Verify it's disabled by default
-        await expect(selectionTag).toHaveClass(/disabled/);
-        await expect(selectionTag).not.toHaveClass(/enabled/);
-
-        // 2. Toggle selection on
-        await selectionTag.click();
-        
-        // Verify it's enabled
+        // Verify it's enabled by default when first received
         await expect(selectionTag).toHaveClass(/enabled/);
         await expect(selectionTag).not.toHaveClass(/disabled/);
 
-        // 3. Send message and verify selection IS included when enabled
+        // 2. Toggle selection off
+        await selectionTag.click();
+        
+        // Verify it's disabled
+        await expect(selectionTag).toHaveClass(/disabled/);
+        await expect(selectionTag).not.toHaveClass(/enabled/);
+
+        // 3. Toggle selection back on
+        await selectionTag.click();
+        await expect(selectionTag).toHaveClass(/enabled/);
+
+        // 4. Send message and verify selection IS included when enabled
         await injector.clearMessageLog();
         await ui.typeMessage('Hello');
         await ui.clickSend();
@@ -51,11 +55,17 @@ test.describe('Selection Feature', () => {
         expect(sendMessage).toBeDefined();
         expect(sendMessage.selection).toEqual(selection);
 
-        // 4. Toggle selection back off
+        // Verify it's automatically disabled after sending
+        await expect(selectionTag).toHaveClass(/disabled/);
+        await expect(selectionTag).not.toHaveClass(/enabled/);
+
+        // 5. Toggle selection back on and then off manually
+        await selectionTag.click();
+        await expect(selectionTag).toHaveClass(/enabled/);
         await selectionTag.click();
         await expect(selectionTag).toHaveClass(/disabled/);
         
-        // 5. Send message and verify selection is NOT included when disabled
+        // 6. Send message and verify selection is NOT included when disabled
         await injector.clearMessageLog();
         await ui.typeMessage('Hello again');
         await ui.clickSend();
@@ -65,7 +75,25 @@ test.describe('Selection Feature', () => {
         expect(sendMessage).toBeDefined();
         expect(sendMessage.selection).toBeUndefined();
 
-        // 6. Simulate message in history with selection
+        // 7. Change selection and verify it's automatically enabled
+        const newSelection = {
+            ...selection,
+            startLine: 21,
+            endLine: 30,
+            selectedText: 'new selection'
+        };
+
+        await webviewPage.evaluate((sel) => {
+            window.postMessage({
+                command: 'updateSelection',
+                selection: sel
+            }, '*');
+        }, newSelection);
+
+        await expect(selectionTag).toHaveClass(/enabled/);
+        await expect(selectionTag).toContainText('file.ts#21-30');
+
+        // 8. Simulate message in history with selection
         const messages = [
             {
                 role: 'user',
