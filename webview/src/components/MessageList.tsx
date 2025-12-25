@@ -15,23 +15,44 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, streamingMes
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
+  const prevMessagesLengthRef = useRef(messages.length);
+
   // Auto-scroll to bottom when messages change, streaming updates, or subagent messages update
   useEffect(() => {
-    const scrollToBottom = () => {
-      if (!containerRef.current || !messagesEndRef.current) return;
+    const container = containerRef.current;
+    const messagesEnd = messagesEndRef.current;
+    if (!container || !messagesEnd) return;
 
-      const container = containerRef.current;
-      const isNearBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 100;
+    const isNewMessage = messages.length > prevMessagesLengthRef.current;
+    prevMessagesLengthRef.current = messages.length;
+
+    const scrollToBottom = (behavior: ScrollBehavior = 'smooth', force = false) => {
+      const isNearBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 200;
       
-      // Always scroll if streaming (user expects to see new content) or if user is near bottom
-      if (streamingMessageIndex !== undefined || isNearBottom) {
-        messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+      // Always scroll if:
+      // 1. It's a brand new message
+      // 2. We are currently streaming content
+      // 3. The user is already near the bottom
+      if (force || streamingMessageIndex !== undefined || isNearBottom) {
+        messagesEnd.scrollIntoView({ behavior });
       }
     };
 
-    // Small delay to ensure DOM is updated
-    const timeoutId = setTimeout(scrollToBottom, 10);
-    return () => clearTimeout(timeoutId);
+    // Use ResizeObserver to handle content height changes (images, diffs, etc.)
+    const resizeObserver = new ResizeObserver(() => {
+      // Use 'auto' for resize events to keep up with content growth without jitter
+      scrollToBottom(streamingMessageIndex !== undefined ? 'auto' : 'smooth');
+    });
+
+    resizeObserver.observe(container);
+    
+    // Initial scroll for the dependency change
+    // If it's a new message, we force the scroll
+    scrollToBottom(streamingMessageIndex !== undefined ? 'auto' : 'smooth', isNewMessage);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
   }, [messages, streamingMessageIndex, subagentMessages]);
 
   return (
