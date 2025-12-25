@@ -2,7 +2,27 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import { ILspManager } from 'wave-agent-sdk';
 
+const LSP_TIMEOUT = 30000; // 30 seconds
+
 export class VscodeLspAdapter implements ILspManager {
+  private async executeWithTimeout<T>(command: string, ...args: any[]): Promise<T> {
+    let timeoutId: NodeJS.Timeout;
+    const timeoutPromise = new Promise<T>((_, reject) => {
+      timeoutId = setTimeout(() => {
+        reject(new Error(`Command '${command}' timed out after ${LSP_TIMEOUT}ms`));
+      }, LSP_TIMEOUT);
+    });
+
+    try {
+      return await Promise.race([
+        vscode.commands.executeCommand<T>(command, ...args),
+        timeoutPromise
+      ]);
+    } finally {
+      clearTimeout(timeoutId!);
+    }
+  }
+
   async execute(args: {
     operation: string;
     filePath: string;
@@ -16,19 +36,19 @@ export class VscodeLspAdapter implements ILspManager {
       let result: any;
       switch (args.operation) {
         case "goToDefinition":
-          result = await vscode.commands.executeCommand('vscode.executeDefinitionProvider', uri, position);
+          result = await this.executeWithTimeout('vscode.executeDefinitionProvider', uri, position);
           break;
         case "hover":
-          const hovers = await vscode.commands.executeCommand<vscode.Hover[]>('vscode.executeHoverProvider', uri, position);
+          const hovers = await this.executeWithTimeout<vscode.Hover[]>('vscode.executeHoverProvider', uri, position);
           // The SDK expects a single Hover object, not an array.
           // We take the first one if available.
           result = (hovers && hovers.length > 0) ? hovers[0] : null;
           break;
         case "findReferences":
-          result = await vscode.commands.executeCommand('vscode.executeReferenceProvider', uri, position, { includeDeclaration: true });
+          result = await this.executeWithTimeout('vscode.executeReferenceProvider', uri, position, { includeDeclaration: true });
           break;
         case "documentSymbol":
-          result = await vscode.commands.executeCommand('vscode.executeDocumentSymbolProvider', uri);
+          result = await this.executeWithTimeout('vscode.executeDocumentSymbolProvider', uri);
           break;
         case "workspaceSymbol":
           // The SDK might pass a query in some cases, but for now we use the symbol at position if possible
@@ -37,26 +57,26 @@ export class VscodeLspAdapter implements ILspManager {
           const document = await vscode.workspace.openTextDocument(uri);
           const range = document.getWordRangeAtPosition(position);
           const query = range ? document.getText(range) : '';
-          result = await vscode.commands.executeCommand('vscode.executeWorkspaceSymbolProvider', query);
+          result = await this.executeWithTimeout('vscode.executeWorkspaceSymbolProvider', query);
           break;
         case "goToImplementation":
-          result = await vscode.commands.executeCommand('vscode.executeImplementationProvider', uri, position);
+          result = await this.executeWithTimeout('vscode.executeImplementationProvider', uri, position);
           break;
         case "prepareCallHierarchy":
-          result = await vscode.commands.executeCommand('vscode.prepareCallHierarchy', uri, position);
+          result = await this.executeWithTimeout('vscode.prepareCallHierarchy', uri, position);
           break;
         case "incomingCalls":
-          const itemsIn = await vscode.commands.executeCommand<vscode.CallHierarchyItem[]>('vscode.prepareCallHierarchy', uri, position);
+          const itemsIn = await this.executeWithTimeout<vscode.CallHierarchyItem[]>('vscode.prepareCallHierarchy', uri, position);
           if (itemsIn && itemsIn.length > 0) {
-            result = await vscode.commands.executeCommand('vscode.provideIncomingCalls', itemsIn[0]);
+            result = await this.executeWithTimeout('vscode.provideIncomingCalls', itemsIn[0]);
           } else {
             result = null;
           }
           break;
         case "outgoingCalls":
-          const itemsOut = await vscode.commands.executeCommand<vscode.CallHierarchyItem[]>('vscode.prepareCallHierarchy', uri, position);
+          const itemsOut = await this.executeWithTimeout<vscode.CallHierarchyItem[]>('vscode.prepareCallHierarchy', uri, position);
           if (itemsOut && itemsOut.length > 0) {
-            result = await vscode.commands.executeCommand('vscode.provideOutgoingCalls', itemsOut[0]);
+            result = await this.executeWithTimeout('vscode.provideOutgoingCalls', itemsOut[0]);
           } else {
             result = null;
           }
