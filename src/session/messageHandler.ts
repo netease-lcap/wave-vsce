@@ -324,7 +324,7 @@ export class MessageHandler {
             configurationData,
             pendingConfirmations,
             selection: this.context.getSelection(),
-            permissionMode: session.agent?.permissionMode
+            permissionMode: session.agent?.getPermissionMode()
         }, viewType, windowId);
     }
 
