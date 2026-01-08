@@ -901,122 +901,124 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
 
   return (
     <div className="input-container" data-testid="input-container">
-      {/* Selection Tag */}
-      {selection && (
-        <div 
-          className={`selection-tag ${isSelectionEnabled ? 'enabled' : 'disabled'}`}
-          onClick={() => setIsSelectionEnabled(!isSelectionEnabled)}
-          title={isSelectionEnabled 
-            ? `正在向 AI 展示您的当前选择 (${selection.fileName}${selection.isEmpty ? '' : `:${selection.startLine}-${selection.endLine}`})` 
-            : `未向 AI 展示您的当前选择. 点击以附加.`}
-        >
-          <i className={`codicon ${isSelectionEnabled ? 'codicon-code' : 'codicon-circle-slash'}`}></i>
-          <span>
-            {selection.fileName.split(/[/\\]/).pop()}
-            {!selection.isEmpty && `#${selection.startLine}-${selection.endLine}`}
-          </span>
-        </div>
-      )}
+      <div className="input-wrapper">
+        {/* Selection Tag */}
+        {selection && (
+          <div 
+            className={`selection-tag ${isSelectionEnabled ? 'enabled' : 'disabled'}`}
+            onClick={() => setIsSelectionEnabled(!isSelectionEnabled)}
+            title={isSelectionEnabled 
+              ? `正在向 AI 展示您的当前选择 (${selection.fileName}${selection.isEmpty ? '' : `:${selection.startLine}-${selection.endLine}`})` 
+              : `未向 AI 展示您的当前选择. 点击以附加.`}
+          >
+            <i className={`codicon ${isSelectionEnabled ? 'codicon-code' : 'codicon-circle-slash'}`}></i>
+            <span>
+              {selection.fileName.split(/[/\\]/).pop()}
+              {!selection.isEmpty && `#${selection.startLine}-${selection.endLine}`}
+            </span>
+          </div>
+        )}
 
-      {/* Attached Images */}
-      {attachedImages.length > 0 && (
-        <AttachedImages
-          images={attachedImages}
-          onRemove={handleRemoveImage}
-        />
-      )}
-      
-      {/* Textarea - full width */}
-      <textarea
-        ref={textareaRef}
-        id="messageInput"
-        className="message-input"
-        value={message}
-        onChange={handleInput}
-        onKeyDown={handleKeyDown}
-        onSelect={handleSelectionChange}
-        onClick={handleSelectionChange}
-        onCompositionStart={handleCompositionStart}
-        onCompositionEnd={handleCompositionEnd}
-        disabled={disabled}
-        placeholder="在这里输入您的消息或粘贴图片..."
-        rows={1}
-        data-testid="message-input"
-      />
-
-      {/* Buttons row - right aligned */}
-      <div className="input-buttons-row">
-        {/* Left side - 指令 button */}
-        <button
-          className="slash-command-button"
-          onClick={() => {
-            // Request 指令 when button is clicked
-            requestSlashCommands('');
-            setSlashCommand({ isActive: true, filterText: '', startPos: message.length, endPos: message.length });
-            setSlashPopupPosition(calculateDropdownPosition());
-          }}
-          disabled={disabled}
-          title="指令"
-          data-testid="slash-command-btn"
-        >
-          指令
-        </button>
-
-        <div className="button-spacer" />
-
-        <div ref={configButtonRef}>
-          <ConfigurationButton
-            onClick={handleConfigurationClick}
-            disabled={disabled}
+        {/* Attached Images */}
+        {attachedImages.length > 0 && (
+          <AttachedImages
+            images={attachedImages}
+            onRemove={handleRemoveImage}
           />
+        )}
+        
+        {/* Textarea - full width */}
+        <textarea
+          ref={textareaRef}
+          id="messageInput"
+          className="message-input"
+          value={message}
+          onChange={handleInput}
+          onKeyDown={handleKeyDown}
+          onSelect={handleSelectionChange}
+          onClick={handleSelectionChange}
+          onCompositionStart={handleCompositionStart}
+          onCompositionEnd={handleCompositionEnd}
+          disabled={disabled}
+          placeholder="在这里输入您的消息或粘贴图片..."
+          rows={1}
+          data-testid="message-input"
+        />
+
+        {/* Buttons row - right aligned */}
+        <div className="input-buttons-row">
+          {/* Left side - 指令 button */}
+          <button
+            className="slash-command-button"
+            onClick={() => {
+              // Request 指令 when button is clicked
+              requestSlashCommands('');
+              setSlashCommand({ isActive: true, filterText: '', startPos: message.length, endPos: message.length });
+              setSlashPopupPosition(calculateDropdownPosition());
+            }}
+            disabled={disabled}
+            title="指令"
+            data-testid="slash-command-btn"
+          >
+            指令
+          </button>
+
+          <div className="button-spacer" />
+
+          <div ref={configButtonRef}>
+            <ConfigurationButton
+              onClick={handleConfigurationClick}
+              disabled={disabled}
+            />
+          </div>
+
+          <button
+            className="abort-button"
+            id="abortButton"
+            onClick={onAbortMessage}
+            style={{ display: isStreaming ? 'block' : 'none' }}
+            data-testid="abort-btn"
+          >
+            停止
+          </button>
+
+          <button
+            id="sendButton"
+            className="send-button"
+            onClick={handleSend}
+            disabled={disabled || (!message.trim() && attachedImages.length === 0)}
+            style={{ display: isStreaming ? 'none' : 'block' }}
+            data-testid="send-btn"
+          >
+            发送
+          </button>
         </div>
 
-        <button
-          className="abort-button"
-          id="abortButton"
-          onClick={onAbortMessage}
-          style={{ display: isStreaming ? 'block' : 'none' }}
-          data-testid="abort-btn"
-        >
-          停止
-        </button>
+        {/* File Suggestion Dropdown */}
+        <FileSuggestionDropdown
+          suggestions={suggestions}
+          isVisible={!!(atMention.isActive && (suggestions.length > 0 || isLoadingSuggestions || (!atMention.filterText && configurationData?.backendLink && configurationData.backendLink.trim() !== '' && !kbNavigation.isActive)))}
+          selectedIndex={selectedIndex}
+          onSelect={handleFileSelect}
+          onClose={closeDropdown}
+          position={dropdownPosition}
+          filterText={atMention.filterText}
+          isLoading={isLoadingSuggestions}
+          hasKnowledgeBase={!!(configurationData?.backendLink && configurationData.backendLink.trim() !== '')}
+          isKbNavigationActive={kbNavigation.isActive}
+        />
 
-        <button
-          id="sendButton"
-          className="send-button"
-          onClick={handleSend}
-          disabled={disabled || (!message.trim() && attachedImages.length === 0)}
-          style={{ display: isStreaming ? 'none' : 'block' }}
-          data-testid="send-btn"
-        >
-          发送
-        </button>
+        {/* 指令弹窗 */}
+        <SlashCommandsPopup
+          commands={slashCommands}
+          isVisible={slashCommand.isActive && (slashCommands.length > 0 || isLoadingSlashCommands)}
+          selectedIndex={selectedSlashIndex}
+          onSelect={handleSlashCommandSelect}
+          onClose={closeSlashCommandPopup}
+          position={slashPopupPosition}
+          isLoading={isLoadingSlashCommands}
+        />
       </div>
-
-      {/* File Suggestion Dropdown */}
-      <FileSuggestionDropdown
-        suggestions={suggestions}
-        isVisible={!!(atMention.isActive && (suggestions.length > 0 || isLoadingSuggestions || (!atMention.filterText && configurationData?.backendLink && configurationData.backendLink.trim() !== '' && !kbNavigation.isActive)))}
-        selectedIndex={selectedIndex}
-        onSelect={handleFileSelect}
-        onClose={closeDropdown}
-        position={dropdownPosition}
-        filterText={atMention.filterText}
-        isLoading={isLoadingSuggestions}
-        hasKnowledgeBase={!!(configurationData?.backendLink && configurationData.backendLink.trim() !== '')}
-        isKbNavigationActive={kbNavigation.isActive}
-      />
-
-      {/* 指令弹窗 */}
-      <SlashCommandsPopup
-        commands={slashCommands}
-        isVisible={slashCommand.isActive && (slashCommands.length > 0 || isLoadingSlashCommands)}
-        selectedIndex={selectedSlashIndex}
-        onSelect={handleSlashCommandSelect}
-        onClose={closeSlashCommandPopup}
-        position={slashPopupPosition}
-        isLoading={isLoadingSlashCommands}
-      />
     </div>
   );
 });
