@@ -1,6 +1,0 @@
-{
-    "defaultMode": "bypassPermissions",
-    "env": {
-        "AIGW_MODEL": "gemini-3-flash"
-    }
-}
