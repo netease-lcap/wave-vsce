@@ -219,7 +219,8 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
               confirmationId: message.confirmationId,
               toolName: message.toolName,
               confirmationType: message.confirmationType,
-              toolInput: message.toolInput
+              toolInput: message.toolInput,
+              suggestedPrefix: message.suggestedPrefix
             }
           });
           break;
@@ -351,11 +352,12 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
     dispatch({ type: 'INPUT_CLEARED' });
   }, []);
 
-  const handleConfirmation = useCallback((confirmationId: string) => {
+  const handleConfirmation = useCallback((confirmationId: string, decision?: any) => {
     vscode.postMessage({
       command: 'confirmationResponse',
       confirmationId,
-      approved: true
+      approved: true,
+      decision
     });
     dispatch({ type: 'HIDE_CONFIRMATION', payload: confirmationId });
   }, [vscode]);

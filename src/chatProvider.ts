@@ -331,7 +331,8 @@ export class ChatProvider implements vscode.WebviewViewProvider {
                 resolve,
                 toolName: context.toolName,
                 confirmationType: confirmationType,
-                toolInput: context.toolInput
+                toolInput: context.toolInput,
+                suggestedPrefix: context.suggestedPrefix
             });
 
             this.webviewManager.postMessage({
@@ -339,7 +340,8 @@ export class ChatProvider implements vscode.WebviewViewProvider {
                 confirmationId: confirmationId,
                 toolName: context.toolName,
                 confirmationType: confirmationType,
-                toolInput: context.toolInput
+                toolInput: context.toolInput,
+                suggestedPrefix: context.suggestedPrefix
             }, viewType, windowId);
         });
     }

@@ -62,7 +62,7 @@ export class MessageHandler {
                 await this.handleSlashCommandsRequest(message.filterText, viewType, windowId);
                 break;
             case 'confirmationResponse':
-                await this.handleConfirmationResponse(message.confirmationId, message.approved, viewType, windowId);
+                await this.handleConfirmationResponse(message.confirmationId, message.approved, message.decision, viewType, windowId);
                 break;
             case 'getConfiguration':
                 await this.handleGetConfiguration(viewType, windowId);
@@ -222,7 +222,7 @@ export class MessageHandler {
         }
     }
 
-    private async handleConfirmationResponse(confirmationId: string, approved: boolean, viewType?: 'sidebar' | 'tab' | 'window', windowId?: string) {
+    private async handleConfirmationResponse(confirmationId: string, approved: boolean, decision: any, viewType?: 'sidebar' | 'tab' | 'window', windowId?: string) {
         const session = this.context.getChatSession(viewType || 'tab', windowId);
         const pending = session.pendingConfirmations.get(confirmationId);
         if (!pending) {
@@ -231,7 +231,11 @@ export class MessageHandler {
         }
         session.pendingConfirmations.delete(confirmationId);
         if (approved) {
-            pending.resolve({ behavior: 'allow' });
+            if (decision) {
+                pending.resolve(decision);
+            } else {
+                pending.resolve({ behavior: 'allow' });
+            }
         } else {
             pending.resolve({ behavior: 'deny', message: '用户拒绝了操作' });
             session.abortMessage();
@@ -282,7 +286,8 @@ export class MessageHandler {
             confirmationId,
             toolName: pending.toolName,
             confirmationType: pending.confirmationType,
-            toolInput: pending.toolInput
+            toolInput: pending.toolInput,
+            suggestedPrefix: pending.suggestedPrefix
         }));
         const subagentMessages: Record<string, any[]> = {};
         session.subagentMessages.forEach((msgs, id) => {

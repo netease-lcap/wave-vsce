@@ -242,11 +242,12 @@ export interface ConfirmationRequest {
   toolName: string;
   confirmationType: string;
   toolInput?: any;
+  suggestedPrefix?: string;
 }
 
 export interface ConfirmationDialogProps {
   confirmation: ConfirmationRequest;
-  onConfirm: (confirmationId: string) => void;
+  onConfirm: (confirmationId: string, decision?: any) => void;
   onReject: (confirmationId: string) => void;
 }
 
