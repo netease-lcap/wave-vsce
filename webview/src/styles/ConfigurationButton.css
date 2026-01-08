@@ -1,12 +1,12 @@
 /* Configuration button */
 .configuration-button {
     border: none;
-    padding: 8px 16px;
+    padding: 4px 12px;
     border-radius: 4px;
     cursor: pointer;
-    font-size: 13px;
-    height: 36px;
-    min-width: 60px;
+    font-size: 12px;
+    height: 28px;
+    min-width: 50px;
     flex-shrink: 0;
     background-color: var(--vscode-button-secondaryBackground);
     color: var(--vscode-button-secondaryForeground);

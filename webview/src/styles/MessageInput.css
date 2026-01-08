@@ -44,12 +44,12 @@
 .send-button,
 .abort-button {
     border: none;
-    padding: 8px 16px;
+    padding: 4px 12px;
     border-radius: 4px;
     cursor: pointer;
-    font-size: 13px;
-    height: 36px;
-    min-width: 60px;
+    font-size: 12px;
+    height: 28px;
+    min-width: 50px;
     flex-shrink: 0;
 }
 
@@ -108,8 +108,8 @@
     color: var(--vscode-foreground);
 }
 
-.permission-mode-toggle i {
-    font-size: 14px;
+.permission-mode-toggle i.codicon {
+    font-size: 12px !important;
 }
 /* Selection Tag */
 .selection-tag {
