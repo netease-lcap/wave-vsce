@@ -36,11 +36,20 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
   onConfigurationSave,
   onConfigurationCancel,
   selection,
-  inputContent
+  inputContent,
+  permissionMode
 }, ref) => {
   const [message, setMessage] = useState('');
   const [isSelectionEnabled, setIsSelectionEnabled] = useState(false);
   const lastSelectionRef = useRef<any>(null);
+
+  const handlePermissionModeToggle = useCallback(() => {
+    const newMode = permissionMode === 'acceptEdits' ? 'default' : 'acceptEdits';
+    vscode.postMessage({
+      command: 'setPermissionMode',
+      mode: newMode
+    });
+  }, [permissionMode, vscode]);
 
   // Automatically enable selection tag when selection changes
   useEffect(() => {
@@ -940,28 +949,22 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
           onCompositionStart={handleCompositionStart}
           onCompositionEnd={handleCompositionEnd}
           disabled={disabled}
-          placeholder="在这里输入您的消息或粘贴图片..."
+          placeholder="输入 / 发送指令，输入 @ 添加上下文，或粘贴图片..."
           rows={1}
           data-testid="message-input"
         />
 
-        {/* Buttons row - right aligned */}
+        {/* Buttons row */}
         <div className="input-buttons-row">
-          {/* Left side - 指令 button */}
-          <button
-            className="slash-command-button"
-            onClick={() => {
-              // Request 指令 when button is clicked
-              requestSlashCommands('');
-              setSlashCommand({ isActive: true, filterText: '', startPos: message.length, endPos: message.length });
-              setSlashPopupPosition(calculateDropdownPosition());
-            }}
-            disabled={disabled}
-            title="指令"
-            data-testid="slash-command-btn"
+          {/* Left side - Permission Mode Toggle */}
+          <div 
+            className="permission-mode-toggle"
+            onClick={handlePermissionModeToggle}
+            title={permissionMode === 'acceptEdits' ? '自动接受修改' : '修改前询问'}
           >
-            指令
-          </button>
+            <i className={`codicon ${permissionMode === 'acceptEdits' ? 'codicon-zap' : 'codicon-edit'}`}></i>
+            <span>{permissionMode === 'acceptEdits' ? '自动接受修改' : '修改前询问'}</span>
+          </div>
 
           <div className="button-spacer" />
 

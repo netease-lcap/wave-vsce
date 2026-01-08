@@ -42,8 +42,7 @@
 
 /* Buttons */
 .send-button,
-.abort-button,
-.slash-command-button {
+.abort-button {
     border: none;
     padding: 8px 16px;
     border-radius: 4px;
@@ -63,14 +62,7 @@
     background-color: var(--vscode-button-hoverBackground);
 }
 
-.slash-command-button {
-    background-color: var(--vscode-button-secondaryBackground);
-    color: var(--vscode-button-secondaryForeground);
-}
 
-.slash-command-button:hover {
-    background-color: var(--vscode-button-secondaryHoverBackground);
-}
 
 .send-button:disabled {
     opacity: 0.5;
@@ -96,6 +88,28 @@
 
 .button-spacer {
     flex: 1;
+}
+
+.permission-mode-toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    color: var(--vscode-descriptionForeground);
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.permission-mode-toggle:hover {
+    background-color: var(--vscode-toolbar-hoverBackground);
+    color: var(--vscode-foreground);
+}
+
+.permission-mode-toggle i {
+    font-size: 14px;
 }
 /* Selection Tag */
 .selection-tag {

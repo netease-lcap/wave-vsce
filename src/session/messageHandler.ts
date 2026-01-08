@@ -92,6 +92,19 @@ export class MessageHandler {
             case 'updateInputContent':
                 this.handleUpdateInputContent(message.content, viewType, windowId);
                 break;
+            case 'setPermissionMode':
+                await this.handleSetPermissionMode(message.mode, viewType, windowId);
+                break;
+        }
+    }
+
+    private async handleSetPermissionMode(mode: any, viewType?: 'sidebar' | 'tab' | 'window', windowId?: string) {
+        const session = this.context.getChatSession(viewType || 'tab', windowId);
+        try {
+            await session.setPermissionMode(mode);
+        } catch (error) {
+            console.error(`设置 ${viewType} 权限模式失败:`, error);
+            vscode.window.showErrorMessage('设置权限模式失败: ' + error);
         }
     }
 
@@ -310,7 +323,8 @@ export class MessageHandler {
             } : undefined,
             configurationData,
             pendingConfirmations,
-            selection: this.context.getSelection()
+            selection: this.context.getSelection(),
+            permissionMode: session.agent?.permissionMode
         }, viewType, windowId);
     }
 

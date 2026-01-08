@@ -157,6 +157,11 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
         ...state,
         selection: action.payload
       };
+    case 'SET_PERMISSION_MODE':
+      return {
+        ...state,
+        permissionMode: action.payload
+      };
     default:
       return state;
   }
@@ -183,6 +188,9 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
           break;
         case 'updateSelection':
           dispatch({ type: 'UPDATE_SELECTION', payload: message.selection });
+          break;
+        case 'updatePermissionMode':
+          dispatch({ type: 'SET_PERMISSION_MODE', payload: message.mode });
           break;
         case 'updateSubagentMessages':
           dispatch({
@@ -242,7 +250,8 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
               pendingConfirmations: message.pendingConfirmations || (message.pendingConfirmation ? [message.pendingConfirmation] : []),
               selection: message.selection,
               subagentMessages: message.subagentMessages,
-              inputContent: message.inputContent
+              inputContent: message.inputContent,
+              permissionMode: message.permissionMode
             }
           });
           break;
@@ -410,6 +419,7 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
           onConfigurationCancel={handleConfigurationCancel}
           selection={state.selection}
           inputContent={state.inputContent}
+          permissionMode={state.permissionMode}
         />
       )}
 

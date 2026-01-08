@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { Agent, Message, PermissionDecision, ToolPermissionContext, AgentCallbacks } from 'wave-agent-sdk';
+import { Agent, Message, PermissionDecision, ToolPermissionContext, AgentCallbacks, PermissionMode } from 'wave-agent-sdk';
 import { SelectionInfo } from '../services/selectionService';
 import { ConfigurationData } from '../services/configurationService';
 import { VscodeLspAdapter } from '../services/lspAdapter';
@@ -9,6 +9,7 @@ export interface ChatSessionCallbacks {
     onSessionIdChange: (sessionId: string) => void;
     onSubagentMessagesChange: (subagentId: string, messages: Message[]) => void;
     onStreamingChange: (isStreaming: boolean) => void;
+    onPermissionModeChange: (mode: PermissionMode) => void;
     onToolPermissionRequest: (context: ToolPermissionContext) => Promise<PermissionDecision>;
     onError: (error: any) => void;
 }
@@ -69,6 +70,9 @@ export class ChatSession {
                 },
                 onSubagentMessagesChange: (subagentId: string, messages: Message[]) => {
                     this.callbacks.onSubagentMessagesChange(subagentId, messages);
+                },
+                onPermissionModeChange: (mode: PermissionMode) => {
+                    this.callbacks.onPermissionModeChange(mode);
                 }
             };
 
@@ -210,6 +214,12 @@ export class ChatSession {
             this.pendingUpdate = false;
             this.updateTimer = undefined;
         }, 100);
+    }
+
+    public async setPermissionMode(mode: PermissionMode) {
+        if (this.agent) {
+            await this.agent.setPermissionMode(mode);
+        }
     }
 
     public async destroy() {
