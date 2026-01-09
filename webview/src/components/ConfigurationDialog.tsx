@@ -19,7 +19,9 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps> = ({
   onCancel
 }) => {
   const [formData, setFormData] = useState<ConfigurationData>({
+    authMethod: 'apiKey',
     apiKey: '',
+    headers: '',
     baseURL: '',
     agentModel: '',
     fastModel: '',
@@ -27,7 +29,7 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps> = ({
   });
 
   const isFormValid = !!(
-    formData.apiKey?.trim() &&
+    (formData.authMethod === 'apiKey' ? formData.apiKey?.trim() : formData.headers?.trim()) &&
     formData.baseURL?.trim() &&
     formData.agentModel?.trim() &&
     formData.fastModel?.trim()
@@ -80,7 +82,13 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(formData);
+    const dataToSave = { ...formData };
+    if (dataToSave.authMethod === 'headers') {
+      dataToSave.apiKey = '';
+    } else if (dataToSave.authMethod === 'apiKey') {
+      dataToSave.headers = '';
+    }
+    onSave(dataToSave);
   };
 
   if (!isVisible) {
@@ -99,17 +107,60 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps> = ({
 
         <form onSubmit={handleSubmit} className="configuration-form">
         <div className="configuration-field">
-          <label htmlFor="apiKey">API Key <span className="required-star">*</span>:</label>
-          <input
-            id="apiKey"
-            type="password"
-            value={formData.apiKey || ''}
-            onChange={(e) => handleInputChange('apiKey', e.target.value)}
-            placeholder="输入 API Key"
-            disabled={isLoading}
-            required
-          />
+          <label>鉴权方式 <span className="required-star">*</span>:</label>
+          <div className="auth-method-radio-group">
+            <label className="radio-label">
+              <input
+                type="radio"
+                name="authMethod"
+                value="apiKey"
+                checked={formData.authMethod === 'apiKey'}
+                onChange={() => handleInputChange('authMethod', 'apiKey')}
+                disabled={isLoading}
+              />
+              API Key
+            </label>
+            <label className="radio-label">
+              <input
+                type="radio"
+                name="authMethod"
+                value="headers"
+                checked={formData.authMethod === 'headers'}
+                onChange={() => handleInputChange('authMethod', 'headers')}
+                disabled={isLoading}
+              />
+              Headers
+            </label>
+          </div>
         </div>
+
+        {formData.authMethod === 'apiKey' ? (
+          <div className="configuration-field">
+            <label htmlFor="apiKey">API Key <span className="required-star">*</span>:</label>
+            <input
+              id="apiKey"
+              type="password"
+              value={formData.apiKey || ''}
+              onChange={(e) => handleInputChange('apiKey', e.target.value)}
+              placeholder="输入 API Key"
+              disabled={isLoading}
+              required
+            />
+          </div>
+        ) : (
+          <div className="configuration-field">
+            <label htmlFor="headers">Headers (JSON) <span className="required-star">*</span>:</label>
+            <input
+              id="headers"
+              type="text"
+              value={formData.headers || ''}
+              onChange={(e) => handleInputChange('headers', e.target.value)}
+              placeholder='{"Authorization": "Bearer ..."}'
+              disabled={isLoading}
+              required
+            />
+          </div>
+        )}
 
         <div className="configuration-field">
           <label htmlFor="baseURL">Base URL <span className="required-star">*</span>:</label>

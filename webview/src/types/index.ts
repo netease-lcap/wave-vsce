@@ -261,8 +261,12 @@ export interface ConfirmationDialogProps {
  * Maps to VS Code global state
  */
 export interface ConfigurationData {
+  /** Authentication method */
+  authMethod?: 'apiKey' | 'headers';
   /** API key for authentication */
   apiKey?: string;
+  /** Headers for authentication */
+  headers?: string;
   /** Base URL for API endpoints */
   baseURL?: string;
   /** Primary agent model */

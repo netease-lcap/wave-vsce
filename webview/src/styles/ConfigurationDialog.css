@@ -82,6 +82,28 @@
     cursor: not-allowed;
 }
 
+.auth-method-radio-group {
+    display: flex;
+    gap: 16px;
+    margin-top: 4px;
+}
+
+.radio-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--vscode-editor-foreground);
+}
+
+.radio-label input[type="radio"] {
+    margin: 0;
+    cursor: pointer;
+    width: 14px;
+    height: 14px;
+}
+
 
 /* Configuration Error */
 .configuration-error {

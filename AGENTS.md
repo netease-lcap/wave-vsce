@@ -251,4 +251,4 @@ vsce package               # Creates .vsix file
 ### Development Tools
 - **VS Code Developer Tools:** `Help > Toggle Developer Tools` - View webview console
 - **Extension Host Reload:** `Ctrl+R`/`Cmd+R` in development window
-- **Webpack Watch Mode:** `npm run watch` for automatic recompilation
+- **Webpack Watch Mode:** `npm run watch` for automatic recompilation- Use LSP when needed

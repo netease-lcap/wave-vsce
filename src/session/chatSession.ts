@@ -56,8 +56,8 @@ export class ChatSession {
                 console.log(`设置智能体工作目录为: ${workdir}`);
             }
             
-            if (!config.apiKey || !config.baseURL || !config.agentModel || !config.fastModel) {
-                throw new Error('请先在设置中配置 API Key, Base URL 和模型名称');
+            if (!config.baseURL || !config.agentModel || !config.fastModel) {
+                throw new Error('请先在设置中配置 Base URL 和模型名称');
             }
             
             const agentCallbacks: AgentCallbacks = {
@@ -86,7 +86,8 @@ export class ChatSession {
                 callbacks: agentCallbacks,
                 workdir,
                 restoreSessionId,
-                apiKey: config.apiKey,
+                apiKey: config.authMethod === 'apiKey' ? config.apiKey : '',
+                defaultHeaders: config.authMethod === 'headers' ? this.parseHeaders(config.headers) : undefined,
                 baseURL: config.baseURL,
                 agentModel: config.agentModel,
                 fastModel: config.fastModel,
@@ -168,7 +169,8 @@ export class ChatSession {
         if (this.agent) {
             this.agent.updateConfig({
                 gateway: {
-                    apiKey: config.apiKey,
+                    apiKey: config.authMethod === 'apiKey' ? config.apiKey : '',
+                    defaultHeaders: config.authMethod === 'headers' ? this.parseHeaders(config.headers) : undefined,
                     baseURL: config.baseURL
                 },
                 model: {
@@ -176,6 +178,18 @@ export class ChatSession {
                     fastModel: config.fastModel
                 }
             });
+        }
+    }
+
+    private parseHeaders(headersStr?: string): Record<string, string> | undefined {
+        if (!headersStr || !headersStr.trim()) {
+            return undefined;
+        }
+        try {
+            return JSON.parse(headersStr);
+        } catch (e) {
+            console.error('Failed to parse headers:', e);
+            return undefined;
         }
     }
 
