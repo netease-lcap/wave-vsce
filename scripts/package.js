@@ -42,6 +42,14 @@ async function main() {
     // Ensure we are in the root directory
     process.chdir(rootDir);
 
+    // Delete old vsix files
+    console.log('Deleting old .vsix files...');
+    fs.readdirSync(rootDir).forEach(file => {
+        if (file.endsWith('.vsix')) {
+            fs.rmSync(path.join(rootDir, file), { force: true });
+        }
+    });
+
     const args = process.argv.slice(2);
     const packageCurrent = args.includes('--current');
     const packageAll = args.includes('--all') || (!packageCurrent);
