@@ -75,9 +75,8 @@
     "compile:frontend": "ONLY_FRONTEND=true webpack --mode development --devtool source-map",
     "watch:backend": "tsc --watch",
     "watch:frontend": "npm run compile:frontend -- --watch",
-    "package": "webpack --mode production --devtool false",
-    "package:all": "node scripts/package.js --all",
-    "package:current": "node scripts/package.js --current",
+    "webpack:prod": "webpack --mode production --devtool false",
+    "package": "node scripts/package.js",
     "test": "npm run test:playwright",
     "test:playwright": "playwright test",
     "test:playwright:ui": "playwright test --ui"

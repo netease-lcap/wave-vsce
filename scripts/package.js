@@ -57,84 +57,80 @@ async function main() {
     }
 
     // Run build first
-    console.log('Running npm run package...');
-    execSync('npm run package', { stdio: 'inherit' });
+    console.log('Running npm run webpack:prod...');
+    execSync('npm run webpack:prod', { stdio: 'inherit' });
     
     const vsceArgs = packageCurrent ? '' : '--no-dependencies';
 
+    // Ensure bin directory exists and is clean
+    if (fs.existsSync(binDir)) {
+        // Clean up everything except .gitkeep
+        fs.readdirSync(binDir).forEach(file => {
+            if (file !== '.gitkeep') {
+                fs.rmSync(path.join(binDir, file), { recursive: true, force: true });
+            }
+        });
+    } else {
+        fs.mkdirSync(binDir);
+    }
+
     for (const target of targetsToProcess) {
-        console.log(`\n=== Processing ${target.vsceTarget} ===`);
-        
-        if (fs.existsSync(binDir)) {
-            // Clean up everything except .gitkeep
-            fs.readdirSync(binDir).forEach(file => {
-                if (file !== '.gitkeep') {
-                    fs.rmSync(path.join(binDir, file), { recursive: true, force: true });
-                }
-            });
-        } else {
-            fs.mkdirSync(binDir);
-        }
+        console.log(`\n=== Downloading ripgrep for ${target.vsceTarget} ===`);
         
         const assetName = `ripgrep-${RG_VERSION}-${target.rgTarget}${target.ext}`;
         const url = `https://github.com/${REPO}/releases/download/${RG_VERSION}/${assetName}`;
         const downloadPath = path.join(os.tmpdir(), assetName);
         
         if (!fs.existsSync(downloadPath)) {
-            console.log(`Downloading ripgrep for ${target.vsceTarget}...`);
+            console.log(`Downloading ${assetName}...`);
             await download(url, downloadPath);
         } else {
-            console.log(`Using cached ripgrep for ${target.vsceTarget}...`);
+            console.log(`Using cached ${assetName}...`);
         }
         
-        console.log(`Extracting ripgrep...`);
+        const tempExtractDir = path.join(os.tmpdir(), `rg-extract-${target.vsceTarget}`);
+        if (fs.existsSync(tempExtractDir)) {
+            fs.rmSync(tempExtractDir, { recursive: true, force: true });
+        }
+        fs.mkdirSync(tempExtractDir);
+
+        console.log(`Extracting...`);
         if (target.ext === '.zip') {
             if (os.platform() === 'win32') {
-                execSync(`powershell -Command "Expand-Archive -Path ${downloadPath} -DestinationPath ${binDir}"`);
+                execSync(`powershell -Command "Expand-Archive -Path ${downloadPath} -DestinationPath ${tempExtractDir}"`);
             } else {
-                execSync(`unzip -o ${downloadPath} -d ${binDir}`);
+                execSync(`unzip -o ${downloadPath} -d ${tempExtractDir}`);
             }
         } else {
-            execSync(`tar -xzf ${downloadPath} -C ${binDir}`);
+            execSync(`tar -xzf ${downloadPath} -C ${tempExtractDir}`);
         }
         
         const isWin = target.vsceTarget.startsWith('win32');
         const rgName = isWin ? 'rg.exe' : 'rg';
-        const rgPath = path.join(binDir, rgName);
+        const extractedRgPath = path.join(tempExtractDir, rgName);
         
-        if (!fs.existsSync(rgPath)) {
-            throw new Error(`Failed to find rg in ${binDir}`);
+        if (!fs.existsSync(extractedRgPath)) {
+            throw new Error(`Failed to find rg in ${tempExtractDir}`);
         }
+        
+        const finalRgName = `rg-${target.vsceTarget}${isWin ? '.exe' : ''}`;
+        const finalRgPath = path.join(binDir, finalRgName);
+        fs.renameSync(extractedRgPath, finalRgPath);
         
         if (!isWin) {
-            fs.chmodSync(rgPath, '755');
+            fs.chmodSync(finalRgPath, '755');
         }
         
-        console.log(`Packaging for ${target.vsceTarget}...`);
-        const vsixName = `wave-vscode-chat-${target.vsceTarget}-${require('./../package.json').version}.vsix`;
-        execSync(`npx vsce package --target ${target.vsceTarget} --out ${vsixName} ${vsceArgs}`, { stdio: 'inherit' });
+        // Clean up temp extract dir
+        fs.rmSync(tempExtractDir, { recursive: true, force: true });
     }
-    
-    if (packageAll && targetsToProcess.length > 1) {
-        console.log('\n=== Creating final zip archive ===');
-        const version = require('./../package.json').version;
-        const zipName = `wave-vscode-chat-all-platforms-${version}.zip`;
-        
-        if (os.platform() === 'win32') {
-            execSync(`powershell -Command "Compress-Archive -Path wave-vscode-chat-*-${version}.vsix -DestinationPath ${zipName} -Force"`);
-        } else {
-            execSync(`zip ${zipName} wave-vscode-chat-*-${version}.vsix`);
-        }
-        console.log(`Created ${zipName}`);
 
-        console.log('Cleaning up .vsix files...');
-        if (os.platform() === 'win32') {
-            execSync(`powershell -Command "Remove-Item wave-vscode-chat-*-${version}.vsix"`);
-        } else {
-            execSync(`rm wave-vscode-chat-*-${version}.vsix`);
-        }
-    }
+    console.log(`\n=== Packaging extension ===`);
+    const version = require('./../package.json').version;
+    const vsixName = `wave-vscode-chat-${version}.vsix`;
+    execSync(`npx vsce package --out ${vsixName} ${vsceArgs}`, { stdio: 'inherit' });
     
+    console.log(`\nCreated ${vsixName}`);
     console.log('\nAll targets processed successfully!');
 }
 

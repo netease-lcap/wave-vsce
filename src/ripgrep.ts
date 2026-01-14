@@ -1,3 +1,9 @@
 import * as path from 'path';
+import * as os from 'os';
 
-export const rgPath = path.join(__dirname, '..', 'bin', `rg${process.platform === 'win32' ? '.exe' : ''}`);
+const platform = os.platform();
+const arch = os.arch();
+const isWin = platform === 'win32';
+const binaryName = `rg-${platform}-${arch}${isWin ? '.exe' : ''}`;
+
+export const rgPath = path.join(__dirname, '..', 'bin', binaryName);
