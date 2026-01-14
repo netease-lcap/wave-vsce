@@ -950,7 +950,7 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
           onCompositionEnd={handleCompositionEnd}
           disabled={disabled}
           placeholder="输入 / 发送指令，输入 @ 添加上下文，或粘贴图片..."
-          rows={1}
+          rows={2}
           data-testid="message-input"
         />
 
