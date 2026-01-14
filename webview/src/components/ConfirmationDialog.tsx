@@ -8,6 +8,8 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
   onReject,
 }) => {
   const applyButtonRef = useRef<HTMLButtonElement>(null);
+  const autoButtonRef = useRef<HTMLButtonElement>(null);
+  const rejectButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     // Focus on the Apply button when dialog opens
@@ -15,14 +17,19 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
       applyButtonRef.current.focus();
     }
 
-    // Add keyboard listener for 1, 2, 3
+    // Add keyboard listener for arrow keys
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === '1') {
-        handleConfirm();
-      } else if (e.key === '2') {
-        handleAutoConfirm();
-      } else if (e.key === '3') {
-        handleReject();
+      const buttons = [applyButtonRef.current, autoButtonRef.current, rejectButtonRef.current];
+      const currentIndex = buttons.indexOf(document.activeElement as HTMLButtonElement);
+
+      if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+        e.preventDefault();
+        const nextIndex = (currentIndex + 1) % buttons.length;
+        buttons[nextIndex]?.focus();
+      } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+        e.preventDefault();
+        const nextIndex = (currentIndex - 1 + buttons.length) % buttons.length;
+        buttons[nextIndex]?.focus();
       }
     };
 
@@ -89,21 +96,20 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
             className="confirmation-btn confirmation-btn-apply"
             onClick={handleConfirm}
           >
-            <span className="btn-number">1</span>
             <span className="btn-text">是</span>
           </button>
           <button
+            ref={autoButtonRef}
             className="confirmation-btn confirmation-btn-auto"
             onClick={handleAutoConfirm}
           >
-            <span className="btn-number">2</span>
             <span className="btn-text">{getAutoOptionText()}</span>
           </button>
           <button
+            ref={rejectButtonRef}
             className="confirmation-btn confirmation-btn-reject"
             onClick={handleReject}
           >
-            <span className="btn-number">3</span>
             <span className="btn-text">否</span>
           </button>
         </div>

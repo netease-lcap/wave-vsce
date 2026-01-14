@@ -65,13 +65,6 @@
   background-color: transparent;
 }
 
-.btn-number {
-  margin-right: 12px;
-  opacity: 0.6;
-  font-weight: 600;
-  min-width: 12px;
-}
-
 .btn-text {
   flex: 1;
 }

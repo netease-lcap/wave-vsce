@@ -20,12 +20,12 @@ test.describe('Confirmation Dialog', () => {
         await expect(confirmationDialog).toBeVisible();
 
         // Verify dialog content
-        await expect(webviewPage.locator('.confirmation-text')).toHaveText('代码修改待确认');
+        await expect(webviewPage.locator('.confirmation-title')).toHaveText('代码修改待确认');
         await expect(webviewPage.locator('.confirmation-details')).toContainText('工具: Edit');
 
         // Verify buttons are present
-        await expect(webviewPage.locator('.confirmation-btn-apply')).toHaveText('应用');
-        await expect(webviewPage.locator('.confirmation-btn-reject')).toHaveText('拒绝');
+        await expect(webviewPage.locator('.confirmation-btn-apply')).toHaveText('是');
+        await expect(webviewPage.locator('.confirmation-btn-reject')).toHaveText('否');
 
         // Verify input is hidden when confirmation is showing
         await expect(webviewPage.locator('textarea')).not.toBeVisible();
@@ -43,7 +43,7 @@ test.describe('Confirmation Dialog', () => {
         });
 
         // Verify confirmation dialog content for bash command
-        await expect(webviewPage.locator('.confirmation-text')).toHaveText('命令执行待确认');
+        await expect(webviewPage.locator('.confirmation-title')).toHaveText('命令执行待确认');
         await expect(webviewPage.locator('.confirmation-details')).toContainText('工具: Bash');
     });
 
@@ -300,7 +300,7 @@ test.describe('Confirmation Dialog', () => {
             });
 
             // Verify correct confirmation type
-            await expect(webviewPage.locator('.confirmation-text')).toHaveText(expectedType);
+            await expect(webviewPage.locator('.confirmation-title')).toHaveText(expectedType);
             await expect(webviewPage.locator('.confirmation-details')).toContainText(`工具: ${toolName}`);
 
             // Dismiss the dialog
@@ -402,5 +402,39 @@ test.describe('Confirmation Dialog', () => {
         // Verify input becomes visible again
         await expect(webviewPage.locator('textarea')).toBeVisible();
         await expect(webviewPage.locator('.confirmation-dialog')).not.toBeVisible();
+    });
+
+    test('should support arrow key navigation between buttons', async ({ webviewPage }) => {
+        const injector = new MessageInjector(webviewPage);
+
+        // Simulate confirmation request
+        await injector.simulateExtensionMessage('showConfirmation', {
+            confirmationId: 'test_arrow_keys',
+            toolName: 'Edit',
+            confirmationType: '代码修改待确认',
+            toolInput: {}
+        });
+
+        // Verify Apply button is initially focused
+        const applyBtn = webviewPage.locator('.confirmation-btn-apply');
+        await expect(applyBtn).toBeFocused();
+
+        // Press ArrowDown
+        await webviewPage.keyboard.press('ArrowDown');
+        const autoBtn = webviewPage.locator('.confirmation-btn-auto');
+        await expect(autoBtn).toBeFocused();
+
+        // Press ArrowDown again
+        await webviewPage.keyboard.press('ArrowDown');
+        const rejectBtn = webviewPage.locator('.confirmation-btn-reject');
+        await expect(rejectBtn).toBeFocused();
+
+        // Press ArrowDown again (should wrap around)
+        await webviewPage.keyboard.press('ArrowDown');
+        await expect(applyBtn).toBeFocused();
+
+        // Press ArrowUp (should wrap around to reject)
+        await webviewPage.keyboard.press('ArrowUp');
+        await expect(rejectBtn).toBeFocused();
     });
 });
