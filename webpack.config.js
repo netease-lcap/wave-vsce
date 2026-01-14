@@ -23,7 +23,14 @@ const extensionConfig = {
     }
   },
   cache: {
-    type: 'filesystem', // Enable filesystem caching for faster rebuilds
+    type: 'filesystem',
+    buildDependencies: {
+      config: [__filename],
+      packageJson: [
+        path.resolve(__dirname, 'package.json'),
+        path.resolve(__dirname, 'package-lock.json'),
+      ],
+    },
   },
   module: {
     rules: [
@@ -60,7 +67,14 @@ const webviewConfig = {
     }
   },
   cache: {
-    type: 'filesystem', // Enable filesystem caching for faster rebuilds
+    type: 'filesystem',
+    buildDependencies: {
+      config: [__filename],
+      packageJson: [
+        path.resolve(__dirname, 'package.json'),
+        path.resolve(__dirname, 'package-lock.json'),
+      ],
+    },
   },
   plugins: [
     new (require('webpack')).DefinePlugin({
