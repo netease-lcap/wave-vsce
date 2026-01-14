@@ -83,7 +83,7 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
           </div>
           {confirmation.toolName === 'Bash' && confirmation.toolInput?.command && (
             <div className="confirmation-command">
-              <code>{confirmation.toolInput.command}</code>
+              {confirmation.toolInput.command}
             </div>
           )}
           <div className="confirmation-details">
