@@ -221,6 +221,66 @@ export const Message: React.FC<MessageProps> = (props) => {
       );
     }
     
+    // For AskUserQuestion tools, show the user's answers
+    if (toolBlock.name === 'AskUserQuestion') {
+      let answers: Record<string, any> = {};
+      let isParsed = false;
+      try {
+        if (typeof toolBlock.result === 'string' && toolBlock.result.trim().startsWith('{')) {
+          answers = JSON.parse(toolBlock.result);
+          isParsed = true;
+        } else if (typeof toolBlock.result === 'object' && toolBlock.result !== null) {
+          answers = toolBlock.result;
+          isParsed = true;
+        }
+      } catch {
+        // Fallback to raw result
+      }
+
+      return (
+        <div key={index} className="tool-container">
+          {toolHeader}
+          {!errorContent && toolBlock.result && (
+            <div className="tool-result-block">
+              {isParsed ? (
+                Object.entries(answers).map(([question, answer], aIndex) => (
+                  <div key={aIndex} className="result-item">
+                    <div className="result-answer">
+                      {Array.isArray(answer) ? answer.join(', ') : (typeof answer === 'object' ? JSON.stringify(answer) : String(answer))}
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="result-raw">{String(toolBlock.result)}</div>
+              )}
+            </div>
+          )}
+          {errorContent}
+        </div>
+      );
+    }
+
+    // For ExitPlanMode tools, show the decision
+    if (toolBlock.name === 'ExitPlanMode') {
+      const resultText = typeof toolBlock.result === 'string' 
+        ? toolBlock.result 
+        : (toolBlock.result ? JSON.stringify(toolBlock.result) : '');
+
+      return (
+        <div key={index} className="tool-container">
+          {toolHeader}
+          {!errorContent && resultText && (
+            <div className="tool-result-block">
+              <div className="result-item">
+                <div className="result-answer">{resultText}</div>
+              </div>
+            </div>
+          )}
+          {errorContent}
+        </div>
+      );
+    }
+
     // For other tools, show error if present
     if (errorContent) {
       return (

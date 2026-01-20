@@ -1,12 +1,20 @@
-import React, { useRef, useEffect } from 'react';
-import type { ConfirmationDialogProps } from '../types';
+import React, { useRef, useEffect, useState } from 'react';
+import type { ConfirmationDialogProps, AskUserQuestionInput, AskUserQuestionOption } from '../types';
 import '../styles/ConfirmationDialog.css';
+import { marked } from 'marked';
+import DOMPurify from 'dompurify';
 
 export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
   confirmation,
   onConfirm,
   onReject,
 }) => {
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [answers, setAnswers] = useState<Record<string, string | string[]>>({});
+  const [otherInputs, setOtherInputs] = useState<Record<string, string>>({});
+  const [feedback, setFeedback] = useState('');
+  const [showFeedbackInput, setShowFeedbackInput] = useState(false);
+
   const applyButtonRef = useRef<HTMLButtonElement>(null);
   const autoButtonRef = useRef<HTMLButtonElement>(null);
   const rejectButtonRef = useRef<HTMLButtonElement>(null);
@@ -19,16 +27,32 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
 
     // Add keyboard listener for arrow keys
     const handleKeyDown = (e: KeyboardEvent) => {
-      const buttons = [applyButtonRef.current, autoButtonRef.current, rejectButtonRef.current];
+      if (e.key !== 'ArrowDown' && e.key !== 'ArrowRight' && e.key !== 'ArrowUp' && e.key !== 'ArrowLeft') {
+        return;
+      }
+
+      const buttons: HTMLButtonElement[] = [];
+      
+      // Find all visible buttons in the dialog
+      const allButtons = document.querySelectorAll('.confirmation-dialog .confirmation-btn');
+      allButtons.forEach(btn => {
+        const element = btn as HTMLButtonElement;
+        // Check if element is visible and not disabled
+        if (element.offsetParent !== null && !element.disabled) {
+          buttons.push(element);
+        }
+      });
+
+      if (buttons.length === 0) return;
+
       const currentIndex = buttons.indexOf(document.activeElement as HTMLButtonElement);
 
+      e.preventDefault();
       if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
-        e.preventDefault();
-        const nextIndex = (currentIndex + 1) % buttons.length;
+        const nextIndex = currentIndex === -1 ? 0 : (currentIndex + 1) % buttons.length;
         buttons[nextIndex]?.focus();
-      } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
-        e.preventDefault();
-        const nextIndex = (currentIndex - 1 + buttons.length) % buttons.length;
+      } else {
+        const nextIndex = currentIndex === -1 ? buttons.length - 1 : (currentIndex - 1 + buttons.length) % buttons.length;
         buttons[nextIndex]?.focus();
       }
     };
@@ -38,7 +62,44 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
   }, [confirmation.confirmationId]);
 
   const handleConfirm = () => {
-    onConfirm(confirmation.confirmationId);
+    if (confirmation.toolName === 'ExitPlanMode') {
+      if (showFeedbackInput) {
+        onConfirm(confirmation.confirmationId, {
+          behavior: 'deny',
+          message: feedback
+        });
+      } else {
+        onConfirm(confirmation.confirmationId, {
+          behavior: 'allow',
+          newPermissionMode: 'default'
+        });
+      }
+    } else if (confirmation.toolName === 'AskUserQuestion') {
+      // Combine selected options and "Other" inputs
+      const finalAnswers: Record<string, string | string[]> = { ...answers };
+      const questions = (confirmation.toolInput as AskUserQuestionInput).questions;
+      
+      questions.forEach((q, index) => {
+        const qKey = q.question;
+        const otherVal = otherInputs[qKey];
+        
+        if (q.multiSelect) {
+          const current = (finalAnswers[qKey] as string[]) || [];
+          if (otherVal && otherVal.trim() && !current.includes(otherVal)) {
+            finalAnswers[qKey] = [...current, otherVal];
+          }
+        } else if (finalAnswers[qKey] === '__other__') {
+          finalAnswers[qKey] = otherVal || '';
+        }
+      });
+      
+      onConfirm(confirmation.confirmationId, {
+        behavior: 'allow',
+        message: JSON.stringify(finalAnswers)
+      });
+    } else {
+      onConfirm(confirmation.confirmationId);
+    }
   };
 
   const handleAutoConfirm = () => {
@@ -50,6 +111,11 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
       decision = {
         behavior: 'allow',
         newPermissionRule: rule,
+      };
+    } else if (confirmation.toolName === 'ExitPlanMode') {
+      decision = {
+        behavior: 'allow',
+        newPermissionMode: 'acceptEdits',
       };
     } else {
       decision = {
@@ -64,6 +130,26 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
     onReject(confirmation.confirmationId);
   };
 
+  const handleOptionChange = (questionText: string, optionLabel: string, multiSelect: boolean, isChecked: boolean) => {
+    setAnswers(prev => {
+      const current = prev[questionText];
+      if (multiSelect) {
+        const currentArray = Array.isArray(current) ? current : [];
+        if (isChecked) {
+          return { ...prev, [questionText]: [...currentArray, optionLabel] };
+        } else {
+          return { ...prev, [questionText]: currentArray.filter(o => o !== optionLabel) };
+        }
+      } else {
+        return { ...prev, [questionText]: optionLabel };
+      }
+    });
+  };
+
+  const handleOtherInputChange = (questionText: string, value: string) => {
+    setOtherInputs(prev => ({ ...prev, [questionText]: value }));
+  };
+
   const getAutoOptionText = () => {
     if (confirmation.toolName === 'Bash') {
       if (confirmation.suggestedPrefix) {
@@ -71,7 +157,194 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
       }
       return "是，且在此工作目录下不再询问此命令";
     }
+    if (confirmation.toolName === 'ExitPlanMode') {
+      return "批准并自动接受后续修改";
+    }
     return "是，且自动接受修改";
+  };
+
+  const renderPlanContent = () => {
+    if (confirmation.toolName !== 'ExitPlanMode' || !confirmation.toolInput?.plan_content) {
+      return null;
+    }
+
+    const html = DOMPurify.sanitize(marked.parse(confirmation.toolInput.plan_content) as string);
+    return (
+      <div className="plan-content-preview">
+        <h3>计划内容：</h3>
+        <div className="markdown-body" dangerouslySetInnerHTML={{ __html: html }} />
+      </div>
+    );
+  };
+
+  const renderQuestions = () => {
+    if (confirmation.toolName !== 'AskUserQuestion' || !confirmation.toolInput?.questions) {
+      return null;
+    }
+
+    const questions = (confirmation.toolInput as AskUserQuestionInput).questions;
+    const q = questions[currentQuestionIndex];
+    if (!q) return null;
+
+    const isLastQuestion = currentQuestionIndex === questions.length - 1;
+
+    return (
+      <div className="ask-user-questions">
+        <div className="question-progress">
+          问题 {currentQuestionIndex + 1} / {questions.length}
+        </div>
+        <div className="question-item">
+          <div className="question-header-row">
+            <span className="question-header-chip">{q.header}</span>
+            <span className="question-text">{q.question}</span>
+          </div>
+          <div className="options-list">
+            {q.options.map((opt, oIndex) => (
+              <label key={oIndex} className={`option-item ${
+                (q.multiSelect 
+                  ? (answers[q.question] as string[] || []).includes(opt.label)
+                  : answers[q.question] === opt.label) ? 'selected' : ''
+              }`}>
+                <input
+                  type={q.multiSelect ? "checkbox" : "radio"}
+                  name={`question-${currentQuestionIndex}`}
+                  className="option-input-hidden"
+                  checked={q.multiSelect 
+                    ? (answers[q.question] as string[] || []).includes(opt.label)
+                    : answers[q.question] === opt.label
+                  }
+                  onChange={(e) => handleOptionChange(q.question, opt.label, !!q.multiSelect, e.target.checked)}
+                />
+                <div className="option-indicator">
+                  <i className={`codicon ${q.multiSelect 
+                    ? ((answers[q.question] as string[] || []).includes(opt.label) ? 'codicon-check' : '')
+                    : (answers[q.question] === opt.label ? 'codicon-circle-filled' : 'codicon-circle-outline')
+                  }`}></i>
+                </div>
+                <div className="option-content">
+                  <div className="option-label">
+                    {opt.label}
+                    {opt.isRecommended && <span className="recommended-tag">(推荐)</span>}
+                  </div>
+                  {opt.description && <div className="option-description">{opt.description}</div>}
+                </div>
+              </label>
+            ))}
+            <label className={`option-item other-option ${
+              (q.multiSelect 
+                ? !!otherInputs[q.question]
+                : answers[q.question] === '__other__') ? 'selected' : ''
+            }`}>
+              <input
+                type={q.multiSelect ? "checkbox" : "radio"}
+                name={`question-${currentQuestionIndex}`}
+                className="option-input-hidden"
+                checked={q.multiSelect 
+                  ? !!otherInputs[q.question]
+                  : answers[q.question] === '__other__'
+                }
+                onChange={(e) => {
+                  if (!q.multiSelect) {
+                    setAnswers(prev => ({ ...prev, [q.question]: '__other__' }));
+                  } else if (!e.target.checked) {
+                    setOtherInputs(prev => ({ ...prev, [q.question]: '' }));
+                  }
+                }}
+              />
+              <div className="option-indicator">
+                <i className={`codicon ${q.multiSelect 
+                  ? (!!otherInputs[q.question] ? 'codicon-check' : '')
+                  : (answers[q.question] === '__other__' ? 'codicon-circle-filled' : 'codicon-circle-outline')
+                }`}></i>
+              </div>
+              <div className="option-content">
+                <div className="option-label">其他:</div>
+                <input
+                  type="text"
+                  className="other-text-input"
+                  placeholder="输入自定义回答..."
+                  value={otherInputs[q.question] || ''}
+                  onFocus={() => {
+                    if (!q.multiSelect) {
+                      setAnswers(prev => ({ ...prev, [q.question]: '__other__' }));
+                    }
+                  }}
+                  onChange={(e) => handleOtherInputChange(q.question, e.target.value)}
+                />
+              </div>
+            </label>
+          </div>
+        </div>
+        
+        <div className="question-navigation">
+          {currentQuestionIndex > 0 && (
+            <button 
+              className="confirmation-btn confirmation-btn-secondary"
+              onClick={() => setCurrentQuestionIndex(prev => prev - 1)}
+            >
+              上一步
+            </button>
+          )}
+          {!isLastQuestion ? (
+            <button 
+              className="confirmation-btn confirmation-btn-apply"
+              disabled={!isCurrentQuestionAnswered()}
+              onClick={() => setCurrentQuestionIndex(prev => prev + 1)}
+            >
+              下一步
+            </button>
+          ) : (
+            <button
+              ref={applyButtonRef}
+              className="confirmation-btn confirmation-btn-apply"
+              onClick={handleConfirm}
+              disabled={isConfirmDisabled()}
+            >
+              提交回答
+            </button>
+          )}
+          <button
+            ref={rejectButtonRef}
+            className="confirmation-btn confirmation-btn-reject"
+            onClick={handleReject}
+          >
+            否
+          </button>
+        </div>
+      </div>
+    );
+  };
+
+  const isCurrentQuestionAnswered = () => {
+    if (confirmation.toolName !== 'AskUserQuestion') return true;
+    const questions = (confirmation.toolInput as AskUserQuestionInput).questions;
+    const q = questions[currentQuestionIndex];
+    if (!q) return true;
+    
+    const answer = answers[q.question];
+    const other = otherInputs[q.question];
+    if (q.multiSelect) {
+      return (Array.isArray(answer) && answer.length > 0) || (other && other.trim());
+    }
+    return (answer && answer !== '__other__') || (answer === '__other__' && other && other.trim());
+  };
+
+  const isConfirmDisabled = () => {
+    if (confirmation.toolName === 'AskUserQuestion') {
+      const questions = (confirmation.toolInput as AskUserQuestionInput).questions;
+      return !questions.every(q => {
+        const answer = answers[q.question];
+        const other = otherInputs[q.question];
+        if (q.multiSelect) {
+          return (Array.isArray(answer) && answer.length > 0) || (other && other.trim());
+        }
+        return (answer && answer !== '__other__') || (answer === '__other__' && other && other.trim());
+      });
+    }
+    if (confirmation.toolName === 'ExitPlanMode' && showFeedbackInput) {
+      return !feedback.trim();
+    }
+    return false;
   };
 
   return (
@@ -90,29 +363,98 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
             <strong>工具:</strong> {confirmation.toolName}
           </div>
         </div>
-        <div className="confirmation-actions">
-          <button
-            ref={applyButtonRef}
-            className="confirmation-btn confirmation-btn-apply"
-            onClick={handleConfirm}
-          >
-            <span className="btn-text">是</span>
-          </button>
-          <button
-            ref={autoButtonRef}
-            className="confirmation-btn confirmation-btn-auto"
-            onClick={handleAutoConfirm}
-          >
-            <span className="btn-text">{getAutoOptionText()}</span>
-          </button>
-          <button
-            ref={rejectButtonRef}
-            className="confirmation-btn confirmation-btn-reject"
-            onClick={handleReject}
-          >
-            <span className="btn-text">否</span>
-          </button>
-        </div>
+
+        {renderPlanContent()}
+        {renderQuestions()}
+
+
+        {confirmation.toolName !== 'AskUserQuestion' && (
+          <div className="confirmation-actions">
+            {!showFeedbackInput ? (
+              <>
+                <button
+                  ref={applyButtonRef}
+                  className="confirmation-btn confirmation-btn-apply"
+                  onClick={handleConfirm}
+                  disabled={isConfirmDisabled()}
+                >
+                  <span className="btn-text">
+                    {confirmation.toolName === 'ExitPlanMode' 
+                      ? '批准并继续' 
+                      : '是'}
+                  </span>
+                </button>
+                
+                {confirmation.toolName === 'ExitPlanMode' && (
+                  <button
+                    className="confirmation-btn confirmation-btn-auto"
+                    onClick={handleAutoConfirm}
+                  >
+                    <span className="btn-text">批准并自动接受后续修改</span>
+                  </button>
+                )}
+
+                {confirmation.toolName !== 'AskUserQuestion' && confirmation.toolName !== 'ExitPlanMode' && !showFeedbackInput && !confirmation.hidePersistentOption && (
+                  <button
+                    ref={autoButtonRef}
+                    className="confirmation-btn confirmation-btn-auto"
+                    onClick={handleAutoConfirm}
+                  >
+                    <span className="btn-text">{getAutoOptionText()}</span>
+                  </button>
+                )}
+
+                <button
+                  ref={rejectButtonRef}
+                  className="confirmation-btn confirmation-btn-reject"
+                  onClick={handleReject}
+                >
+                  <span className="btn-text">否</span>
+                </button>
+
+                {confirmation.toolName === 'ExitPlanMode' && (
+                  <button
+                    className="confirmation-btn confirmation-btn-feedback"
+                    onClick={() => setShowFeedbackInput(true)}
+                  >
+                    <span className="btn-text">提供反馈</span>
+                  </button>
+                )}
+              </>
+            ) : (
+              <div className="feedback-flow">
+                <input
+                  type="text"
+                  className="feedback-textarea"
+                  placeholder="输入您的反馈或修改建议..."
+                  value={feedback}
+                  onChange={(e) => setFeedback(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      handleConfirm();
+                    }
+                  }}
+                  autoFocus
+                />
+                <div className="feedback-actions">
+                  <button
+                    className="confirmation-btn confirmation-btn-apply"
+                    onClick={handleConfirm}
+                    disabled={!feedback.trim()}
+                  >
+                    发送反馈
+                  </button>
+                  <button
+                    className="confirmation-btn confirmation-btn-reject"
+                    onClick={() => setShowFeedbackInput(false)}
+                  >
+                    取消
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

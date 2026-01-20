@@ -243,6 +243,43 @@
     font-family: var(--vscode-editor-font-family);
 }
 
+.tool-result-block {
+    padding: 0;
+    background-color: transparent;
+    border: none;
+    font-size: 11px;
+    line-height: 1.4;
+    white-space: pre-wrap;
+    word-break: break-word;
+    margin-top: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.result-item {
+    display: flex;
+    flex-direction: row;
+    align-items: baseline;
+}
+
+.result-answer {
+    color: var(--vscode-descriptionForeground);
+    font-size: 11px;
+}
+
+.result-raw {
+    color: var(--vscode-descriptionForeground);
+    font-size: 11px;
+}
+
+.tool-result-inline {
+    color: var(--vscode-descriptionForeground);
+    font-weight: normal;
+    font-size: 11px;
+    margin-left: 4px;
+}
+
 /* Markdown Styling for Message Content */
 .markdown-content {
     white-space: normal; /* Override pre-wrap for markdown content */

@@ -1,5 +1,5 @@
 import React, { useState, useCallback, KeyboardEvent, useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
-import type { MessageInputProps, FileItem, ConfigurationData, SlashCommand, AttachedImage } from '../types';
+import type { MessageInputProps, FileItem, ConfigurationData, SlashCommand, AttachedImage, PermissionMode } from '../types';
 import { FileSuggestionDropdown } from './FileSuggestionDropdown';
 import { SlashCommandsPopup } from './SlashCommandsPopup';
 import { AttachedImages } from './AttachedImages';
@@ -44,7 +44,15 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
   const lastSelectionRef = useRef<any>(null);
 
   const handlePermissionModeToggle = useCallback(() => {
-    const newMode = permissionMode === 'acceptEdits' ? 'default' : 'acceptEdits';
+    let newMode: PermissionMode = 'default';
+    if (permissionMode === 'default') {
+      newMode = 'acceptEdits';
+    } else if (permissionMode === 'acceptEdits') {
+      newMode = 'plan';
+    } else {
+      newMode = 'default';
+    }
+    
     vscode.postMessage({
       command: 'setPermissionMode',
       mode: newMode
@@ -692,6 +700,13 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
   }, [message, attachedImages, disabled, isStreaming, onSendMessage, closeDropdown, isSelectionEnabled, selection]);
 
   const handleKeyDown = useCallback((event: KeyboardEvent<HTMLTextAreaElement>) => {
+    // Handle Shift+Tab to cycle permission modes
+    if (event.key === 'Tab' && event.shiftKey) {
+      event.preventDefault();
+      handlePermissionModeToggle();
+      return;
+    }
+
     // Handle 指令 navigation
     if (slashCommand.isActive && slashCommands.length > 0) {
       switch (event.key) {
@@ -958,12 +973,21 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
         <div className="input-buttons-row">
           {/* Left side - Permission Mode Toggle */}
           <div 
-            className="permission-mode-toggle"
+            className={`permission-mode-toggle mode-${permissionMode || 'default'}`}
             onClick={handlePermissionModeToggle}
-            title={permissionMode === 'acceptEdits' ? '自动接受修改' : '修改前询问'}
+            title={
+              permissionMode === 'plan' ? '计划模式：仅允许修改计划文件' :
+              permissionMode === 'acceptEdits' ? '自动接受修改' : '修改前询问'
+            }
           >
-            <i className={`codicon ${permissionMode === 'acceptEdits' ? 'codicon-zap' : 'codicon-edit'}`}></i>
-            <span>{permissionMode === 'acceptEdits' ? '自动接受修改' : '修改前询问'}</span>
+            <i className={`codicon ${
+              permissionMode === 'plan' ? 'codicon-notebook' :
+              permissionMode === 'acceptEdits' ? 'codicon-zap' : 'codicon-edit'
+            }`}></i>
+            <span>{
+              permissionMode === 'plan' ? '计划模式' :
+              permissionMode === 'acceptEdits' ? '自动接受修改' : '修改前询问'
+            }</span>
           </div>
 
           <div className="button-spacer" />

@@ -327,6 +327,10 @@ export class ChatProvider implements vscode.WebviewViewProvider {
                 confirmationType = '代码修改待确认';
             } else if (context.toolName === 'Bash') {
                 confirmationType = '命令执行待确认';
+            } else if (context.toolName === 'ExitPlanMode') {
+                confirmationType = '计划待确认';
+            } else if (context.toolName === 'AskUserQuestion') {
+                confirmationType = '问题待回答';
             } else {
                 confirmationType = '操作待确认';
             }
@@ -336,7 +340,8 @@ export class ChatProvider implements vscode.WebviewViewProvider {
                 toolName: context.toolName,
                 confirmationType: confirmationType,
                 toolInput: context.toolInput,
-                suggestedPrefix: context.suggestedPrefix
+                suggestedPrefix: context.suggestedPrefix,
+                hidePersistentOption: context.hidePersistentOption
             });
 
             this.webviewManager.postMessage({
@@ -345,7 +350,8 @@ export class ChatProvider implements vscode.WebviewViewProvider {
                 toolName: context.toolName,
                 confirmationType: confirmationType,
                 toolInput: context.toolInput,
-                suggestedPrefix: context.suggestedPrefix
+                suggestedPrefix: context.suggestedPrefix,
+                hidePersistentOption: context.hidePersistentOption
             }, viewType, windowId);
         });
     }

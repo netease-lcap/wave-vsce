@@ -28,6 +28,7 @@ export class ChatSession {
         confirmationType: string;
         toolInput: any;
         suggestedPrefix?: string;
+        hidePersistentOption?: boolean;
     }> = new Map();
 
     private updateTimer: NodeJS.Timeout | undefined;
