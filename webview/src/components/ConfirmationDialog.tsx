@@ -27,33 +27,70 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
 
     // Add keyboard listener for arrow keys
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key !== 'ArrowDown' && e.key !== 'ArrowRight' && e.key !== 'ArrowUp' && e.key !== 'ArrowLeft') {
-        return;
-      }
+      const isAskUser = confirmation.toolName === 'AskUserQuestion';
 
-      const buttons: HTMLButtonElement[] = [];
-      
-      // Find all visible buttons in the dialog
-      const allButtons = document.querySelectorAll('.confirmation-dialog .confirmation-btn');
-      allButtons.forEach(btn => {
-        const element = btn as HTMLButtonElement;
-        // Check if element is visible and not disabled
-        if (element.offsetParent !== null && !element.disabled) {
-          buttons.push(element);
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+        if (isAskUser) {
+          if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+            // Navigate options
+            e.preventDefault();
+            const options = Array.from(document.querySelectorAll('.confirmation-dialog .option-item')) as HTMLElement[];
+            if (options.length === 0) return;
+            
+            const currentIndex = options.indexOf(document.activeElement as HTMLElement);
+            if (e.key === 'ArrowDown') {
+              const nextIndex = currentIndex === -1 ? 0 : (currentIndex + 1) % options.length;
+              options[nextIndex]?.focus();
+            } else {
+              const nextIndex = currentIndex === -1 ? options.length - 1 : (currentIndex - 1 + options.length) % options.length;
+              options[nextIndex]?.focus();
+            }
+          } else {
+            // Navigate buttons
+            e.preventDefault();
+            const buttons: HTMLButtonElement[] = [];
+            const allButtons = document.querySelectorAll('.confirmation-dialog .confirmation-btn');
+            allButtons.forEach(btn => {
+              const element = btn as HTMLButtonElement;
+              if (element.offsetParent !== null && !element.disabled) {
+                buttons.push(element);
+              }
+            });
+            if (buttons.length === 0) return;
+
+            const currentIndex = buttons.indexOf(document.activeElement as HTMLButtonElement);
+            if (e.key === 'ArrowRight') {
+              const nextIndex = currentIndex === -1 ? 0 : (currentIndex + 1) % buttons.length;
+              buttons[nextIndex]?.focus();
+            } else {
+              const nextIndex = currentIndex === -1 ? buttons.length - 1 : (currentIndex - 1 + buttons.length) % buttons.length;
+              buttons[nextIndex]?.focus();
+            }
+          }
+        } else {
+          // Default navigation for other tools (all buttons)
+          const buttons: HTMLButtonElement[] = [];
+          const allButtons = document.querySelectorAll('.confirmation-dialog .confirmation-btn');
+          allButtons.forEach(btn => {
+            const element = btn as HTMLButtonElement;
+            if (element.offsetParent !== null && !element.disabled) {
+              buttons.push(element);
+            }
+          });
+
+          if (buttons.length === 0) return;
+
+          const currentIndex = buttons.indexOf(document.activeElement as HTMLButtonElement);
+
+          e.preventDefault();
+          if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+            const nextIndex = currentIndex === -1 ? 0 : (currentIndex + 1) % buttons.length;
+            buttons[nextIndex]?.focus();
+          } else {
+            const nextIndex = currentIndex === -1 ? buttons.length - 1 : (currentIndex - 1 + buttons.length) % buttons.length;
+            buttons[nextIndex]?.focus();
+          }
         }
-      });
-
-      if (buttons.length === 0) return;
-
-      const currentIndex = buttons.indexOf(document.activeElement as HTMLButtonElement);
-
-      e.preventDefault();
-      if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
-        const nextIndex = currentIndex === -1 ? 0 : (currentIndex + 1) % buttons.length;
-        buttons[nextIndex]?.focus();
-      } else {
-        const nextIndex = currentIndex === -1 ? buttons.length - 1 : (currentIndex - 1 + buttons.length) % buttons.length;
-        buttons[nextIndex]?.focus();
       }
     };
 
@@ -200,15 +237,28 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
           </div>
           <div className="options-list">
             {q.options.map((opt, oIndex) => (
-              <label key={oIndex} className={`option-item ${
-                (q.multiSelect 
-                  ? (answers[q.question] as string[] || []).includes(opt.label)
-                  : answers[q.question] === opt.label) ? 'selected' : ''
-              }`}>
+              <label 
+                key={oIndex} 
+                className={`option-item ${
+                  (q.multiSelect 
+                    ? (answers[q.question] as string[] || []).includes(opt.label)
+                    : answers[q.question] === opt.label) ? 'selected' : ''
+                }`}
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    handleOptionChange(q.question, opt.label, !!q.multiSelect, 
+                      q.multiSelect ? !(answers[q.question] as string[] || []).includes(opt.label) : true
+                    );
+                  }
+                }}
+              >
                 <input
                   type={q.multiSelect ? "checkbox" : "radio"}
                   name={`question-${currentQuestionIndex}`}
                   className="option-input-hidden"
+                  tabIndex={-1}
                   checked={q.multiSelect 
                     ? (answers[q.question] as string[] || []).includes(opt.label)
                     : answers[q.question] === opt.label
@@ -230,15 +280,32 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
                 </div>
               </label>
             ))}
-            <label className={`option-item other-option ${
-              (q.multiSelect 
-                ? !!otherInputs[q.question]
-                : answers[q.question] === '__other__') ? 'selected' : ''
-            }`}>
+            <label 
+              className={`option-item other-option ${
+                (q.multiSelect 
+                  ? !!otherInputs[q.question]
+                  : answers[q.question] === '__other__') ? 'selected' : ''
+              }`}
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  if (e.target === e.currentTarget) {
+                    e.preventDefault();
+                    if (!q.multiSelect) {
+                      setAnswers(prev => ({ ...prev, [q.question]: '__other__' }));
+                    }
+                    // Focus the input
+                    const input = (e.currentTarget as HTMLElement).querySelector('.other-text-input') as HTMLInputElement;
+                    input?.focus();
+                  }
+                }
+              }}
+            >
               <input
                 type={q.multiSelect ? "checkbox" : "radio"}
                 name={`question-${currentQuestionIndex}`}
                 className="option-input-hidden"
+                tabIndex={-1}
                 checked={q.multiSelect 
                   ? !!otherInputs[q.question]
                   : answers[q.question] === '__other__'

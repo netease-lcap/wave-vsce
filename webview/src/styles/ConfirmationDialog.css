@@ -103,8 +103,9 @@
   background-color: var(--vscode-editor-background);
 }
 
-.option-item:hover {
-  background-color: var(--vscode-list-hoverBackground);
+.option-item:focus {
+  outline: 1px solid var(--vscode-focusBorder);
+  outline-offset: -1px;
   border-color: var(--vscode-focusBorder);
 }
 
