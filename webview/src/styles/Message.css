@@ -273,6 +273,28 @@
     font-size: 11px;
 }
 
+.ask-user-result-item {
+    margin-top: 2px;
+}
+
+.ask-user-result-text {
+    display: flex;
+    flex-direction: row;
+    align-items: baseline;
+    gap: 6px;
+    font-size: 11px;
+    line-height: 1.4;
+}
+
+.ask-user-result-q {
+    color: var(--vscode-descriptionForeground);
+    flex-shrink: 0;
+}
+
+.ask-user-result-a {
+    color: var(--vscode-descriptionForeground);
+}
+
 .tool-result-inline {
     color: var(--vscode-descriptionForeground);
     font-weight: normal;

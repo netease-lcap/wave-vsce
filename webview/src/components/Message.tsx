@@ -226,11 +226,38 @@ export const Message: React.FC<MessageProps> = (props) => {
       let answers: Record<string, any> = {};
       let isParsed = false;
       try {
-        if (typeof toolBlock.result === 'string' && toolBlock.result.trim().startsWith('{')) {
-          answers = JSON.parse(toolBlock.result);
-          isParsed = true;
-        } else if (typeof toolBlock.result === 'object' && toolBlock.result !== null) {
-          answers = toolBlock.result;
+        const result = toolBlock.result;
+        if (typeof result === 'string') {
+          const trimmed = result.trim();
+          if (trimmed.startsWith('{')) {
+            try {
+              let parsed = JSON.parse(trimmed);
+              // Handle nested "answers" key if it's the only key
+              if (parsed && typeof parsed === 'object' && Object.keys(parsed).length === 1 && parsed.answers && typeof parsed.answers === 'object') {
+                parsed = parsed.answers;
+              }
+              answers = parsed;
+              isParsed = true;
+            } catch {
+              // Try to find the first { and last }
+              const start = trimmed.indexOf('{');
+              const end = trimmed.lastIndexOf('}');
+              if (start !== -1 && end !== -1 && end > start) {
+                let parsed = JSON.parse(trimmed.substring(start, end + 1));
+                if (parsed && typeof parsed === 'object' && Object.keys(parsed).length === 1 && parsed.answers && typeof parsed.answers === 'object') {
+                  parsed = parsed.answers;
+                }
+                answers = parsed;
+                isParsed = true;
+              }
+            }
+          }
+        } else if (typeof result === 'object' && result !== null) {
+          let parsed: any = result;
+          if (Object.keys(parsed).length === 1 && parsed.answers && typeof parsed.answers === 'object') {
+            parsed = parsed.answers;
+          }
+          answers = parsed;
           isParsed = true;
         }
       } catch {
@@ -244,9 +271,16 @@ export const Message: React.FC<MessageProps> = (props) => {
             <div className="tool-result-block">
               {isParsed ? (
                 Object.entries(answers).map(([question, answer], aIndex) => (
-                  <div key={aIndex} className="result-item">
-                    <div className="result-answer">
-                      {Array.isArray(answer) ? answer.join(', ') : (typeof answer === 'object' ? JSON.stringify(answer) : String(answer))}
+                  <div key={aIndex} className="ask-user-result-item">
+                    <div className="ask-user-result-text">
+                      <span className="ask-user-result-q">{question}</span>
+                      <span className="ask-user-result-a">
+                        {Array.isArray(answer) 
+                          ? answer.join(', ') 
+                          : (typeof answer === 'object' && answer !== null 
+                              ? JSON.stringify(answer) 
+                              : String(answer))}
+                      </span>
                     </div>
                   </div>
                 ))
