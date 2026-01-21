@@ -72,6 +72,39 @@ export class MockDataGenerator {
     }
 
     /**
+     * Create an assistant message with a tool call that has planContent
+     */
+    static createAssistantMessageWithPlan(textContent: string, planContent: string, toolResult?: string): Message {
+        const blocks: MessageBlock[] = [];
+
+        if (textContent) {
+            blocks.push({
+                type: "text",
+                content: textContent
+            } as TextBlock);
+        }
+
+        const toolBlock: any = {
+            type: "tool",
+            name: "ExitPlanMode",
+            parameters: "{}",
+            compactParams: "exitplanmode",
+            result: toolResult,
+            stage: toolResult ? "end" : "running",
+            success: toolResult ? true : undefined,
+            id: `tool_${Date.now()}`,
+            planContent: planContent
+        };
+
+        blocks.push(toolBlock);
+
+        return {
+            role: "assistant",
+            blocks: blocks
+        };
+    }
+
+    /**
      * Create an error message
      */
     static createErrorMessage(errorContent: string): Message {

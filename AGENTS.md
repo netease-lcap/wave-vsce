@@ -1,2 +1,3 @@
 - plan 需要包含UI设计
 - 所有 bugfix 必须走 TDD
+- 使用 LSP 来探索 agent-sdk 等三方库
