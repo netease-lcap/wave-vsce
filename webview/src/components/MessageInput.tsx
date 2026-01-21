@@ -701,14 +701,6 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
   }, [message, attachedImages, disabled, isStreaming, onSendMessage, closeDropdown, isSelectionEnabled, selection]);
 
   const handleKeyDown = useCallback((event: KeyboardEvent<HTMLTextAreaElement>) => {
-    // Handle Shift+Tab to cycle permission modes
-    if ((event.key === 'Tab' || event.key === 'Backtab') && event.shiftKey) {
-      event.preventDefault();
-      event.stopPropagation();
-      handlePermissionModeToggle();
-      return;
-    }
-
     // Handle 指令 navigation
     if (slashCommand.isActive && slashCommands.length > 0) {
       switch (event.key) {
@@ -792,7 +784,7 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
       event.preventDefault();
       handleSend();
     }
-  }, [handlePermissionModeToggle, slashCommand.isActive, slashCommands, selectedSlashIndex, handleSlashCommandSelect, closeSlashCommandPopup, atMention.isActive, atMention.filterText, suggestions, selectedIndex, handleFileSelect, handleFileUpload, closeDropdown, handleSend, isComposing]);
+  }, [slashCommand.isActive, slashCommands, selectedSlashIndex, handleSlashCommandSelect, closeSlashCommandPopup, atMention.isActive, atMention.filterText, suggestions, selectedIndex, handleFileSelect, handleFileUpload, closeDropdown, handleSend, isComposing]);
 
   const handleInput = useCallback((event: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newValue = event.target.value;
@@ -943,6 +935,14 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
           <div 
             className={`selection-tag ${isSelectionEnabled ? 'enabled' : 'disabled'}`}
             onClick={() => setIsSelectionEnabled(!isSelectionEnabled)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                setIsSelectionEnabled(!isSelectionEnabled);
+              }
+            }}
+            tabIndex={0}
+            role="button"
             title={isSelectionEnabled 
               ? `正在向 AI 展示您的当前选择 (${selection.fileName}${selection.isEmpty ? '' : `:${selection.startLine}-${selection.endLine}`})` 
               : `未向 AI 展示您的当前选择. 点击以附加.`}
@@ -987,6 +987,14 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
           <div 
             className={`permission-mode-toggle mode-${permissionMode || 'default'}`}
             onClick={handlePermissionModeToggle}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                handlePermissionModeToggle();
+              }
+            }}
+            tabIndex={0}
+            role="button"
             title={
               permissionMode === 'plan' ? '计划模式：仅允许修改计划文件' :
               permissionMode === 'acceptEdits' ? '自动接受修改' : '修改前询问'

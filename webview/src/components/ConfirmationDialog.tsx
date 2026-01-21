@@ -55,12 +55,7 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
     setOtherInputs(prev => ({ ...prev, [questionText]: value }));
   }, []);
 
-  const currentQuestionIndexRef = useRef(currentQuestionIndex);
   const confirmationRef = useRef(confirmation);
-
-  useEffect(() => {
-    currentQuestionIndexRef.current = currentQuestionIndex;
-  }, [currentQuestionIndex]);
 
   useEffect(() => {
     confirmationRef.current = confirmation;
@@ -78,10 +73,9 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
   }, [confirmation.confirmationId, currentQuestionIndex]);
 
   useEffect(() => {
-    // Add keyboard listener for arrow keys
+    // Add keyboard listener for confirmation dialog
     const handleKeyDown = (e: KeyboardEvent) => {
       const currentConfirmation = confirmationRef.current;
-      const currentIndex = currentQuestionIndexRef.current;
 
       if (e.key === 'Escape') {
         handleReject();
@@ -105,100 +99,11 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
           }
         }
       }
-
-      if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
-        if (isAskUser) {
-          if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
-            // Navigate options
-            e.preventDefault();
-            const options = Array.from(document.querySelectorAll('.confirmation-dialog .option-item')) as HTMLElement[];
-            if (options.length === 0) return;
-            
-            const currentIdx = options.indexOf(document.activeElement as HTMLElement) !== -1 
-              ? options.indexOf(document.activeElement as HTMLElement)
-              : options.findIndex(opt => opt.contains(document.activeElement));
-            
-            let nextIndex;
-            if (e.key === 'ArrowDown') {
-              nextIndex = currentIdx === -1 ? 0 : (currentIdx + 1) % options.length;
-            } else {
-              nextIndex = currentIdx === -1 ? options.length - 1 : (currentIdx - 1 + options.length) % options.length;
-            }
-            
-            const nextOption = options[nextIndex];
-            nextOption?.focus();
-
-            // Auto-select the option
-            const questions = (currentConfirmation.toolInput as AskUserQuestionInput)?.questions;
-            const q = questions?.[currentIndex];
-            if (q) {
-              const optIndex = nextOption.getAttribute('data-option-index');
-              if (optIndex === 'other') {
-                if (!q.multiSelect) {
-                  setAnswers(prev => ({ ...prev, [q.question]: '__other__' }));
-                }
-                // Focus the input when "Other" is selected via arrow keys
-                const input = nextOption.querySelector('.other-text-input') as HTMLInputElement;
-                input?.focus();
-              } else if (optIndex !== null) {
-                const opt = q.options[parseInt(optIndex)];
-                if (opt) {
-                  handleOptionChange(q.question, opt.label, !!q.multiSelect, true);
-                }
-              }
-            }
-          } else {
-            // Navigate buttons
-            e.preventDefault();
-            const buttons: HTMLButtonElement[] = [];
-            const allButtons = document.querySelectorAll('.confirmation-dialog .confirmation-btn');
-            allButtons.forEach(btn => {
-              const element = btn as HTMLButtonElement;
-              if (element.offsetParent !== null && !element.disabled) {
-                buttons.push(element);
-              }
-            });
-            if (buttons.length === 0) return;
-
-            const currentIdx = buttons.indexOf(document.activeElement as HTMLButtonElement);
-            if (e.key === 'ArrowRight') {
-              const nextIndex = currentIdx === -1 ? 0 : (currentIdx + 1) % buttons.length;
-              buttons[nextIndex]?.focus();
-            } else {
-              const nextIndex = currentIdx === -1 ? buttons.length - 1 : (currentIdx - 1 + buttons.length) % buttons.length;
-              buttons[nextIndex]?.focus();
-            }
-          }
-        } else {
-          // Default navigation for other tools (all buttons)
-          const buttons: HTMLButtonElement[] = [];
-          const allButtons = document.querySelectorAll('.confirmation-dialog .confirmation-btn');
-          allButtons.forEach(btn => {
-            const element = btn as HTMLButtonElement;
-            if (element.offsetParent !== null && !element.disabled) {
-              buttons.push(element);
-            }
-          });
-
-          if (buttons.length === 0) return;
-
-          const currentIdx = buttons.indexOf(document.activeElement as HTMLButtonElement);
-
-          e.preventDefault();
-          if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
-            const nextIndex = currentIdx === -1 ? 0 : (currentIdx + 1) % buttons.length;
-            buttons[nextIndex]?.focus();
-          } else {
-            const nextIndex = currentIdx === -1 ? buttons.length - 1 : (currentIdx - 1 + buttons.length) % buttons.length;
-            buttons[nextIndex]?.focus();
-          }
-        }
-      }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleReject, handleOptionChange]);
+  }, [handleReject]);
 
   const handleConfirm = useCallback(() => {
     if (confirmation.toolName === EXIT_PLAN_MODE_TOOL_NAME || confirmation.toolName === BASH_TOOL_NAME || [EDIT_TOOL_NAME, MULTI_EDIT_TOOL_NAME, WRITE_TOOL_NAME, DELETE_FILE_TOOL_NAME].includes(confirmation.toolName)) {

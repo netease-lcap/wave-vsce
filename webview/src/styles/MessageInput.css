@@ -102,9 +102,12 @@
     transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-.permission-mode-toggle:hover {
+.permission-mode-toggle:hover,
+.permission-mode-toggle:focus-visible {
     background-color: var(--vscode-toolbar-hoverBackground);
     color: var(--vscode-foreground);
+    outline: 1px solid var(--vscode-focusBorder);
+    outline-offset: -1px;
 }
 
 .permission-mode-toggle.mode-acceptEdits {
@@ -150,8 +153,11 @@
     opacity: 0.7;
 }
 
-.selection-tag:hover {
+.selection-tag:hover,
+.selection-tag:focus-visible {
     opacity: 0.9;
+    outline: 1px solid var(--vscode-focusBorder);
+    outline-offset: 1px;
 }
 
 .selection-tag i {
