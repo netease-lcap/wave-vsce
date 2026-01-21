@@ -772,9 +772,19 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
           return;
         case 'Escape':
           event.preventDefault();
+          if (isStreaming) {
+            onAbortMessage();
+          }
           closeDropdown();
           return;
       }
+    }
+
+    // Handle Esc key for interruption when focused and streaming
+    if (event.key === 'Escape' && isStreaming) {
+      event.preventDefault();
+      onAbortMessage();
+      return;
     }
 
     // Normal behavior for Enter key
