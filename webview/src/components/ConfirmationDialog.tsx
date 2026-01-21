@@ -105,7 +105,10 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
             const options = Array.from(document.querySelectorAll('.confirmation-dialog .option-item')) as HTMLElement[];
             if (options.length === 0) return;
             
-            const currentIdx = options.indexOf(document.activeElement as HTMLElement);
+            const currentIdx = options.indexOf(document.activeElement as HTMLElement) !== -1 
+              ? options.indexOf(document.activeElement as HTMLElement)
+              : options.findIndex(opt => opt.contains(document.activeElement));
+            
             let nextIndex;
             if (e.key === 'ArrowDown') {
               nextIndex = currentIdx === -1 ? 0 : (currentIdx + 1) % options.length;
