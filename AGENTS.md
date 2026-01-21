@@ -1,3 +1,4 @@
 - plan 需要包含UI设计
 - 所有 bugfix 必须走 TDD
 - 使用 LSP 来探索 agent-sdk 等三方库
+- 做完需求自己测试，UI类需求需要写临时e2e脚本截图给用户看效果

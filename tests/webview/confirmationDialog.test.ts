@@ -24,8 +24,9 @@ test.describe('Confirmation Dialog', () => {
         await expect(webviewPage.locator('.confirmation-details')).toContainText('工具: Edit');
 
         // Verify buttons are present
-        await expect(webviewPage.locator('.confirmation-btn-apply')).toHaveText('是');
-        await expect(webviewPage.locator('.confirmation-btn-reject')).toHaveText('否');
+        await expect(webviewPage.locator('.confirmation-btn-apply')).toHaveText('批准并继续');
+        await expect(webviewPage.locator('.confirmation-btn-feedback')).toHaveText('提供反馈');
+        await expect(webviewPage.locator('.confirmation-btn-reject')).not.toBeVisible();
 
         // Verify input is hidden when confirmation is showing
         await expect(webviewPage.locator('textarea')).not.toBeVisible();
@@ -76,7 +77,11 @@ test.describe('Confirmation Dialog', () => {
         expect(sentMessages[0]).toEqual({
             command: 'confirmationResponse',
             confirmationId: 'test_confirmation_789',
-            approved: true
+            approved: true,
+            decision: {
+                behavior: 'allow',
+                newPermissionMode: undefined
+            }
         });
     });
 
@@ -86,12 +91,12 @@ test.describe('Confirmation Dialog', () => {
         // Clear message log
         await injector.clearMessageLog();
 
-        // Simulate confirmation request
+        // Simulate confirmation request for a tool that still has "No" button
         await injector.simulateExtensionMessage('showConfirmation', {
             confirmationId: 'test_confirmation_reject',
-            toolName: 'Delete',
-            confirmationType: '代码修改待确认',
-            toolInput: { file_path: 'unwanted_file.ts' }
+            toolName: 'SomeOtherTool',
+            confirmationType: '操作待确认',
+            toolInput: {}
         });
 
         // Click reject button
@@ -140,14 +145,14 @@ test.describe('Confirmation Dialog', () => {
         // Second confirmation request
         await injector.simulateExtensionMessage('showConfirmation', {
             confirmationId: 'confirmation_2',
-            toolName: 'Bash',
-            confirmationType: '命令执行待确认',
-            toolInput: { command: 'ls -la' }
+            toolName: 'SomeOtherTool',
+            confirmationType: '操作待确认',
+            toolInput: {}
         });
 
         // Verify second confirmation is visible with correct content
         await expect(webviewPage.locator('.confirmation-dialog')).toBeVisible();
-        await expect(webviewPage.locator('.confirmation-details')).toContainText('工具: Bash');
+        await expect(webviewPage.locator('.confirmation-details')).toContainText('工具: SomeOtherTool');
 
         // Reject second confirmation
         await webviewPage.locator('.confirmation-btn-reject').click();
@@ -158,7 +163,11 @@ test.describe('Confirmation Dialog', () => {
         expect(sentMessages[0]).toEqual({
             command: 'confirmationResponse',
             confirmationId: 'confirmation_1',
-            approved: true
+            approved: true,
+            decision: {
+                behavior: 'allow',
+                newPermissionMode: undefined
+            }
         });
         expect(sentMessages[1]).toEqual({
             command: 'confirmationResponse',
@@ -216,12 +225,20 @@ test.describe('Confirmation Dialog', () => {
         expect(sentMessages[0]).toEqual({
             command: 'confirmationResponse',
             confirmationId: 'conf_1',
-            approved: true
+            approved: true,
+            decision: {
+                behavior: 'allow',
+                newPermissionMode: undefined
+            }
         });
         expect(sentMessages[1]).toEqual({
             command: 'confirmationResponse',
             confirmationId: 'conf_2',
-            approved: true
+            approved: true,
+            decision: {
+                behavior: 'allow',
+                newPermissionMode: undefined
+            }
         });
     });
 
@@ -407,34 +424,34 @@ test.describe('Confirmation Dialog', () => {
     test('should support arrow key navigation between buttons', async ({ webviewPage }) => {
         const injector = new MessageInjector(webviewPage);
 
-        // Simulate confirmation request
+        // Simulate confirmation request for a tool with multiple buttons
         await injector.simulateExtensionMessage('showConfirmation', {
             confirmationId: 'test_arrow_keys',
-            toolName: 'Edit',
-            confirmationType: '代码修改待确认',
+            toolName: 'SomeOtherTool',
+            confirmationType: '操作待确认',
             toolInput: {}
         });
 
-        // Verify Apply button is initially focused
+        // Wait for initial focus (Apply button)
         const applyBtn = webviewPage.locator('.confirmation-btn-apply');
         await expect(applyBtn).toBeFocused();
 
-        // Press ArrowDown
-        await webviewPage.keyboard.press('ArrowDown');
+        // Press ArrowRight
+        await webviewPage.keyboard.press('ArrowRight');
         const autoBtn = webviewPage.locator('.confirmation-btn-auto');
         await expect(autoBtn).toBeFocused();
 
-        // Press ArrowDown again
-        await webviewPage.keyboard.press('ArrowDown');
+        // Press ArrowRight again
+        await webviewPage.keyboard.press('ArrowRight');
         const rejectBtn = webviewPage.locator('.confirmation-btn-reject');
         await expect(rejectBtn).toBeFocused();
 
-        // Press ArrowDown again (should wrap around)
-        await webviewPage.keyboard.press('ArrowDown');
+        // Press ArrowRight again (should wrap around)
+        await webviewPage.keyboard.press('ArrowRight');
         await expect(applyBtn).toBeFocused();
 
-        // Press ArrowUp (should wrap around to reject)
-        await webviewPage.keyboard.press('ArrowUp');
+        // Press ArrowLeft (should wrap around to reject)
+        await webviewPage.keyboard.press('ArrowLeft');
         await expect(rejectBtn).toBeFocused();
     });
 });
