@@ -88,6 +88,31 @@ export function transformMultiEditParameters(parameters: MultiEditToolParameters
  * Transform tool block parameters into standardized Change[] array for diff display
  * Forces type judgment based on tool name using type assertions
  */
+export function transformParametersToChanges(toolName: string, parameters: any): Change[] {
+  try {
+    switch (toolName) {
+      case "Write":
+        return transformWriteParameters(parameters as WriteToolParameters);
+      
+      case "Edit":
+        return transformEditParameters(parameters as EditToolParameters);
+      
+      case "MultiEdit":
+        return transformMultiEditParameters(parameters as MultiEditToolParameters);
+      
+      default:
+        return [];
+    }
+  } catch (error) {
+    console.warn("Failed to transform parameters to changes:", error);
+    return [];
+  }
+}
+
+/**
+ * Transform tool block parameters into standardized Change[] array for diff display
+ * Forces type judgment based on tool name using type assertions
+ */
 export function transformToolBlockToChanges(toolBlock: ToolBlock): Change[] {
   try {
     if (!toolBlock.name) {
@@ -95,20 +120,7 @@ export function transformToolBlockToChanges(toolBlock: ToolBlock): Change[] {
     }
 
     const parsedParams = parseToolParameters(toolBlock);
-
-    switch (toolBlock.name) {
-      case "Write":
-        return transformWriteParameters(parsedParams as WriteToolParameters);
-      
-      case "Edit":
-        return transformEditParameters(parsedParams as EditToolParameters);
-      
-      case "MultiEdit":
-        return transformMultiEditParameters(parsedParams as MultiEditToolParameters);
-      
-      default:
-        return [];
-    }
+    return transformParametersToChanges(toolBlock.name, parsedParams);
   } catch (error) {
     console.warn("Failed to transform tool block to changes:", error);
     return [];

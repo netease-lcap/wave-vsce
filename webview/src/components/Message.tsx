@@ -210,17 +210,17 @@ export const Message: React.FC<MessageProps> = (props) => {
       );
     }
     
-    // For file editing tools, show diff below the header
+    // For file editing tools, show diff below the header only when stage is 'end'
     if (toolBlock.name && ['Write', 'Edit', 'MultiEdit'].includes(toolBlock.name)) {
       return (
         <div key={index} className="tool-container">
           {toolHeader}
-          {!errorContent && <DiffViewer toolBlock={toolBlock} />}
+          {!errorContent && toolBlock.stage === 'end' && <DiffViewer toolBlock={toolBlock} />}
           {errorContent}
         </div>
       );
     }
-    
+
     // For AskUserQuestion tools, show the user's answers
     if (toolBlock.name === 'AskUserQuestion') {
       let answers: Record<string, any> = {};

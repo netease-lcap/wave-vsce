@@ -3,6 +3,7 @@ import type { ConfirmationDialogProps, AskUserQuestionInput, AskUserQuestionOpti
 import '../styles/ConfirmationDialog.css';
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
+import { DiffViewer } from './DiffViewer';
 
 export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
   confirmation,
@@ -506,6 +507,15 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
 
         {renderPlanContent()}
         {renderQuestions()}
+
+        {['Write', 'Edit', 'MultiEdit'].includes(confirmation.toolName) && (
+          <div className="confirmation-diff-viewer">
+            <DiffViewer 
+              toolName={confirmation.toolName} 
+              parameters={confirmation.toolInput} 
+            />
+          </div>
+        )}
 
 
         {confirmation.toolName !== 'AskUserQuestion' && (

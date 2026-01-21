@@ -1,34 +1,41 @@
 import React, { useMemo } from 'react';
 import { diffLines, diffWords } from 'diff';
-import { transformToolBlockToChanges } from '../utils/diffTransform';
+import { transformToolBlockToChanges, transformParametersToChanges } from '../utils/diffTransform';
 import type { ToolBlock } from 'wave-agent-sdk';
 import '../styles/DiffViewer.css';
 
 interface DiffViewerProps {
-  toolBlock: ToolBlock;
+  toolBlock?: ToolBlock;
+  toolName?: string;
+  parameters?: any;
 }
 
 /**
  * DiffViewer component that extracts and displays diffs from tool blocks
  * Uses transformToolBlockToChanges from wave-agent-sdk to get file changes
  */
-export const DiffViewer: React.FC<DiffViewerProps> = ({ toolBlock }) => {
+export const DiffViewer: React.FC<DiffViewerProps> = ({ toolBlock, toolName, parameters }) => {
 
   // Diff detection and transformation
   const changes = useMemo(() => {
     try {
-      return transformToolBlockToChanges(toolBlock);
+      if (toolBlock) {
+        return transformToolBlockToChanges(toolBlock);
+      } else if (toolName && parameters) {
+        return transformParametersToChanges(toolName, parameters);
+      }
+      return [];
     } catch (error) {
       console.warn("Error transforming tool block to changes:", error);
       return [];
     }
-  }, [toolBlock]);
+  }, [toolBlock, toolName, parameters]);
 
   const showDiff =
     changes.length > 0 &&
-    ["running", "end"].includes(toolBlock.stage) &&
-    toolBlock.name &&
-    ["Write", "Edit", "MultiEdit"].includes(toolBlock.name);
+    (toolBlock ? ["running", "end"].includes(toolBlock.stage) : true) &&
+    (toolBlock?.name || toolName) &&
+    ["Write", "Edit", "MultiEdit"].includes(toolBlock?.name || toolName || "");
 
   // Render word-level diff for line-by-line comparison
   const renderWordLevelDiff = (

@@ -248,6 +248,10 @@
   color: var(--vscode-descriptionForeground);
 }
 
+.confirmation-diff-viewer {
+  margin: 8px 0;
+}
+
 /* Feedback Input */
 .feedback-input-container {
   margin-top: 8px;
