@@ -511,23 +511,6 @@
 .markdown-content > *:last-child {
     margin-bottom: 0;
 }
-/* Plan Content Preview */
-.plan-content-preview {
-  background-color: var(--vscode-editor-background);
-  border: 1px solid var(--vscode-panel-border);
-  border-radius: 4px;
-  padding: 12px;
-  max-height: 400px;
-  overflow: auto;
-}
-
-.plan-content-preview h3 {
-  font-size: 13px;
-  margin-top: 0;
-  margin-bottom: 8px;
-  color: var(--vscode-descriptionForeground);
-}
-
 /* Selection Reference in User Messages */
 .user-message-wrapper {
     display: flex;

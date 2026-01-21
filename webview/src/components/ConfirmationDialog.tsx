@@ -268,6 +268,20 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
     return "是，且自动接受修改";
   };
 
+  const renderPlanContent = () => {
+    if (confirmation.toolName !== 'ExitPlanMode' || !confirmation.toolInput?.plan_content) {
+      return null;
+    }
+
+    const html = DOMPurify.sanitize(marked.parse(confirmation.toolInput.plan_content) as string);
+    return (
+      <div className="plan-content-preview">
+        <h3>计划内容：</h3>
+        <div className="markdown-body" dangerouslySetInnerHTML={{ __html: html }} />
+      </div>
+    );
+  };
+
   const renderQuestions = () => {
     if (confirmation.toolName !== 'AskUserQuestion' || !confirmation.toolInput?.questions) {
       return null;
@@ -490,6 +504,7 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
           </div>
         </div>
 
+        {renderPlanContent()}
         {renderQuestions()}
 
 

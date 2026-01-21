@@ -294,10 +294,8 @@ export const Message: React.FC<MessageProps> = (props) => {
       );
     }
 
-    // For ExitPlanMode tools, show the plan content and decision
+    // For ExitPlanMode tools, show the decision
     if (toolBlock.name === 'ExitPlanMode') {
-      const planContent = (toolBlock as any).planContent || '';
-
       const resultText = typeof toolBlock.result === 'string' 
         ? toolBlock.result 
         : (toolBlock.result ? JSON.stringify(toolBlock.result) : '');
@@ -305,13 +303,6 @@ export const Message: React.FC<MessageProps> = (props) => {
       return (
         <div key={index} className="tool-container">
           {toolHeader}
-          {planContent && (
-            <div className="plan-content-preview">
-              <div className="markdown-body" dangerouslySetInnerHTML={{ 
-                __html: DOMPurify.sanitize(marked.parse(planContent) as string) 
-              }} />
-            </div>
-          )}
           {!errorContent && resultText && (
             <div className="tool-result-block">
               <div className="result-item">
