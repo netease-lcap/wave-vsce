@@ -1,0 +1,43 @@
+import { test, expect } from '../utils/webviewTestHarness.js';
+import { MessageInjector } from '../utils/messageInjector.js';
+import { UIStateVerifier } from '../utils/uiStateVerifier.js';
+
+test.describe('Plan Mode Initialization', () => {
+    test('should correctly initialize in plan mode when defaultMode is set to plan', async ({ webviewPage }) => {
+        const injector = new MessageInjector(webviewPage);
+        const ui = new UIStateVerifier(webviewPage);
+
+        // Simulate webviewReady and extension responding with initial state where permissionMode is 'plan'
+        await injector.simulateExtensionMessage('setInitialState', {
+            messages: [],
+            subagentMessages: {},
+            inputContent: '',
+            isStreaming: false,
+            sessions: [],
+            configurationData: {
+                baseURL: 'https://api.example.com',
+                agentModel: 'gpt-4',
+                fastModel: 'gpt-3.5',
+                authMethod: 'apiKey',
+                apiKey: 'test-key'
+            },
+            permissionMode: 'plan'
+        });
+
+        // Wait for state update
+        await webviewPage.waitForTimeout(500);
+
+        // Verify the permission mode toggle shows "计划模式"
+        const toggle = webviewPage.locator('.permission-mode-toggle');
+        await expect(toggle).toBeVisible();
+        const text = await toggle.innerText();
+        console.log('Toggle text:', text);
+        await expect(toggle).toContainText('计划模式');
+        await expect(toggle).toHaveClass(/mode-plan/);
+
+        // Verify that no error message like "plan file not set" is displayed
+        // (Assuming errors are displayed in the message container or as a notification)
+        const errorMessages = webviewPage.locator('.error-message, .message.error');
+        await expect(errorMessages).toHaveCount(0);
+    });
+});

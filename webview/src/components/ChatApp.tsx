@@ -144,6 +144,7 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
         subagentMessages: subagentMessagesMap,
         inputContent: action.payload.inputContent,
         selection: action.payload.selection,
+        permissionMode: action.payload.permissionMode || state.permissionMode,
         sessionsLoading: false,
         configurationLoading: false
       };
@@ -242,6 +243,7 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
           });
           break;
         case 'setInitialState':
+          console.log('Received setInitialState:', message);
           dispatch({
             type: 'SET_INITIAL_STATE',
             payload: {
