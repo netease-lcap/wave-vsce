@@ -17,7 +17,6 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
 
   const applyButtonRef = useRef<HTMLButtonElement>(null);
   const autoButtonRef = useRef<HTMLButtonElement>(null);
-  const rejectButtonRef = useRef<HTMLButtonElement>(null);
 
   const handleReject = useCallback(() => {
     onReject(confirmation.confirmationId);
@@ -59,7 +58,7 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
 
   useEffect(() => {
     // Focus on the first available button
-    const initialButtons = [applyButtonRef, autoButtonRef, rejectButtonRef];
+    const initialButtons = [applyButtonRef, autoButtonRef];
     for (const ref of initialButtons) {
       if (ref.current && !ref.current.disabled) {
         ref.current.focus();
@@ -427,13 +426,6 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
               提交回答
             </button>
           )}
-          <button
-            ref={rejectButtonRef}
-            className="confirmation-btn confirmation-btn-reject"
-            onClick={handleReject}
-          >
-            否
-          </button>
         </div>
       </div>
     );
@@ -537,15 +529,6 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
                   </button>
                 )}
 
-                {confirmation.toolName !== 'ExitPlanMode' && confirmation.toolName !== 'Bash' && !['Edit', 'MultiEdit', 'Write', 'Delete'].includes(confirmation.toolName) && (
-                  <button
-                    ref={rejectButtonRef}
-                    className="confirmation-btn confirmation-btn-reject"
-                    onClick={handleReject}
-                  >
-                    <span className="btn-text">否</span>
-                  </button>
-                )}
 
                 {(confirmation.toolName === 'ExitPlanMode' || confirmation.toolName === 'Bash' || ['Edit', 'MultiEdit', 'Write', 'Delete'].includes(confirmation.toolName)) && (
                   <button

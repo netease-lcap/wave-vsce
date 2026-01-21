@@ -85,13 +85,13 @@ test.describe('Confirmation Dialog', () => {
         });
     });
 
-    test('should send rejection response when clicking reject button', async ({ webviewPage }) => {
+    test('should send rejection response when clicking close button', async ({ webviewPage }) => {
         const injector = new MessageInjector(webviewPage);
 
         // Clear message log
         await injector.clearMessageLog();
 
-        // Simulate confirmation request for a tool that still has "No" button
+        // Simulate confirmation request
         await injector.simulateExtensionMessage('showConfirmation', {
             confirmationId: 'test_confirmation_reject',
             toolName: 'SomeOtherTool',
@@ -99,8 +99,8 @@ test.describe('Confirmation Dialog', () => {
             toolInput: {}
         });
 
-        // Click reject button
-        await webviewPage.locator('.confirmation-btn-reject').click();
+        // Click close button
+        await webviewPage.locator('.confirmation-close-btn').click();
 
         // Verify confirmation dialog is hidden
         await expect(webviewPage.locator('.confirmation-dialog')).not.toBeVisible();
@@ -154,8 +154,8 @@ test.describe('Confirmation Dialog', () => {
         await expect(webviewPage.locator('.confirmation-dialog')).toBeVisible();
         await expect(webviewPage.locator('.confirmation-details')).toContainText('工具: SomeOtherTool');
 
-        // Reject second confirmation
-        await webviewPage.locator('.confirmation-btn-reject').click();
+        // Reject second confirmation via Esc key
+        await webviewPage.keyboard.press('Escape');
 
         // Verify both responses were sent
         const sentMessages = await injector.getMessagesSentToExtension();
@@ -441,17 +441,12 @@ test.describe('Confirmation Dialog', () => {
         const autoBtn = webviewPage.locator('.confirmation-btn-auto');
         await expect(autoBtn).toBeFocused();
 
-        // Press ArrowRight again
-        await webviewPage.keyboard.press('ArrowRight');
-        const rejectBtn = webviewPage.locator('.confirmation-btn-reject');
-        await expect(rejectBtn).toBeFocused();
-
-        // Press ArrowRight again (should wrap around)
+        // Press ArrowRight again (should wrap around since reject is gone)
         await webviewPage.keyboard.press('ArrowRight');
         await expect(applyBtn).toBeFocused();
 
-        // Press ArrowLeft (should wrap around to reject)
+        // Press ArrowLeft (should wrap around to auto)
         await webviewPage.keyboard.press('ArrowLeft');
-        await expect(rejectBtn).toBeFocused();
+        await expect(autoBtn).toBeFocused();
     });
 });
