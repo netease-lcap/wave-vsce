@@ -29,7 +29,9 @@ const initialState: ChatState = {
   configurationLoading: false,
   configurationError: undefined,
   // Subagent state
-  subagentMessages: new Map()
+  subagentMessages: new Map(),
+  // Permission mode state
+  permissionMode: 'default'
 };
 
 function chatReducer(state: ChatState, action: ChatAction): ChatState {

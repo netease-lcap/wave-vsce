@@ -44,10 +44,11 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
   const lastSelectionRef = useRef<any>(null);
 
   const handlePermissionModeToggle = useCallback(() => {
+    const currentMode = permissionMode || 'default';
     let newMode: PermissionMode = 'default';
-    if (permissionMode === 'default') {
+    if (currentMode === 'default') {
       newMode = 'acceptEdits';
-    } else if (permissionMode === 'acceptEdits') {
+    } else if (currentMode === 'acceptEdits') {
       newMode = 'plan';
     } else {
       newMode = 'default';
@@ -701,8 +702,9 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
 
   const handleKeyDown = useCallback((event: KeyboardEvent<HTMLTextAreaElement>) => {
     // Handle Shift+Tab to cycle permission modes
-    if (event.key === 'Tab' && event.shiftKey) {
+    if ((event.key === 'Tab' || event.key === 'Backtab') && event.shiftKey) {
       event.preventDefault();
+      event.stopPropagation();
       handlePermissionModeToggle();
       return;
     }
@@ -780,7 +782,7 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
       event.preventDefault();
       handleSend();
     }
-  }, [slashCommand.isActive, slashCommands, selectedSlashIndex, handleSlashCommandSelect, closeSlashCommandPopup, atMention.isActive, atMention.filterText, suggestions, selectedIndex, handleFileSelect, handleFileUpload, closeDropdown, handleSend, isComposing]);
+  }, [handlePermissionModeToggle, slashCommand.isActive, slashCommands, selectedSlashIndex, handleSlashCommandSelect, closeSlashCommandPopup, atMention.isActive, atMention.filterText, suggestions, selectedIndex, handleFileSelect, handleFileUpload, closeDropdown, handleSend, isComposing]);
 
   const handleInput = useCallback((event: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newValue = event.target.value;
