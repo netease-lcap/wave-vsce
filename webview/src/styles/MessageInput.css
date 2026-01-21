@@ -107,8 +107,19 @@
     color: var(--vscode-foreground);
 }
 
+.permission-mode-toggle.mode-acceptEdits {
+    color: var(--vscode-gitDecoration-addedResourceForeground);
+}
+
+.permission-mode-toggle.mode-plan {
+    color: var(--vscode-gitDecoration-submoduleResourceForeground);
+}
+
+/* Removed font-weight to make it less jarring */
+
 .permission-mode-toggle i.codicon {
     font-size: 12px !important;
+    color: inherit;
 }
 /* Selection Tag */
 .selection-tag {
