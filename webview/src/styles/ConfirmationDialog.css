@@ -22,6 +22,32 @@
   margin-bottom: 4px;
 }
 
+.confirmation-header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.confirmation-close-btn {
+  background: none;
+  border: none;
+  color: var(--vscode-icon-foreground);
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+}
+
+.confirmation-close-btn:hover {
+  background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+.confirmation-close-btn .codicon {
+  font-size: 16px;
+}
+
 .confirmation-title {
   font-size: 14px;
   font-weight: 600;
