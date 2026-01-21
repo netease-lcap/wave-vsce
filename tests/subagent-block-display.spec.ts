@@ -1,5 +1,6 @@
 import { test, expect } from './utils/webviewTestHarness.js';
 import { MessageInjector } from './utils/messageInjector.js';
+import { GLOB_TOOL_NAME, READ_TOOL_NAME, BASH_TOOL_NAME } from 'wave-agent-sdk';
 
 test.describe('SubagentBlock Display in Messages', () => {
   test('should display subagent block with live messages', async ({ webviewPage }) => {
@@ -45,7 +46,7 @@ test.describe('SubagentBlock Display in Messages', () => {
     await expect(subagentDisplay.locator('.status-indicator')).toContainText('⏳ 处理中...');
 
     // Now simulate live subagent messages coming in
-    await webviewPage.evaluate(() => {
+    await webviewPage.evaluate(({ GLOB_TOOL_NAME, READ_TOOL_NAME }) => {
       window.postMessage({
         command: 'updateSubagentMessages',
         subagentId: 'subagent-123',
@@ -55,7 +56,7 @@ test.describe('SubagentBlock Display in Messages', () => {
             blocks: [
               {
                 type: 'tool',
-                name: 'Glob',
+                name: GLOB_TOOL_NAME,
                 stage: 'end',
                 parameters: JSON.stringify({ pattern: '**/*.ts' }),
                 result: 'Found 15 TypeScript files'
@@ -67,7 +68,7 @@ test.describe('SubagentBlock Display in Messages', () => {
             blocks: [
               {
                 type: 'tool',
-                name: 'Read',
+                name: READ_TOOL_NAME,
                 stage: 'end', 
                 parameters: JSON.stringify({ file_path: '/src/index.ts' }),
                 result: 'File content loaded successfully'
@@ -76,7 +77,7 @@ test.describe('SubagentBlock Display in Messages', () => {
           }
         ]
       }, '*');
-    });
+    }, { GLOB_TOOL_NAME, READ_TOOL_NAME });
 
     // Wait for the UI to update by waiting for the tools count to appear
     await expect(subagentDisplay.locator('.tools-count')).toContainText('2 tools');
@@ -188,20 +189,20 @@ test.describe('SubagentBlock Display in Messages', () => {
       role: 'assistant' as const,
       blocks: [{ 
         type: 'tool' as const,
-        name: 'Bash',
+        name: BASH_TOOL_NAME,
         stage: 'end' as const,
         parameters: JSON.stringify({ command: `echo "Step ${i + 1}"` }),
         result: `Step ${i + 1}: This is a detailed message about step ${i + 1}`
       }]
     }));
 
-    await webviewPage.evaluate((messages) => {
+    await webviewPage.evaluate(({ messages, BASH_TOOL_NAME }) => {
       window.postMessage({
         command: 'updateSubagentMessages',
         subagentId: 'subagent-many-msgs',
         messages: messages
       }, '*');
-    }, manyMessages);
+    }, { messages: manyMessages, BASH_TOOL_NAME });
 
     const subagentDisplay = webviewPage.locator('.subagent-display').first();
     await expect(subagentDisplay).toBeVisible();
@@ -242,7 +243,7 @@ test.describe('SubagentBlock Display in Messages', () => {
     ]);
 
     // Send a message with nested tool blocks
-    await webviewPage.evaluate(() => {
+    await webviewPage.evaluate(({ BASH_TOOL_NAME }) => {
       window.postMessage({
         command: 'updateSubagentMessages',
         subagentId: 'subagent-complex',
@@ -256,7 +257,7 @@ test.describe('SubagentBlock Display in Messages', () => {
               },
               {
                 type: 'tool',
-                name: 'Bash',
+                name: BASH_TOOL_NAME,
                 stage: 'end',
                 parameters: JSON.stringify({ command: 'find src -name "*.ts" | head -5' }),
                 result: 'src/index.ts\nsrc/components/App.ts\nsrc/utils/helper.ts\nsrc/types/index.ts\nsrc/services/api.ts'
@@ -265,7 +266,7 @@ test.describe('SubagentBlock Display in Messages', () => {
           }
         ]
       }, '*');
-    });
+    }, { BASH_TOOL_NAME });
 
     const subagentDisplay = webviewPage.locator('.subagent-display').first();
     await expect(subagentDisplay).toBeVisible();
@@ -283,6 +284,6 @@ test.describe('SubagentBlock Display in Messages', () => {
     // Check that the nested tool block is rendered
     const nestedToolBlock = messageWrapper.locator('.tool-block');
     await expect(nestedToolBlock).toBeVisible();
-    await expect(nestedToolBlock).toContainText('🛠️ Bash');
+    await expect(nestedToolBlock).toContainText(`🛠️ ${BASH_TOOL_NAME}`);
   });
 });

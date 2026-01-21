@@ -1,5 +1,14 @@
 import * as vscode from 'vscode';
 import type { SessionMetadata, ToolPermissionContext, PermissionDecision } from 'wave-agent-sdk';
+import { 
+    EDIT_TOOL_NAME, 
+    MULTI_EDIT_TOOL_NAME, 
+    WRITE_TOOL_NAME, 
+    DELETE_FILE_TOOL_NAME, 
+    BASH_TOOL_NAME, 
+    EXIT_PLAN_MODE_TOOL_NAME, 
+    ASK_USER_QUESTION_TOOL_NAME 
+} from 'wave-agent-sdk';
 import { ChatSession } from './session/chatSession';
 import { ConfigurationService } from './services/configurationService';
 import { FileService } from './services/fileService';
@@ -323,13 +332,13 @@ export class ChatProvider implements vscode.WebviewViewProvider {
             const confirmationId = `confirmation_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
             let confirmationType: string;
-            if (['Edit', 'MultiEdit', 'Write', 'Delete'].includes(context.toolName)) {
+            if ([EDIT_TOOL_NAME, MULTI_EDIT_TOOL_NAME, WRITE_TOOL_NAME, DELETE_FILE_TOOL_NAME].includes(context.toolName)) {
                 confirmationType = '代码修改待确认';
-            } else if (context.toolName === 'Bash') {
+            } else if (context.toolName === BASH_TOOL_NAME) {
                 confirmationType = '命令执行待确认';
-            } else if (context.toolName === 'ExitPlanMode') {
+            } else if (context.toolName === EXIT_PLAN_MODE_TOOL_NAME) {
                 confirmationType = '计划待确认';
-            } else if (context.toolName === 'AskUserQuestion') {
+            } else if (context.toolName === ASK_USER_QUESTION_TOOL_NAME) {
                 confirmationType = '问题待回答';
             } else {
                 confirmationType = '操作待确认';

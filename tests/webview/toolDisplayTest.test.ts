@@ -1,6 +1,7 @@
 import { test, expect } from '../utils/webviewTestHarness.js';
 import { MessageInjector } from '../utils/messageInjector.js';
 import { MockDataGenerator } from '../fixtures/mockData.js';
+import { READ_TOOL_NAME, WRITE_TOOL_NAME, BASH_TOOL_NAME } from 'wave-agent-sdk';
 
 test.describe('Tool Display Visual Test', () => {
     test('should display tools with compact parameters - visual verification', async ({ webviewPage }) => {
@@ -11,13 +12,13 @@ test.describe('Tool Display Visual Test', () => {
             MockDataGenerator.createUserMessage("Can you help me read a file?"),
             MockDataGenerator.createAssistantMessageWithTool(
                 "I'll read the file for you.",
-                "Read", 
+                READ_TOOL_NAME, 
                 '{"file_path": "/home/user/project/src/components/Message.tsx", "limit": 50}',
                 "File contents read successfully"
             ),
             MockDataGenerator.createAssistantMessageWithTool(
                 "Now I'll write the updated file.",
-                "Write",
+                WRITE_TOOL_NAME,
                 '{"file_path": "/home/user/project/config.json", "content": "{\\"version\\": \\"1.0\\"}"}',
                 "File written successfully"
             )
@@ -26,7 +27,7 @@ test.describe('Tool Display Visual Test', () => {
         // Add a tool without compactParams to test fallback
         const bashToolMessage = MockDataGenerator.createAssistantMessageWithTool(
             "Running a command.",
-            "Bash",
+            BASH_TOOL_NAME,
             '{"command": "npm install --save lodash", "timeout": 30000}'
         );
         // Remove compactParams to test fallback
@@ -53,17 +54,17 @@ test.describe('Tool Display Visual Test', () => {
 
         // Check first tool (Read with compactParams)
         const readTool = toolBlocks.nth(0);
-        await expect(readTool).toContainText('🛠️ Read file.ts');
+        await expect(readTool).toContainText(`🛠️ ${READ_TOOL_NAME} file.ts`);
         await expect(readTool).not.toContainText('file_path'); // Should not show full parameters
 
         // Check second tool (Write with compactParams)  
         const writeTool = toolBlocks.nth(1);
-        await expect(writeTool).toContainText('🛠️ Write config.json');
+        await expect(writeTool).toContainText(`🛠️ ${WRITE_TOOL_NAME} config.json`);
         await expect(writeTool).not.toContainText('content'); // Should not show full parameters
 
         // Check third tool (Bash without compactParams - fallback)
         const bashTool = toolBlocks.nth(2);
-        await expect(bashTool).toContainText('🛠️ Bash');
+        await expect(bashTool).toContainText(`🛠️ ${BASH_TOOL_NAME}`);
         await expect(bashTool).not.toContainText('npm install'); // Should not show compactParams since we removed it
         await expect(bashTool).not.toContainText('command'); // Should not show full parameters
 
@@ -85,14 +86,14 @@ test.describe('Tool Display Visual Test', () => {
             MockDataGenerator.createAssistantMessage("Of course! Let me analyze your project structure first."),
             MockDataGenerator.createAssistantMessageWithTool(
                 "I'll read your main configuration file.",
-                "Read",
+                READ_TOOL_NAME,
                 '{"file_path": "./package.json"}',
                 "Configuration file read successfully"
             ),
             MockDataGenerator.createAssistantMessage("Based on your configuration, I can see this is a TypeScript project. Let me check your source code structure."),
             MockDataGenerator.createAssistantMessageWithTool(
                 "Checking the source directory.",
-                "Bash", 
+                BASH_TOOL_NAME, 
                 '{"command": "ls -la src/"}',
                 "Directory listing completed"
             ),
@@ -121,7 +122,7 @@ test.describe('Tool Display Visual Test', () => {
             MockDataGenerator.createUserMessage("Great! Let me show you what I'm working on."),
             MockDataGenerator.createAssistantMessageWithTool(
                 "Let me read your project files.",
-                "Read",
+                READ_TOOL_NAME,
                 '{"file_path": "./README.md"}',
                 "File read successfully"
             ),
@@ -162,19 +163,19 @@ test.describe('Tool Display Visual Test', () => {
             MockDataGenerator.createUserMessage("Please help me with these file operations."),
             MockDataGenerator.createAssistantMessageWithTool(
                 "I'll read the configuration file first.",
-                "Read",
+                READ_TOOL_NAME,
                 '{"file_path": "/home/user/project/package.json", "limit": 100}',
                 "Configuration read successfully"
             ),
             MockDataGenerator.createAssistantMessageWithTool(
                 "Now I'll write the updated configuration.",
-                "Write", 
+                WRITE_TOOL_NAME, 
                 '{"file_path": "/home/user/project/config.json", "content": "..."}',
                 "File written successfully"
             ),
             MockDataGenerator.createAssistantMessageWithTool(
                 "Let me run the build command.",
-                "Bash",
+                BASH_TOOL_NAME,
                 '{"command": "npm run build", "timeout": 60000}',
                 "Build completed successfully"
             ),

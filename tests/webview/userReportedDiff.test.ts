@@ -1,6 +1,6 @@
 import { test, expect } from '../utils/webviewTestHarness.js';
 import { MessageInjector } from '../utils/messageInjector.js';
-import { Message } from 'wave-agent-sdk';
+import { Message, EDIT_TOOL_NAME } from 'wave-agent-sdk';
 
 test.describe('Diff Viewer User Reported Case', () => {
   test('should maintain correct line order for the user reported case', async ({ webviewPage }) => {
@@ -12,7 +12,7 @@ test.describe('Diff Viewer User Reported Case', () => {
       blocks: [
         {
           type: 'tool',
-          name: 'Edit',
+          name: EDIT_TOOL_NAME,
           parameters: JSON.stringify({
             file_path: '/home/liuyiqi/code/bin/scripts/i-wave-agent.sh',
             old_string: 'pkg_name="wave-agent-sdk-$(date +%s).tgz"\nmv ./packages/agent-sdk/wave-agent-sdk-*.tgz "$dir/$pkg_name"',

@@ -6,8 +6,8 @@
  */
 
 // Import message structures and session types from wave-agent-sdk
-import type { Message, MessageBlock, TextBlock, ErrorBlock, ToolBlock, SubagentBlock, ImageBlock,MemoryBlock, CompressBlock, PermissionMode, AskUserQuestion, AskUserQuestionInput, AskUserQuestionOption } from 'wave-agent-sdk';
-import type { SessionMetadata, SessionData } from 'wave-agent-sdk';
+import type { Message, MessageBlock, TextBlock, ErrorBlock, ToolBlock, SubagentBlock, ImageBlock,MemoryBlock, CompressBlock, PermissionMode, AskUserQuestion, AskUserQuestionInput, AskUserQuestionOption } from 'wave-agent-sdk/dist/types/index.js';
+import type { SessionMetadata, SessionData } from 'wave-agent-sdk/dist/services/session.js';
 
 // Export the agent-sdk types for use in components
 export type { Message, MessageBlock, TextBlock, ErrorBlock, ToolBlock, SubagentBlock, ImageBlock,MemoryBlock, CompressBlock, SessionData, PermissionMode, AskUserQuestion, AskUserQuestionInput, AskUserQuestionOption };

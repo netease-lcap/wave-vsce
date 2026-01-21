@@ -3,7 +3,9 @@
  * Uses tool parameter types from wave-agent-sdk with type assertions based on tool name
  */
 
-import type { ToolBlock, WriteToolParameters, EditToolParameters, MultiEditToolParameters } from 'wave-agent-sdk';
+import type { ToolBlock } from 'wave-agent-sdk/dist/types/messaging.js';
+import type { WriteToolParameters, EditToolParameters, MultiEditToolParameters } from 'wave-agent-sdk/dist/types/tools.js';
+import { WRITE_TOOL_NAME, EDIT_TOOL_NAME, MULTI_EDIT_TOOL_NAME } from 'wave-agent-sdk/dist/constants/tools.js';
 
 export interface Change {
   oldContent: string;
@@ -91,13 +93,13 @@ export function transformMultiEditParameters(parameters: MultiEditToolParameters
 export function transformParametersToChanges(toolName: string, parameters: any): Change[] {
   try {
     switch (toolName) {
-      case "Write":
+      case WRITE_TOOL_NAME:
         return transformWriteParameters(parameters as WriteToolParameters);
       
-      case "Edit":
+      case EDIT_TOOL_NAME:
         return transformEditParameters(parameters as EditToolParameters);
       
-      case "MultiEdit":
+      case MULTI_EDIT_TOOL_NAME:
         return transformMultiEditParameters(parameters as MultiEditToolParameters);
       
       default:

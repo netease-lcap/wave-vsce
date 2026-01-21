@@ -2,7 +2,7 @@ import { test, expect } from '../utils/webviewTestHarness.js';
 import { MessageInjector } from '../utils/messageInjector.js';
 import { UIStateVerifier } from '../utils/uiStateVerifier.js';
 import { MockDataGenerator } from '../fixtures/mockData.js';
-import { Message } from 'wave-agent-sdk';
+import { Message, EDIT_TOOL_NAME, WRITE_TOOL_NAME, MULTI_EDIT_TOOL_NAME, READ_TOOL_NAME } from 'wave-agent-sdk';
 
 test.describe('Diff Viewer', () => {
   test('should render diff viewer for Edit tool block', async ({ webviewPage }) => {
@@ -15,7 +15,7 @@ test.describe('Diff Viewer', () => {
       blocks: [
         {
           type: 'tool',
-          name: 'Edit',
+          name: EDIT_TOOL_NAME,
           parameters: JSON.stringify({
             file_path: 'src/example.ts',
             old_string: 'const hello = "world";',
@@ -54,7 +54,7 @@ test.describe('Diff Viewer', () => {
       blocks: [
         {
           type: 'tool',
-          name: 'Write',
+          name: WRITE_TOOL_NAME,
           parameters: JSON.stringify({
             file_path: 'src/newFile.ts',
             content: 'export const config = {\n  version: "1.0.0",\n  debug: true\n};'
@@ -92,7 +92,7 @@ test.describe('Diff Viewer', () => {
         },
         {
           type: 'tool',
-          name: 'MultiEdit',
+          name: MULTI_EDIT_TOOL_NAME,
           parameters: JSON.stringify({
             file_path: 'src/config.ts',
             edits: [
@@ -136,7 +136,7 @@ test.describe('Diff Viewer', () => {
       blocks: [
         {
           type: 'tool',
-          name: 'Read',
+          name: READ_TOOL_NAME,
           parameters: JSON.stringify({
             file_path: 'src/example.ts'
           }),
@@ -166,7 +166,7 @@ test.describe('Diff Viewer', () => {
       blocks: [
         {
           type: 'tool',
-          name: 'Edit',
+          name: EDIT_TOOL_NAME,
           parameters: JSON.stringify({
             file_path: 'src/example.ts',
             old_string: 'old content',
@@ -198,7 +198,7 @@ test.describe('Diff Viewer', () => {
       blocks: [
         {
           type: 'tool',
-          name: 'Edit',
+          name: EDIT_TOOL_NAME,
           parameters: 'invalid json {malformed',
           compactParams: 'unknown',
           stage: 'end' as const,
@@ -229,7 +229,7 @@ test.describe('Diff Viewer', () => {
         },
         {
           type: 'tool',
-          name: 'Edit',
+          name: EDIT_TOOL_NAME,
           parameters: JSON.stringify({
             file_path: 'src/example.ts',
             old_string: 'const old = "value";',
@@ -264,7 +264,7 @@ test.describe('Diff Viewer', () => {
       blocks: [
         {
           type: 'tool',
-          name: 'Edit',
+          name: EDIT_TOOL_NAME,
           parameters: JSON.stringify({
             file_path: 'src/config.js',
             old_string: 'const port = 3000;',
@@ -309,7 +309,7 @@ test.describe('Diff Viewer', () => {
       blocks: [
         {
           type: 'tool',
-          name: 'Edit',
+          name: EDIT_TOOL_NAME,
           parameters: JSON.stringify({
             file_path: 'src/largeFile.js',
             old_string: largeOldContent,

@@ -1,4 +1,11 @@
 import type { Message, TextBlock, ToolBlock, ErrorBlock, MessageBlock } from 'wave-agent-sdk';
+import { 
+    READ_TOOL_NAME, 
+    WRITE_TOOL_NAME, 
+    BASH_TOOL_NAME, 
+    EDIT_TOOL_NAME, 
+    MULTI_EDIT_TOOL_NAME 
+} from 'wave-agent-sdk';
 
 /**
  * Mock data generators for testing webview functionality
@@ -53,9 +60,9 @@ export class MockDataGenerator {
             type: "tool",
             name: toolName,
             parameters: toolParams,
-            compactParams: toolName === "Read" ? "file.ts" : 
-                          toolName === "Write" ? "config.json" : 
-                          toolName === "Bash" ? "npm install" : 
+            compactParams: toolName === READ_TOOL_NAME ? "file.ts" : 
+                          toolName === WRITE_TOOL_NAME ? "config.json" : 
+                          toolName === BASH_TOOL_NAME ? "npm install" : 
                           `${toolName.toLowerCase()}`,
             result: toolResult,
             stage: toolResult ? "end" : "running",
@@ -107,7 +114,7 @@ export class MockDataGenerator {
      */
     static createAssistantMessageWithFileEdit(
         textContent: string,
-        toolName: 'Edit' | 'Write' | 'MultiEdit',
+        toolName: typeof EDIT_TOOL_NAME | typeof WRITE_TOOL_NAME | typeof MULTI_EDIT_TOOL_NAME,
         filePath: string,
         editParams: any,
         stage: 'running' | 'end' = 'end'
@@ -148,7 +155,7 @@ export class MockDataGenerator {
     static createEditToolMessage(filePath: string, oldString: string, newString: string): Message {
         return this.createAssistantMessageWithFileEdit(
             `Editing ${filePath}:`,
-            'Edit',
+            EDIT_TOOL_NAME,
             filePath,
             { old_string: oldString, new_string: newString }
         );
@@ -160,7 +167,7 @@ export class MockDataGenerator {
     static createWriteToolMessage(filePath: string, content: string): Message {
         return this.createAssistantMessageWithFileEdit(
             `Writing new file ${filePath}:`,
-            'Write',
+            WRITE_TOOL_NAME,
             filePath,
             { content: content }
         );
@@ -183,9 +190,9 @@ export class MockDataGenerator {
             type: "tool",
             name: toolName,
             parameters: toolParams,
-            compactParams: toolName === "Read" ? "file.ts" : 
-                          toolName === "Write" ? "config.json" : 
-                          toolName === "Bash" ? "npm install" : 
+            compactParams: toolName === READ_TOOL_NAME ? "file.ts" : 
+                          toolName === WRITE_TOOL_NAME ? "config.json" : 
+                          toolName === BASH_TOOL_NAME ? "npm install" : 
                           `${toolName.toLowerCase()}`,
             stage: "end",
             success: false,
@@ -207,7 +214,7 @@ export class MockDataGenerator {
             this.createUserMessage("Can you read the package.json file?"),
             this.createAssistantMessageWithTool(
                 "I'll read the package.json file for you.", 
-                "Read",
+                READ_TOOL_NAME,
                 '{"file_path": "/project/package.json"}',
                 '{"name": "test-project", "version": "1.0.0"}'
             )

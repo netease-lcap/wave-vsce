@@ -1,6 +1,16 @@
 import React from 'react';
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
+import { 
+  BASH_TOOL_NAME, 
+  LSP_TOOL_NAME, 
+  TODO_WRITE_TOOL_NAME, 
+  WRITE_TOOL_NAME, 
+  EDIT_TOOL_NAME, 
+  MULTI_EDIT_TOOL_NAME, 
+  ASK_USER_QUESTION_TOOL_NAME, 
+  EXIT_PLAN_MODE_TOOL_NAME 
+} from 'wave-agent-sdk/dist/constants/tools.js';
 import type { MessageProps, TextBlock, ErrorBlock, ToolBlock, SubagentBlock, ImageBlock, CompressBlock, MemoryBlock } from '../types';
 import { DiffViewer } from './DiffViewer';
 import { TodoList } from './TodoList';
@@ -171,7 +181,7 @@ export const Message: React.FC<MessageProps> = (props) => {
     ) : null;
 
     // For Bash tools, add the bash-specific content below the header
-    if (toolBlock.name === 'Bash') {
+    if (toolBlock.name === BASH_TOOL_NAME) {
       const bashContent = renderBashIO(toolBlock);
       if (bashContent || errorContent) {
         return (
@@ -185,7 +195,7 @@ export const Message: React.FC<MessageProps> = (props) => {
     }
     
     // For LSP tools, show output with max height and no scrolling
-    if (toolBlock.name === 'LSP') {
+    if (toolBlock.name === LSP_TOOL_NAME) {
       return (
         <div key={index} className="tool-container">
           {toolHeader}
@@ -200,7 +210,7 @@ export const Message: React.FC<MessageProps> = (props) => {
     }
     
     // For TodoWrite tools, add the todo list below the header
-    if (toolBlock.name === 'TodoWrite') {
+    if (toolBlock.name === TODO_WRITE_TOOL_NAME) {
       return (
         <div key={index} className="tool-container">
           {toolHeader}
@@ -211,18 +221,18 @@ export const Message: React.FC<MessageProps> = (props) => {
     }
     
     // For file editing tools, show diff below the header only when stage is 'end'
-    if (toolBlock.name && ['Write', 'Edit', 'MultiEdit'].includes(toolBlock.name)) {
+    if (toolBlock.name && [WRITE_TOOL_NAME, EDIT_TOOL_NAME, MULTI_EDIT_TOOL_NAME].includes(toolBlock.name)) {
       return (
         <div key={index} className="tool-container">
           {toolHeader}
-          {!errorContent && toolBlock.stage === 'end' && <DiffViewer toolBlock={toolBlock} />}
+          {!errorContent && <DiffViewer toolBlock={toolBlock} />}
           {errorContent}
         </div>
       );
     }
 
     // For AskUserQuestion tools, show the user's answers
-    if (toolBlock.name === 'AskUserQuestion') {
+    if (toolBlock.name === ASK_USER_QUESTION_TOOL_NAME) {
       let answers: Record<string, any> = {};
       let isParsed = false;
       try {
@@ -295,7 +305,7 @@ export const Message: React.FC<MessageProps> = (props) => {
     }
 
     // For ExitPlanMode tools, show the decision
-    if (toolBlock.name === 'ExitPlanMode') {
+    if (toolBlock.name === EXIT_PLAN_MODE_TOOL_NAME) {
       const resultText = typeof toolBlock.result === 'string' 
         ? toolBlock.result 
         : (toolBlock.result ? JSON.stringify(toolBlock.result) : '');

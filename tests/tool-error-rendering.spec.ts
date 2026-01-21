@@ -1,6 +1,7 @@
 import { test, expect } from './utils/webviewTestHarness.js';
 import { MessageInjector } from './utils/messageInjector.js';
 import { MockDataGenerator } from './fixtures/mockData.js';
+import { READ_TOOL_NAME, BASH_TOOL_NAME, WRITE_TOOL_NAME } from 'wave-agent-sdk';
 
 /**
  * Test tool block error rendering functionality
@@ -16,7 +17,7 @@ test.describe('Tool Block Error Rendering', () => {
     // Create a message with a tool that has an error
     const messageWithToolError = MockDataGenerator.createAssistantMessageWithToolError(
       "I'll try to read the file for you.",
-      "Read",
+      READ_TOOL_NAME,
       '{"file_path": "/nonexistent/file.txt"}',
       "File not found: /nonexistent/file.txt"
     );
@@ -30,7 +31,7 @@ test.describe('Tool Block Error Rendering', () => {
     // Verify tool block exists
     const toolBlock = await webviewPage.locator('.tool-block').first();
     await expect(toolBlock).toBeVisible();
-    await expect(toolBlock).toContainText('🛠️ Read');
+    await expect(toolBlock).toContainText(`🛠️ ${READ_TOOL_NAME}`);
 
     // Verify tool error exists and has proper styling
     const toolError = await webviewPage.locator('.tool-error').first();
@@ -56,7 +57,7 @@ test.describe('Tool Block Error Rendering', () => {
     // Create a message with a Bash tool that has an error
     const bashToolError = MockDataGenerator.createAssistantMessageWithToolError(
       "I'll run that command for you.",
-      "Bash", 
+      BASH_TOOL_NAME, 
       '{"command": "invalid-command"}',
       "bash: invalid-command: command not found"
     );
@@ -68,7 +69,7 @@ test.describe('Tool Block Error Rendering', () => {
     await webviewPage.waitForSelector('.message.assistant', { timeout: 5000 });
 
     // Verify both tool block and error exist
-    await expect(webviewPage.locator('.tool-block')).toContainText('🛠️ Bash');
+    await expect(webviewPage.locator('.tool-block')).toContainText(`🛠️ ${BASH_TOOL_NAME}`);
     await expect(webviewPage.locator('.tool-error')).toContainText('bash: invalid-command: command not found');
   });
 
@@ -78,7 +79,7 @@ test.describe('Tool Block Error Rendering', () => {
     // Create a message with a Write tool that has an error
     const writeToolError = MockDataGenerator.createAssistantMessageWithToolError(
       "I'll create that file for you.",
-      "Write",
+      WRITE_TOOL_NAME,
       '{"file_path": "/readonly/file.txt", "content": "test"}',
       "Permission denied: /readonly/file.txt is not writable"
     );
@@ -90,7 +91,7 @@ test.describe('Tool Block Error Rendering', () => {
     await webviewPage.waitForSelector('.message.assistant', { timeout: 5000 });
 
     // Verify tool block and error exist
-    await expect(webviewPage.locator('.tool-block')).toContainText('🛠️ Write');
+    await expect(webviewPage.locator('.tool-block')).toContainText(`🛠️ ${WRITE_TOOL_NAME}`);
     await expect(webviewPage.locator('.tool-error')).toContainText('Permission denied');
     
     // Verify diff viewer is NOT present when there's an error
@@ -104,7 +105,7 @@ test.describe('Tool Block Error Rendering', () => {
     // Create a normal tool message without error
     const normalTool = MockDataGenerator.createAssistantMessageWithTool(
       "I'll read the file for you.",
-      "Read",
+      READ_TOOL_NAME,
       '{"file_path": "/project/package.json"}',
       '{"name": "test-project", "version": "1.0.0"}'
     );

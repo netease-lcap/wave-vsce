@@ -1,6 +1,7 @@
 import { test, expect } from '../utils/webviewTestHarness.js';
 import { MessageInjector } from '../utils/messageInjector.js';
 import { UIStateVerifier } from '../utils/uiStateVerifier.js';
+import { EDIT_TOOL_NAME, BASH_TOOL_NAME, WRITE_TOOL_NAME, DELETE_FILE_TOOL_NAME, MULTI_EDIT_TOOL_NAME } from 'wave-agent-sdk';
 
 test.describe('Confirmation Dialog', () => {
     test('should show confirmation dialog for code modification tools', async ({ webviewPage }) => {
@@ -10,7 +11,7 @@ test.describe('Confirmation Dialog', () => {
         // Simulate a confirmation request for Edit tool
         await injector.simulateExtensionMessage('showConfirmation', {
             confirmationId: 'test_confirmation_123',
-            toolName: 'Edit',
+            toolName: EDIT_TOOL_NAME,
             confirmationType: '代码修改待确认',
             toolInput: { file_path: 'test.ts', old_string: 'old', new_string: 'new' }
         });
@@ -21,7 +22,7 @@ test.describe('Confirmation Dialog', () => {
 
         // Verify dialog content
         await expect(webviewPage.locator('.confirmation-title')).toHaveText('代码修改待确认');
-        await expect(webviewPage.locator('.confirmation-details')).toContainText('工具: Edit');
+        await expect(webviewPage.locator('.confirmation-details')).toContainText(`工具: ${EDIT_TOOL_NAME}`);
 
         // Verify buttons are present
         await expect(webviewPage.locator('.confirmation-btn-apply')).toHaveText('批准并继续');
@@ -38,14 +39,14 @@ test.describe('Confirmation Dialog', () => {
         // Simulate a confirmation request for Bash tool
         await injector.simulateExtensionMessage('showConfirmation', {
             confirmationId: 'test_confirmation_456',
-            toolName: 'Bash',
+            toolName: BASH_TOOL_NAME,
             confirmationType: '命令执行待确认',
             toolInput: { command: 'rm -rf temp/' }
         });
 
         // Verify confirmation dialog content for bash command
         await expect(webviewPage.locator('.confirmation-title')).toHaveText('命令执行待确认');
-        await expect(webviewPage.locator('.confirmation-details')).toContainText('工具: Bash');
+        await expect(webviewPage.locator('.confirmation-details')).toContainText(`工具: ${BASH_TOOL_NAME}`);
     });
 
     test('should send approval response when clicking apply button', async ({ webviewPage }) => {
@@ -57,7 +58,7 @@ test.describe('Confirmation Dialog', () => {
         // Simulate confirmation request
         await injector.simulateExtensionMessage('showConfirmation', {
             confirmationId: 'test_confirmation_789',
-            toolName: 'Write',
+            toolName: WRITE_TOOL_NAME,
             confirmationType: '代码修改待确认',
             toolInput: { file_path: 'new_file.ts', content: 'console.log("hello");' }
         });
@@ -127,14 +128,14 @@ test.describe('Confirmation Dialog', () => {
         // First confirmation request
         await injector.simulateExtensionMessage('showConfirmation', {
             confirmationId: 'confirmation_1',
-            toolName: 'Edit',
+            toolName: EDIT_TOOL_NAME,
             confirmationType: '代码修改待确认',
             toolInput: { file_path: 'file1.ts' }
         });
 
         // Verify first confirmation is visible
         await expect(webviewPage.locator('.confirmation-dialog')).toBeVisible();
-        await expect(webviewPage.locator('.confirmation-details')).toContainText('工具: Edit');
+        await expect(webviewPage.locator('.confirmation-details')).toContainText(`工具: ${EDIT_TOOL_NAME}`);
 
         // Approve first confirmation
         await webviewPage.locator('.confirmation-btn-apply').click();
@@ -185,32 +186,32 @@ test.describe('Confirmation Dialog', () => {
         // Send first confirmation request
         await injector.simulateExtensionMessage('showConfirmation', {
             confirmationId: 'conf_1',
-            toolName: 'Edit',
+            toolName: EDIT_TOOL_NAME,
             confirmationType: '代码修改待确认',
             toolInput: { file_path: 'file1.ts' }
         });
 
         // Verify first confirmation is visible
         await expect(webviewPage.locator('.confirmation-dialog')).toBeVisible();
-        await expect(webviewPage.locator('.confirmation-details')).toContainText('工具: Edit');
+        await expect(webviewPage.locator('.confirmation-details')).toContainText(`工具: ${EDIT_TOOL_NAME}`);
 
         // Send second confirmation request while first is still showing
         await injector.simulateExtensionMessage('showConfirmation', {
             confirmationId: 'conf_2',
-            toolName: 'Bash',
+            toolName: BASH_TOOL_NAME,
             confirmationType: '命令执行待确认',
             toolInput: { command: 'ls' }
         });
 
         // Still should show first confirmation
-        await expect(webviewPage.locator('.confirmation-details')).toContainText('工具: Edit');
+        await expect(webviewPage.locator('.confirmation-details')).toContainText(`工具: ${EDIT_TOOL_NAME}`);
 
         // Approve first confirmation
         await webviewPage.locator('.confirmation-btn-apply').click();
 
         // Verify second confirmation is now visible
         await expect(webviewPage.locator('.confirmation-dialog')).toBeVisible();
-        await expect(webviewPage.locator('.confirmation-details')).toContainText('工具: Bash');
+        await expect(webviewPage.locator('.confirmation-details')).toContainText(`工具: ${BASH_TOOL_NAME}`);
 
         // Approve second confirmation
         await webviewPage.locator('.confirmation-btn-apply').click();
@@ -262,7 +263,7 @@ test.describe('Confirmation Dialog', () => {
         // Simulate confirmation request
         await injector.simulateExtensionMessage('showConfirmation', {
             confirmationId: 'test_position',
-            toolName: 'Write',
+            toolName: WRITE_TOOL_NAME,
             confirmationType: '代码修改待确认',
             toolInput: {}
         });
@@ -299,11 +300,11 @@ test.describe('Confirmation Dialog', () => {
         const injector = new MessageInjector(webviewPage);
 
         const toolTests = [
-            { toolName: 'Edit', expectedType: '代码修改待确认' },
-            { toolName: 'MultiEdit', expectedType: '代码修改待确认' },
-            { toolName: 'Write', expectedType: '代码修改待确认' },
-            { toolName: 'Delete', expectedType: '代码修改待确认' },
-            { toolName: 'Bash', expectedType: '命令执行待确认' },
+            { toolName: EDIT_TOOL_NAME, expectedType: '代码修改待确认' },
+            { toolName: MULTI_EDIT_TOOL_NAME, expectedType: '代码修改待确认' },
+            { toolName: WRITE_TOOL_NAME, expectedType: '代码修改待确认' },
+            { toolName: DELETE_FILE_TOOL_NAME, expectedType: '代码修改待确认' },
+            { toolName: BASH_TOOL_NAME, expectedType: '命令执行待确认' },
             { toolName: 'SomeOtherTool', expectedType: '操作待确认' }
         ];
 
@@ -346,7 +347,7 @@ test.describe('Confirmation Dialog', () => {
         // Show confirmation dialog
         await injector.simulateExtensionMessage('showConfirmation', {
             confirmationId: 'test_space_occupation',
-            toolName: 'Edit',
+            toolName: EDIT_TOOL_NAME,
             confirmationType: '代码修改待确认',
             toolInput: {}
         });
@@ -402,7 +403,7 @@ test.describe('Confirmation Dialog', () => {
         // Show confirmation
         await injector.simulateExtensionMessage('showConfirmation', {
             confirmationId: 'test_input_hidden',
-            toolName: 'Edit',
+            toolName: EDIT_TOOL_NAME,
             confirmationType: '代码修改待确认',
             toolInput: {}
         });
