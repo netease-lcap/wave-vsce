@@ -125,6 +125,9 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
                 if (!q.multiSelect) {
                   setAnswers(prev => ({ ...prev, [q.question]: '__other__' }));
                 }
+                // Focus the input when "Other" is selected via arrow keys
+                const input = nextOption.querySelector('.other-text-input') as HTMLInputElement;
+                input?.focus();
               } else if (optIndex !== null) {
                 const opt = q.options[parseInt(optIndex)];
                 if (opt) {
