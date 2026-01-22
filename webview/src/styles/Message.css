@@ -284,15 +284,24 @@
     gap: 6px;
     font-size: 11px;
     line-height: 1.4;
+    flex-wrap: wrap;
 }
 
 .ask-user-result-q {
     color: var(--vscode-descriptionForeground);
     flex-shrink: 0;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    word-break: normal;
 }
 
 .ask-user-result-a {
     color: var(--vscode-descriptionForeground);
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    word-break: normal;
+    min-width: 0;
+    flex: 1;
 }
 
 .tool-result-inline {

@@ -84,7 +84,7 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
 
       const isAskUser = currentConfirmation.toolName === ASK_USER_QUESTION_TOOL_NAME;
 
-      if (e.key === 'Enter' && isAskUser) {
+      if (e.key === 'Enter' && !e.shiftKey && isAskUser) {
         const activeElement = document.activeElement;
         const isOptionFocused = activeElement?.classList.contains('option-item') || 
                                 activeElement?.closest('.option-item');
@@ -311,17 +311,22 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
               </div>
               <div className="option-content">
                 <div className="option-label">其他:</div>
-                <input
-                  type="text"
+                <textarea
                   className="other-text-input"
                   placeholder="输入自定义回答..."
                   value={otherInputs[q.question] || ''}
+                  rows={1}
                   onFocus={() => {
                     if (!q.multiSelect) {
                       setAnswers(prev => ({ ...prev, [q.question]: '__other__' }));
                     }
                   }}
-                  onChange={(e) => handleOtherInputChange(q.question, e.target.value)}
+                  onChange={(e) => {
+                    handleOtherInputChange(q.question, e.target.value);
+                    // Auto-resize
+                    e.target.style.height = 'auto';
+                    e.target.style.height = e.target.scrollHeight + 'px';
+                  }}
                 />
               </div>
             </label>

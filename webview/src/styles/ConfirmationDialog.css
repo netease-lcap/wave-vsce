@@ -108,6 +108,11 @@
   font-size: 13px;
   font-weight: 500;
   line-height: 1.4;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: normal;
+  flex: 1;
+  min-width: 0;
 }
 
 .options-list {
@@ -175,6 +180,9 @@
 .option-label {
   font-size: 13px;
   font-weight: 500;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: normal;
 }
 
 .recommended-tag {
@@ -188,6 +196,9 @@
   font-size: 12px;
   opacity: 0.8;
   line-height: 1.3;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: normal;
 }
 
 .other-option {
@@ -204,6 +215,9 @@
   font-size: 12px;
   margin-top: 4px;
   box-sizing: border-box;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 24px;
 }
 
 .question-progress {
