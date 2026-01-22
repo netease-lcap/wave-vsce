@@ -78,8 +78,10 @@
     "webpack:prod": "webpack --mode production --devtool false",
     "package": "node scripts/package.js",
     "test": "npm run test:playwright",
-    "test:playwright": "playwright test",
-    "test:playwright:ui": "playwright test --ui"
+    "test:playwright": "playwright test --project=chromium",
+    "test:playwright:ui": "playwright test --project=chromium --ui",
+    "test:demo": "playwright test --project=demo",
+    "test:demo:ui": "playwright test --project=demo --ui"
   },
   "devDependencies": {
     "@playwright/test": "^1.40.0",
