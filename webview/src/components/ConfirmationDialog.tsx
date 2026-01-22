@@ -320,11 +320,11 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
               </div>
               <div className="option-content">
                 <div className="option-label">其他:</div>
-                <textarea
+                <input
+                  type="text"
                   className="other-text-input"
                   placeholder="输入自定义回答..."
                   value={otherInputs[q.question] || ''}
-                  rows={1}
                   onFocus={() => {
                     if (!q.multiSelect) {
                       setAnswers(prev => ({ ...prev, [q.question]: '__other__' }));
@@ -332,9 +332,6 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
                   }}
                   onChange={(e) => {
                     handleOtherInputChange(q.question, e.target.value);
-                    // Auto-resize
-                    e.target.style.height = 'auto';
-                    e.target.style.height = e.target.scrollHeight + 'px';
                   }}
                   onCompositionStart={handleCompositionStart}
                   onCompositionEnd={handleCompositionEnd}
