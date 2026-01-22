@@ -24,6 +24,7 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
   const [otherInputs, setOtherInputs] = useState<Record<string, string>>({});
   const [feedback, setFeedback] = useState('');
   const [showFeedbackInput, setShowFeedbackInput] = useState(false);
+  const [isComposing, setIsComposing] = useState(false);
 
   const applyButtonRef = useRef<HTMLButtonElement>(null);
   const autoButtonRef = useRef<HTMLButtonElement>(null);
@@ -72,6 +73,14 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
     }
   }, [confirmation.confirmationId, currentQuestionIndex]);
 
+  const handleCompositionStart = useCallback(() => {
+    setIsComposing(true);
+  }, []);
+
+  const handleCompositionEnd = useCallback(() => {
+    setIsComposing(false);
+  }, []);
+
   useEffect(() => {
     // Add keyboard listener for confirmation dialog
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -84,7 +93,7 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
 
       const isAskUser = currentConfirmation.toolName === ASK_USER_QUESTION_TOOL_NAME;
 
-      if (e.key === 'Enter' && !e.shiftKey && isAskUser) {
+      if (e.key === 'Enter' && !e.shiftKey && isAskUser && !isComposing) {
         const activeElement = document.activeElement;
         const isOptionFocused = activeElement?.classList.contains('option-item') || 
                                 activeElement?.closest('.option-item');
@@ -103,7 +112,7 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleReject]);
+  }, [handleReject, isComposing]);
 
   const handleConfirm = useCallback(() => {
     if (confirmation.toolName === EXIT_PLAN_MODE_TOOL_NAME || confirmation.toolName === BASH_TOOL_NAME || [EDIT_TOOL_NAME, MULTI_EDIT_TOOL_NAME, WRITE_TOOL_NAME, DELETE_FILE_TOOL_NAME].includes(confirmation.toolName)) {
@@ -327,6 +336,8 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
                     e.target.style.height = 'auto';
                     e.target.style.height = e.target.scrollHeight + 'px';
                   }}
+                  onCompositionStart={handleCompositionStart}
+                  onCompositionEnd={handleCompositionEnd}
                 />
               </div>
             </label>
@@ -492,10 +503,12 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
                   value={feedback}
                   onChange={(e) => setFeedback(e.target.value)}
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
+                    if (e.key === 'Enter' && !isComposing) {
                       handleConfirm();
                     }
                   }}
+                  onCompositionStart={handleCompositionStart}
+                  onCompositionEnd={handleCompositionEnd}
                   autoFocus
                 />
                 <div className="feedback-actions">
