@@ -37,7 +37,8 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
   onConfigurationCancel,
   selection,
   inputContent,
-  permissionMode
+  permissionMode,
+  initialAttachedImages
 }, ref) => {
   const [message, setMessage] = useState('');
   const [isSelectionEnabled, setIsSelectionEnabled] = useState(false);
@@ -96,7 +97,7 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
   const [isLoadingSlashCommands, setIsLoadingSlashCommands] = useState(false);
   const [isComposing, setIsComposing] = useState(false);
-  const [attachedImages, setAttachedImages] = useState<AttachedImage[]>([]);
+  const [attachedImages, setAttachedImages] = useState<AttachedImage[]>(initialAttachedImages || []);
   
   // Knowledge Base navigation state
   const [kbNavigation, setKbNavigation] = useState<{
@@ -151,6 +152,13 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
       }, 0);
     }
   }, [inputContent]);
+  
+  // Initialize attached images from initialAttachedImages prop
+  useEffect(() => {
+    if (initialAttachedImages !== undefined) {
+      setAttachedImages(initialAttachedImages);
+    }
+  }, [initialAttachedImages]);
 
   // Close dropdown helper
   const closeDropdown = useCallback(() => {

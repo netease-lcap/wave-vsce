@@ -8,6 +8,13 @@ import {
     BASH_TOOL_NAME,
     ASK_USER_QUESTION_TOOL_NAME,
     EXIT_PLAN_MODE_TOOL_NAME,
+    GLOB_TOOL_NAME,
+    GREP_TOOL_NAME,
+    LS_TOOL_NAME,
+    READ_TOOL_NAME,
+    WRITE_TOOL_NAME,
+    DELETE_FILE_TOOL_NAME,
+    MULTI_EDIT_TOOL_NAME,
     type SubagentBlock,
     type Message,
     type SessionMetadata
@@ -120,11 +127,23 @@ test.describe('Product Specification Screenshots', () => {
         await webviewPage.screenshot({ path: 'test-results/spec-mermaid.png' });
 
         // 6. Diff Viewer - 使用 MockDataGenerator 的 Edit 工具
-        const diffMessage = MockDataGenerator.createEditToolMessage(
-            'src/main.ts',
-            'console.log("Hello, World!");',
-            'console.log("Hello, Wave!");'
-        );
+        const diffMessage: Message = {
+            role: 'assistant',
+            blocks: [
+                {
+                    type: 'tool',
+                    name: EDIT_TOOL_NAME,
+                    stage: 'end',
+                    compactParams: 'src/main.ts',
+                    parameters: JSON.stringify({
+                        file_path: 'src/main.ts',
+                        old_string: 'console.log("Hello, World!");',
+                        new_string: 'console.log("Hello, Wave!");'
+                    }),
+                    result: 'Text replaced successfully'
+                }
+            ]
+        };
         await injector.updateMessages([diffMessage]);
         await webviewPage.waitForSelector('.tool-container');
         await webviewPage.screenshot({ path: 'test-results/spec-diff-viewer.png' });
@@ -137,6 +156,7 @@ test.describe('Product Specification Screenshots', () => {
                     type: 'tool',
                     name: TODO_WRITE_TOOL_NAME,
                     stage: 'end',
+                    compactParams: '1/4 tasks',
                     parameters: JSON.stringify({
                         todos: [
                             { id: '1', content: '分析项目需求', status: 'completed' },
@@ -199,12 +219,19 @@ test.describe('Product Specification Screenshots', () => {
         await webviewPage.screenshot({ path: 'test-results/spec-subagent.png' });
 
         // 9. Bash Tool - 使用 MockDataGenerator
-        const bashMessage = MockDataGenerator.createAssistantMessageWithTool(
-            '运行测试：',
-            BASH_TOOL_NAME,
-            JSON.stringify({ command: 'npm test' }),
-            'PASS  tests/index.test.ts\n  ✓ should work (5ms)\n\nTest Suites: 1 passed, 1 total\nTests:       1 passed, 1 total\nSnapshots:   0 total\nTime:        1.2s'
-        );
+        const bashMessage: Message = {
+            role: 'assistant',
+            blocks: [
+                {
+                    type: 'tool',
+                    name: BASH_TOOL_NAME,
+                    stage: 'end',
+                    compactParams: '运行测试',
+                    parameters: JSON.stringify({ command: 'npm test', description: '运行测试' }),
+                    result: 'PASS  tests/index.test.ts\n  ✓ should work (5ms)\n\nTest Suites: 1 passed, 1 total\nTests:       1 passed, 1 total\nSnapshots:   0 total\nTime:        1.2s'
+                }
+            ]
+        };
         await injector.updateMessages([bashMessage]);
         await webviewPage.waitForSelector('.bash-command-unified');
         await webviewPage.screenshot({ path: 'test-results/spec-bash.png' });
@@ -359,9 +386,24 @@ test.describe('Product Specification Screenshots', () => {
         // 等待会话选择器组件出现
         await webviewPage.waitForSelector('.session-selector');
         
-        // 对于原生 select，点击可能无法在截图中显示展开状态，
-        // 但我们可以截取包含选择器的头部区域
+        // 为了在截图中展示下拉框内容，我们将 select 的 size 属性设置为大于 1
+        await webviewPage.evaluate(() => {
+            const select = document.querySelector('.session-dropdown') as HTMLSelectElement;
+            if (select) {
+                select.size = 4; // 展示 4 个选项
+                select.style.height = 'auto';
+            }
+        });
+        
         await webviewPage.screenshot({ path: 'test-results/spec-sessions.png' });
+
+        // 恢复 select 状态
+        await webviewPage.evaluate(() => {
+            const select = document.querySelector('.session-dropdown') as HTMLSelectElement;
+            if (select) {
+                select.size = 0;
+            }
+        });
 
         // 15. Plan 确认对话框 - 只显示确认对话框组件
         await injector.simulateExtensionMessage('showConfirmation', {
@@ -427,5 +469,273 @@ test.describe('Product Specification Screenshots', () => {
         const bashConfirmDialog = webviewPage.locator('.confirmation-dialog');
         await bashConfirmDialog.waitFor({ state: 'visible' });
         await bashConfirmDialog.screenshot({ path: 'test-results/spec-bash-confirm.png' });
+
+        // 18. Image Attachment
+        await injector.simulateExtensionMessage('setInitialState', {
+            messages: [],
+            isStreaming: false,
+            sessions: [],
+            configurationData: {
+                authMethod: 'apiKey',
+                apiKey: 'sk-xxxxxxxxxxxxxxxx',
+                baseURL: 'https://api.openai.com/v1',
+                agentModel: 'gpt-4',
+                fastModel: 'gpt-3.5-turbo',
+                backendLink: ''
+            },
+            permissionMode: 'default',
+            inputContent: '请分析这张图片中的 UI 设计',
+            attachedImages: [
+                {
+                    id: 'img-1',
+                    data: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
+                    mimeType: 'image/png',
+                    filename: 'ui-design.png'
+                }
+            ]
+        });
+        await webviewPage.waitForSelector('.attached-images');
+        await webviewPage.locator('.input-container').screenshot({ path: 'test-results/spec-image-attachment.png' });
+
+        // 19. KB Suggestions
+        await webviewPage.focus('[data-testid="message-input"]');
+        await webviewPage.keyboard.press('Control+A');
+        await webviewPage.keyboard.press('Backspace');
+        await webviewPage.keyboard.type('@');
+        
+        // Simulate KB items response
+        await injector.simulateExtensionMessage('kbItemsResponse', {
+            level: 'root',
+            result: {
+                success: true,
+                data: [
+                    { id: 'kb-1', name: '技术文档库' },
+                    { id: 'kb-2', name: '项目规范' }
+                ]
+            }
+        });
+        
+        await webviewPage.waitForSelector('.suggestion-item:has-text("知识库: 技术文档库")');
+        await webviewPage.screenshot({ path: 'test-results/spec-kb-suggestions.png' });
+        await webviewPage.keyboard.press('Escape');
+
+        // 20. Exploration Tools
+        const explorationMessages: Message[] = [
+            {
+                role: 'assistant',
+                blocks: [
+                    {
+                        type: 'tool',
+                        name: 'Task',
+                        stage: 'end',
+                        compactParams: 'Explore: 查找所有 API 定义',
+                        parameters: JSON.stringify({ subagent_type: 'Explore', description: '查找所有 API 定义', prompt: '...' }),
+                        result: '子代理已完成探索',
+                        shortResult: '子代理已完成探索'
+                    },
+                    {
+                        type: 'tool',
+                        name: GLOB_TOOL_NAME,
+                        stage: 'end',
+                        compactParams: 'src/**/*.ts in src',
+                        parameters: JSON.stringify({ pattern: 'src/**/*.ts', path: 'src' }),
+                        result: 'src/main.ts\nsrc/app.tsx\nsrc/utils.ts',
+                        shortResult: 'Found 3 files'
+                    },
+                    {
+                        type: 'tool',
+                        name: GREP_TOOL_NAME,
+                        stage: 'end',
+                        compactParams: 'interface.*API ts in src',
+                        parameters: JSON.stringify({ pattern: 'interface.*API', type: 'ts', path: 'src' }),
+                        result: 'src/types.ts:10:export interface UserAPI {\nsrc/types.ts:20:export interface AuthAPI {',
+                        shortResult: 'Found 2 matching lines'
+                    },
+                    {
+                        type: 'tool',
+                        name: LS_TOOL_NAME,
+                        stage: 'end',
+                        compactParams: 'src',
+                        parameters: JSON.stringify({ path: 'src' }),
+                        result: 'components/\nutils/\nmain.ts\napp.tsx',
+                        shortResult: '4 items (2 dirs, 2 files)'
+                    },
+                    {
+                        type: 'tool',
+                        name: READ_TOOL_NAME,
+                        stage: 'end',
+                        compactParams: 'src/main.ts 1:2000',
+                        parameters: JSON.stringify({ file_path: 'src/main.ts' }),
+                        result: 'import express from "express";\n...',
+                        shortResult: 'Read 150 lines'
+                    }
+                ]
+            }
+        ];
+        await injector.updateMessages(explorationMessages as any);
+        await webviewPage.waitForSelector('.tool-container');
+        await webviewPage.locator('.messages-container').screenshot({ path: 'test-results/spec-exploration.png' });
+
+        // 21. File Operation Tools
+        const fileOpMessages: Message[] = [
+            {
+                role: 'assistant',
+                blocks: [
+                    {
+                        type: 'tool',
+                        name: WRITE_TOOL_NAME,
+                        stage: 'end',
+                        compactParams: 'src/new-file.ts 1 lines, 29 chars',
+                        parameters: JSON.stringify({ file_path: 'src/new-file.ts', content: 'export const hello = "world";' }),
+                        result: 'File created (1 lines, 29 characters)',
+                        shortResult: 'File created'
+                    },
+                    {
+                        type: 'tool',
+                        name: DELETE_FILE_TOOL_NAME,
+                        stage: 'end',
+                        compactParams: 'old-config.json',
+                        parameters: JSON.stringify({ target_file: 'old-config.json' }),
+                        result: 'Successfully deleted file: old-config.json',
+                        shortResult: 'File deleted'
+                    },
+                    {
+                        type: 'tool',
+                        name: MULTI_EDIT_TOOL_NAME,
+                        stage: 'end',
+                        compactParams: 'src/app.tsx (2 edits)',
+                        parameters: JSON.stringify({ file_path: 'src/app.tsx', edits: [{ old_string: 'A', new_string: 'B' }, { old_string: 'C', new_string: 'D' }] }),
+                        result: 'Applied 2 edits',
+                        shortResult: 'Applied 2 edits'
+                    }
+                ]
+            }
+        ];
+        await injector.updateMessages(fileOpMessages);
+        await webviewPage.waitForSelector('.tool-container');
+        await webviewPage.locator('.messages-container').screenshot({ path: 'test-results/spec-file-ops.png' });
+
+        // 22. Vision
+        const visionMessages = [
+            {
+                role: 'user',
+                blocks: [
+                    { type: 'text', content: '这张图片里有什么？' },
+                    { type: 'image', imageUrls: ['data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='] }
+                ]
+            },
+            MockDataGenerator.createAssistantMessage('这张图片显示了一个简单的 UI 布局，包含一个侧边栏和一个主内容区域。侧边栏使用了深色主题...')
+        ];
+        await injector.updateMessages(visionMessages as any);
+        await webviewPage.locator('.messages-container').screenshot({ path: 'test-results/spec-vision.png' });
+
+        // 23. Mermaid Fullscreen
+        const mermaidMsg = [
+            MockDataGenerator.createAssistantMessage('```mermaid\ngraph LR\n  A[开始] --> B(处理)\n  B --> C{结果}\n  C -->|成功| D[结束]\n  C -->|失败| E[重试]\n```')
+        ];
+        await injector.updateMessages(mermaidMsg);
+        await webviewPage.waitForSelector('.mermaid-container svg');
+        await webviewPage.click('.mermaid-container'); // Click to open fullscreen
+        await webviewPage.waitForSelector('.mermaid-fullscreen-modal');
+        await webviewPage.screenshot({ path: 'test-results/spec-mermaid-fullscreen.png' });
+        await webviewPage.keyboard.press('Escape');
+
+        // 24. LSP
+        await injector.simulateExtensionMessage('setInitialState', {
+            messages: [
+                {
+                    role: 'assistant',
+                    blocks: [
+                        {
+                            type: 'tool',
+                            name: 'LSP',
+                            stage: 'end',
+                            compactParams: 'goToDefinition (src/main.ts:10:5)',
+                            parameters: JSON.stringify({ operation: 'goToDefinition', filePath: 'src/main.ts', line: 10, character: 5 }),
+                            result: 'Found definition at src/utils.ts:25:10'
+                        },
+                        {
+                            type: 'tool',
+                            name: 'LSP',
+                            stage: 'end',
+                            compactParams: 'findReferences (src/utils.ts:25:10)',
+                            parameters: JSON.stringify({ operation: 'findReferences', filePath: 'src/utils.ts', line: 25, character: 10 }),
+                            result: 'Found 3 references:\n- src/main.ts:10:5\n- src/app.ts:42:12\n- tests/utils.test.ts:15:8'
+                        },
+                        {
+                            type: 'tool',
+                            name: 'LSP',
+                            stage: 'end',
+                            compactParams: 'hover (src/main.ts:10:5)',
+                            parameters: JSON.stringify({ operation: 'hover', filePath: 'src/main.ts', line: 10, character: 5 }),
+                            result: 'interface User {\n  id: string;\n  name: string;\n}\n\nRepresents a user in the system.'
+                        },
+                        {
+                            type: 'tool',
+                            name: 'LSP',
+                            stage: 'end',
+                            compactParams: 'incomingCalls (src/utils.ts:25:10)',
+                            parameters: JSON.stringify({ operation: 'incomingCalls', filePath: 'src/utils.ts', line: 25, character: 10 }),
+                            result: 'Callers of getUser:\n- AuthService.login (src/auth.ts:50)\n- AdminPanel.render (src/admin.tsx:120)'
+                        }
+                    ]
+                }
+            ]
+        });
+        await webviewPage.locator('.messages-container').screenshot({ path: 'test-results/spec-lsp.png' });
+
+        // 25. Skill
+        await injector.simulateExtensionMessage('setInitialState', {
+            messages: [
+                {
+                    role: 'assistant',
+                    blocks: [
+                        {
+                            type: 'tool',
+                            name: 'Skill',
+                            stage: 'end',
+                            compactParams: 'docx',
+                            parameters: JSON.stringify({ skill_name: 'docx' }),
+                            result: 'Document created successfully at ./report.docx',
+                            shortResult: 'Invoked skill: docx'
+                        }
+                    ]
+                }
+            ]
+        });
+        await webviewPage.locator('.messages-container').screenshot({ path: 'test-results/spec-skill.png' });
+
+        // 26. MCP
+        await injector.simulateExtensionMessage('setInitialState', {
+            messages: [
+                MockDataGenerator.createAssistantMessageWithTool(
+                    '正在通过 MCP 查询外部数据...',
+                    'mcp_search_tool',
+                    JSON.stringify({ query: 'latest news' }),
+                    'Found 3 results from external source.'
+                )
+            ]
+        });
+        await webviewPage.locator('.messages-container').screenshot({ path: 'test-results/spec-mcp.png' });
+
+        // 27. Reasoning
+        await injector.simulateExtensionMessage('setInitialState', {
+            messages: [
+                {
+                    role: 'assistant',
+                    blocks: [
+                        {
+                            type: 'reasoning',
+                            content: '首先，我需要分析用户的需求。用户想要一个关于 React 的教程。接下来，我会搜索相关的文档和示例代码。最后，我将整理这些信息并生成一个详细的教程。'
+                        },
+                        {
+                            type: 'text',
+                            content: '好的，这是一个关于 React 的基础教程...'
+                        }
+                    ]
+                }
+            ]
+        });
+        await webviewPage.locator('.messages-container').screenshot({ path: 'test-results/spec-reasoning.png' });
     });
 });

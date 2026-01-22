@@ -325,10 +325,22 @@ export const Message: React.FC<MessageProps> = (props) => {
       );
     }
 
+    // For other tools, show result or shortResult if present
+    if ((toolBlock.result || toolBlock.shortResult) && !errorContent) {
+      return (
+        <div key={index} className="tool-container">
+          {toolHeader}
+          <div className="tool-result-block">
+            <div className="result-raw">{(toolBlock.shortResult || toolBlock.result || '').trim()}</div>
+          </div>
+        </div>
+      );
+    }
+
     // For other tools, show error if present
     if (errorContent) {
       return (
-        <div key={index}>
+        <div key={index} className="tool-container">
           {toolHeader}
           {errorContent}
         </div>
@@ -384,6 +396,20 @@ export const Message: React.FC<MessageProps> = (props) => {
           subagentMessages={props.subagentMessages} 
           vscode={props.vscode}
         />
+      </div>
+    );
+  };
+
+  const renderReasoningBlock = (reasoningBlock: any, index: number) => {
+    return (
+      <div key={`reasoning-${index}`} className="reasoning-block">
+        <div className="reasoning-header">
+          <i className="codicon codicon-lightbulb"></i>
+          <span>思考过程</span>
+        </div>
+        <div className="reasoning-content">
+          {reasoningBlock.content}
+        </div>
       </div>
     );
   };
@@ -464,6 +490,8 @@ export const Message: React.FC<MessageProps> = (props) => {
         return renderImageBlock(block as ImageBlock, index);
       case 'subagent':
         return renderSubagentBlock(block as SubagentBlock, index);
+      case 'reasoning':
+        return renderReasoningBlock(block, index);
       default:
         return null;
     }

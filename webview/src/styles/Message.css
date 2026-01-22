@@ -93,7 +93,29 @@
     margin-top: 4px;
 }
 
-/* Image blocks */
+/* Reasoning blocks */
+.reasoning-block {
+    margin: 8px 0;
+    padding: 8px 12px;
+    background-color: var(--vscode-textBlockQuote-background);
+    border-left: 4px solid var(--vscode-textBlockQuote-border);
+    color: var(--vscode-descriptionForeground);
+    font-style: italic;
+    font-size: 0.9em;
+    border-radius: 0 4px 4px 0;
+}
+
+.reasoning-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 4px;
+    font-weight: 600;
+    font-style: normal;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
 .image-block {
     margin: 8px 0;
     display: flex;
@@ -151,6 +173,12 @@
     color: var(--vscode-descriptionForeground);
     font-weight: normal;
     font-size: 11px;
+    max-width: 400px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: inline-block;
+    vertical-align: bottom;
 }
 
 /* Tool Styles */
@@ -238,7 +266,7 @@
     white-space: pre-wrap;
     word-break: break-word;
     max-height: 100px;
-    overflow: hidden;
+    overflow-y: auto;
     font-weight: normal;
     font-family: var(--vscode-editor-font-family);
 }
@@ -271,6 +299,10 @@
 .result-raw {
     color: var(--vscode-descriptionForeground);
     font-size: 11px;
+    max-height: 100px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
 }
 
 .ask-user-result-item {

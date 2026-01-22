@@ -31,7 +31,9 @@ const initialState: ChatState = {
   // Subagent state
   subagentMessages: new Map(),
   // Permission mode state
-  permissionMode: 'default'
+  permissionMode: 'default',
+  // Attached images state
+  attachedImages: []
 };
 
 function chatReducer(state: ChatState, action: ChatAction): ChatState {
@@ -136,15 +138,16 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
       return {
         ...state,
         messages: action.payload.messages,
-        isStreaming: action.payload.isStreaming,
-        sessions: action.payload.sessions,
-        currentSession: action.payload.currentSession,
-        configurationData: action.payload.configurationData,
-        pendingConfirmations: action.payload.pendingConfirmations,
+        isStreaming: action.payload.isStreaming !== undefined ? action.payload.isStreaming : state.isStreaming,
+        sessions: action.payload.sessions || state.sessions || [],
+        currentSession: action.payload.currentSession || state.currentSession,
+        configurationData: action.payload.configurationData || state.configurationData,
+        pendingConfirmations: action.payload.pendingConfirmations || [],
         subagentMessages: subagentMessagesMap,
         inputContent: action.payload.inputContent,
         selection: action.payload.selection,
         permissionMode: action.payload.permissionMode || state.permissionMode,
+        attachedImages: action.payload.attachedImages || [],
         sessionsLoading: false,
         configurationLoading: false
       };
@@ -256,7 +259,8 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
               selection: message.selection,
               subagentMessages: message.subagentMessages,
               inputContent: message.inputContent,
-              permissionMode: message.permissionMode
+              permissionMode: message.permissionMode,
+              attachedImages: message.attachedImages
             }
           });
           break;
@@ -425,6 +429,7 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
           selection={state.selection}
           inputContent={state.inputContent}
           permissionMode={state.permissionMode}
+          initialAttachedImages={state.attachedImages}
         />
       )}
 

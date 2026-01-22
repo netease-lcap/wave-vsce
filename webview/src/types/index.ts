@@ -167,6 +167,7 @@ export interface MessageInputProps {
   selection?: SelectionInfo;
   inputContent?: string;
   permissionMode?: PermissionMode;
+  initialAttachedImages?: AttachedImage[];
 }
 
 /**
@@ -238,6 +239,8 @@ export interface ChatState {
   selection?: SelectionInfo;
   // Permission mode state
   permissionMode?: PermissionMode;
+  // Attached images state
+  attachedImages?: AttachedImage[];
 }
 
 export interface ConfirmationRequest {
@@ -339,4 +342,5 @@ export type ChatAction =
       subagentMessages?: Record<string, Message[]>;
       inputContent?: string;
       permissionMode?: PermissionMode;
+      attachedImages?: AttachedImage[];
     } };
