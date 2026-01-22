@@ -27,6 +27,7 @@
 .message.streaming::after {
     content: "▋";
     animation: blink 1s ease-in-out infinite;
+}
 
 /* Content Container for Mixed HTML/Mermaid Content */
 .message-content-container {
@@ -54,9 +55,6 @@
     display: block;
     height: 0;
     overflow: hidden;
-}
-    margin-left: 2px;
-    display: inline-block;
 }
 
 .message-content {
@@ -190,12 +188,6 @@
     color: var(--vscode-descriptionForeground);
     font-weight: normal;
     font-size: 11px;
-    max-width: 400px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    display: inline-block;
-    vertical-align: bottom;
 }
 
 /* Tool Styles */
