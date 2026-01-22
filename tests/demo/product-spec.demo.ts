@@ -726,7 +726,7 @@ test.describe('Product Specification Screenshots', () => {
                     blocks: [
                         {
                             type: 'reasoning',
-                            content: '首先，我需要分析用户的需求。用户想要一个关于 React 的教程。接下来，我会搜索相关的文档和示例代码。最后，我将整理这些信息并生成一个详细的教程。'
+                            content: '我将按照以下步骤进行：\n\n1. **分析需求**：用户需要一个 React 教程\n2. **搜索资源**：查找相关文档和示例\n3. **生成内容**：整理并输出教程\n\n```typescript\n// 示例代码\nconst App = () => <div>Hello Wave</div>;\n```'
                         },
                         {
                             type: 'text',

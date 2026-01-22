@@ -116,6 +116,31 @@ export const Message: React.FC<MessageProps> = (props) => {
     return classes.join(' ');
   };
 
+  const renderMarkdownContent = (content: string, index: number) => {
+    const parsed = parseMarkdownWithMermaid(content);
+    return (
+      <div key={index} className="message-content-container">
+        {parsed.elements.map((element, elIndex) => (
+          element.type === 'mermaid' ? (
+            <MermaidRenderer 
+              key={element.id || `mermaid-${index}-${elIndex}`}
+              content={element.content}
+              vscode={props.vscode}
+            />
+          ) : (
+            <div 
+              key={`html-${index}-${elIndex}`}
+              className="message-content markdown-content"
+              dangerouslySetInnerHTML={{ 
+                __html: element.content 
+              }}
+            />
+          )
+        ))}
+      </div>
+    );
+  };
+
   const renderBashIO = (toolBlock: ToolBlock) => {
     const stage = toolBlock.stage;
     
@@ -408,7 +433,7 @@ export const Message: React.FC<MessageProps> = (props) => {
           <span>思考过程</span>
         </div>
         <div className="reasoning-content">
-          {reasoningBlock.content}
+          {renderMarkdownContent(reasoningBlock.content || '', index)}
         </div>
       </div>
     );
@@ -455,28 +480,7 @@ export const Message: React.FC<MessageProps> = (props) => {
           );
         }
 
-        const parsed = parseMarkdownWithMermaid(content);
-        return (
-          <div key={index} className="message-content-container">
-            {parsed.elements.map((element, elIndex) => (
-              element.type === 'mermaid' ? (
-                <MermaidRenderer 
-                  key={element.id || `mermaid-${index}-${elIndex}`}
-                  content={element.content}
-                  vscode={props.vscode}
-                />
-              ) : (
-                <div 
-                  key={`html-${index}-${elIndex}`}
-                  className="message-content markdown-content"
-                  dangerouslySetInnerHTML={{ 
-                    __html: element.content 
-                  }}
-                />
-              )
-            ))}
-          </div>
-        );
+        return renderMarkdownContent(content, index);
       }
       case 'error':
         return (
