@@ -23,6 +23,12 @@ export const test = base.extend<WebviewTestContext>({
         // Load the React webview app for testing
         const chatJsPath = path.join(process.cwd(), 'webview', 'dist', 'chat.js');
         const webviewDistPath = path.join(process.cwd(), 'webview', 'dist');
+        const vscodeStylesPath = path.join(process.cwd(), 'tests', 'utils', 'vscode-styles.css');
+
+        let vscodeStyles = '';
+        if (fs.existsSync(vscodeStylesPath)) {
+            vscodeStyles = fs.readFileSync(vscodeStylesPath, 'utf8');
+        }
 
         // Serve the webview files through a mock server that simulates vscode-webview:// protocol
         await page.route('vscode-webview://**', (route, request) => {
@@ -71,47 +77,7 @@ export const test = base.extend<WebviewTestContext>({
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@vscode/codicons@latest/dist/codicon.css">
     <style>
         /* Global VS Code CSS Variables for Testing */
-        :root {
-            /* Dropdown and widget styling */
-            --vscode-dropdown-background: #3c3c3c;
-            --vscode-dropdown-border: #464647;
-            --vscode-dropdown-listBackground: #383838;
-            --vscode-widget-shadow: rgba(0, 0, 0, 0.36);
-
-            /* List and selection colors */
-            --vscode-list-hoverBackground: #2a2d2e;
-            --vscode-list-activeSelectionBackground: #094771;
-            --vscode-list-activeSelectionForeground: #ffffff;
-            --vscode-list-inactiveSelectionBackground: #37373d;
-
-            /* Input and editor colors */
-            --vscode-input-background: #3c3c3c;
-            --vscode-input-border: #464647;
-            --vscode-input-foreground: #cccccc;
-            --vscode-input-placeholderForeground: #858585;
-
-            /* Editor colors */
-            --vscode-editor-background: #1e1e1e;
-            --vscode-editor-foreground: #d4d4d4;
-            --vscode-editor-findMatchHighlightBackground: #ea5c004d;
-            --vscode-editor-findMatchHighlightForeground: #ffffff;
-
-            /* General colors */
-            --vscode-foreground: #cccccc;
-            --vscode-descriptionForeground: #9c9c9c;
-            --vscode-icon-foreground: #cccccc;
-            --vscode-panel-border: #464647;
-
-            /* Button colors */
-            --vscode-button-background: #0e639c;
-            --vscode-button-foreground: #ffffff;
-            --vscode-button-hoverBackground: #1177bb;
-
-            /* Typography */
-            --vscode-font-family: 'Segoe UI', system-ui, sans-serif;
-            --vscode-font-size: 13px;
-            --vscode-font-weight: 400;
-        }
+        ${vscodeStyles}
 
         /* Ensure body has proper styling */
         body {
