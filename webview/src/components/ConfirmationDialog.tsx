@@ -219,14 +219,14 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
 
     return (
       <div className="ask-user-questions">
-        <div className="question-progress">
-          问题 {currentQuestionIndex + 1} / {questions.length}
-        </div>
         <div className="question-item">
           <div className="question-header-row">
             <span className="question-header-chip">{q.header}</span>
-            <span className="question-text">{q.question}</span>
+            <div className="question-progress">
+              问题 {currentQuestionIndex + 1} / {questions.length}
+            </div>
           </div>
+          <div className="question-text">{q.question}</div>
           <div className="options-list">
             {q.options.map((opt, oIndex) => (
               <label 
