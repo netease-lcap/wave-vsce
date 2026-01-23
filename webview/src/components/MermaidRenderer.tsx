@@ -517,15 +517,6 @@ export const MermaidRenderer: React.FC<MermaidRendererProps> = ({ content, class
           <div className="error-message">
             <strong>Diagram Error:</strong>
             <pre>{error}</pre>
-            <button 
-              className="retry-button"
-              onClick={() => {
-                setError(null);
-                renderMermaid();
-              }}
-            >
-              重试渲染
-            </button>
           </div>
         </div>
       );
@@ -577,12 +568,6 @@ export const MermaidRenderer: React.FC<MermaidRendererProps> = ({ content, class
         {!svgContent && !isRendering && (
           <div className="mermaid-empty">
             <p>图表内容为空或语法错误</p>
-            <button 
-              className="retry-button"
-              onClick={renderMermaid}
-            >
-              重新渲染
-            </button>
           </div>
         )}
       </div>

@@ -211,27 +211,6 @@
   word-wrap: break-word;
 }
 
-/* Action Buttons */
-.retry-button {
-  background: var(--vscode-button-background);
-  color: var(--vscode-button-foreground);
-  border: none;
-  border-radius: 4px;
-  padding: 6px 12px;
-  font-size: 12px;
-  font-family: var(--vscode-font-family);
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-.retry-button:hover {
-  background: var(--vscode-button-hoverBackground);
-}
-
-.retry-button:active {
-  background: var(--vscode-button-activeBackground, var(--vscode-button-background));
-}
-
 /* Empty State */
 .mermaid-empty {
   padding: 24px;
