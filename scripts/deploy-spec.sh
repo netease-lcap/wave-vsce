@@ -12,13 +12,23 @@ if [ ! -d "$TARGET_DIR" ]; then
     mkdir -p "$TARGET_DIR"
 fi
 
-# 复制 spec.html
+# 复制 index.html 和 spec.html
+if [ -f "$SOURCE_DIR/index.html" ]; then
+    echo "Copying index.html..."
+    cp "$SOURCE_DIR/index.html" "$TARGET_DIR/"
+fi
 if [ -f "$SOURCE_DIR/spec.html" ]; then
     echo "Copying spec.html..."
     cp "$SOURCE_DIR/spec.html" "$TARGET_DIR/"
 else
     echo "Error: spec.html not found in $SOURCE_DIR"
     exit 1
+fi
+
+# 复制 LOGO.png
+if [ -f "$SOURCE_DIR/LOGO.png" ]; then
+    echo "Copying LOGO.png..."
+    cp "$SOURCE_DIR/LOGO.png" "$TARGET_DIR/"
 fi
 
 # 复制 screenshots 目录

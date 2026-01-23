@@ -15,36 +15,9 @@
   </style>
 </head>
 <body>
-<div id="download-container" style="margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 8px; background-color: #f9f9f9;">
-  <p>正在获取最新版本...</p>
+<div style="margin: 20px 0; padding: 10px; border-bottom: 1px solid #eee;">
+  <a href="./index.html" style="color: #007acc; text-decoration: none; font-weight: bold;">← 返回下载页面</a>
 </div>
-<script>
-  fetch('./package.json')
-    .then(response => response.json())
-    .then(data => {
-      const version = data.version;
-      const vsixName = `wave-vscode-chat-${version}.vsix`;
-      const container = document.getElementById('download-container');
-      container.innerHTML = `
-        <p style="margin-top: 0;"><strong>最新版本: v${version}</strong></p>
-        <button onclick="window.location.href='./${vsixName}'" style="
-          padding: 10px 20px;
-          background-color: #007acc;
-          color: white;
-          border: none;
-          border-radius: 4px;
-          cursor: pointer;
-          font-size: 16px;
-          font-weight: bold;
-        ">下载 VSIX 插件</button>
-        <p style="margin-bottom: 0; font-size: 12px; color: #666; margin-top: 10px;">下载后在 VS Code 中通过 "Install from VSIX..." 安装</p>
-      `;
-    })
-    .catch(err => {
-      console.error('Failed to load package.json', err);
-      document.getElementById('download-container').innerHTML = '<p style="color: red;">无法获取版本信息，请确保 package.json 已部署。</p>';
-    });
-</script>
 <h1 id="wave-代码智聊-产品规格说明书">Wave 代码智聊 产品规格说明书</h1>
 <p>Wave 代码智聊是一款集成在 VS Code 中的 AI 辅助编程扩展，旨在通过强大的 AI 能力提升开发者的编码效率。本文档详细介绍了该产品的所有核心功能。</p>
 <h2 id="功能概览">功能概览</h2>
