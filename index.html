@@ -76,10 +76,6 @@
       </ol>
       <pre style="background-color: #f4f4f4; padding: 12px; border-radius: 4px; overflow-x: auto; font-family: monospace; font-size: 14px;">{"X-AIGW-APP": "_wave_code", "X-Access-Token": "your_access_token"}</pre>
     </div>
-
-    <div class="nav-links">
-      <a href="./spec.html">查看产品规格说明书</a>
-    </div>
   </div>
 
   <script>
@@ -91,19 +87,34 @@
         const container = document.getElementById('download-container');
         container.innerHTML = `
           <p style="margin-top: 0; font-size: 18px;"><strong>最新版本: v${version}</strong></p>
-          <button onclick="window.location.href='./${vsixName}'" style="
-            padding: 12px 28px;
-            background-color: #007acc;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 18px;
-            font-weight: bold;
-            transition: background-color 0.2s;
-          " onmouseover="this.style.backgroundColor='#005a9e'" onmouseout="this.style.backgroundColor='#007acc'">
-            下载 VSIX 插件
-          </button>
+          <div style="display: flex; justify-content: center; gap: 15px; margin-top: 10px;">
+            <button onclick="window.location.href='./${vsixName}'" style="
+              padding: 12px 28px;
+              background-color: #007acc;
+              color: white;
+              border: none;
+              border-radius: 6px;
+              cursor: pointer;
+              font-size: 18px;
+              font-weight: bold;
+              transition: background-color 0.2s;
+            " onmouseover="this.style.backgroundColor='#005a9e'" onmouseout="this.style.backgroundColor='#007acc'">
+              下载 VSIX 插件
+            </button>
+            <button onclick="window.location.href='./spec.html'" style="
+              padding: 12px 28px;
+              background-color: white;
+              color: #007acc;
+              border: 1px solid #007acc;
+              border-radius: 6px;
+              cursor: pointer;
+              font-size: 18px;
+              font-weight: bold;
+              transition: all 0.2s;
+            " onmouseover="this.style.backgroundColor='#f0f7ff'" onmouseout="this.style.backgroundColor='white'">
+              查看产品规格
+            </button>
+          </div>
           <p style="margin-bottom: 0; font-size: 14px; color: #666; margin-top: 15px;">
             下载后在 VS Code 中通过 "Install from VSIX..." 安装
           </p>
