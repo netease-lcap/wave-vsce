@@ -81,7 +81,8 @@
     "test:playwright": "playwright test --project=chromium",
     "test:playwright:ui": "playwright test --project=chromium --ui",
     "test:demo": "playwright test --project=demo",
-    "test:demo:ui": "playwright test --project=demo --ui"
+    "test:demo:ui": "playwright test --project=demo --ui",
+    "deploy:spec": "bash scripts/deploy-spec.sh"
   },
   "devDependencies": {
     "@playwright/test": "^1.40.0",

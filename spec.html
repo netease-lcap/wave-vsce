@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>PRODUCT_SPEC</title>
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    span.underline{text-decoration: underline;}
+    div.column{display: inline-block; vertical-align: top; width: 50%;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+  </style>
+</head>
+<body>
+<div id="download-container" style="margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 8px; background-color: #f9f9f9;">
+  <p>正在获取最新版本...</p>
+</div>
+<script>
+  fetch('./package.json')
+    .then(response => response.json())
+    .then(data => {
+      const version = data.version;
+      const vsixName = `wave-vscode-chat-${version}.vsix`;
+      const container = document.getElementById('download-container');
+      container.innerHTML = `
+        <p style="margin-top: 0;"><strong>最新版本: v${version}</strong></p>
+        <button onclick="window.location.href='./${vsixName}'" style="
+          padding: 10px 20px;
+          background-color: #007acc;
+          color: white;
+          border: none;
+          border-radius: 4px;
+          cursor: pointer;
+          font-size: 16px;
+          font-weight: bold;
+        ">下载 VSIX 插件</button>
+        <p style="margin-bottom: 0; font-size: 12px; color: #666; margin-top: 10px;">下载后在 VS Code 中通过 "Install from VSIX..." 安装</p>
+      `;
+    })
+    .catch(err => {
+      console.error('Failed to load package.json', err);
+      document.getElementById('download-container').innerHTML = '<p style="color: red;">无法获取版本信息，请确保 package.json 已部署。</p>';
+    });
+</script>
+<h1 id="wave-代码智聊-产品规格说明书">Wave 代码智聊 产品规格说明书</h1>
+<p>Wave 代码智聊是一款集成在 VS Code 中的 AI 辅助编程扩展，旨在通过强大的 AI 能力提升开发者的编码效率。本文档详细介绍了该产品的所有核心功能。</p>
+<h2 id="功能概览">功能概览</h2>
+<p>本扩展包含以下 26 个核心功能模块：</p>
+<h3 id="核心聊天体验">核心聊天体验</h3>
+<ol type="1">
+<li><strong>欢迎界面</strong> - 用户引导和功能介绍</li>
+<li><strong>基础对话</strong> - Markdown格式的AI对话交互</li>
+<li><strong>代码选择引用</strong> - 智能识别和引用代码上下文</li>
+</ol>
+<h3 id="智能输入与上下文">智能输入与上下文</h3>
+<ol start="4" type="1">
+<li><strong>斜杠命令</strong> - 快速指令调用系统</li>
+<li><strong>文件建议</strong> - 项目文件智能选择</li>
+<li><strong>图片附件</strong> - 支持粘贴和上传图片</li>
+<li><strong>知识库集成</strong> - 接入外部知识库文档</li>
+<li><strong>权限模式切换</strong> - 三种操作权限模式</li>
+</ol>
+<h3 id="可视化与工具">可视化与工具</h3>
+<ol start="9" type="1">
+<li><strong>Mermaid图表渲染</strong> - 流程图和架构图支持，支持下载和全屏</li>
+<li><strong>文件差异对比</strong> - 代码变更可视化</li>
+<li><strong>任务清单管理</strong> - 待办事项跟踪</li>
+<li><strong>子代理状态</strong> - 专门任务代理显示</li>
+<li><strong>终端工具集成</strong> - Bash命令执行</li>
+<li><strong>文件搜索与探索</strong> - Glob/Grep/LS/Read 等工具</li>
+<li><strong>文件操作工具</strong> - Write/Delete/MultiEdit 等工具</li>
+<li><strong>视觉理解</strong> - AI 对图片的识别与分析</li>
+<li><strong>LSP 代码智能</strong> - 符号定义、引用查找、悬停提示等</li>
+<li><strong>Skill 技能系统</strong> - 预设的自动化任务模板</li>
+<li><strong>MCP 协议集成</strong> - 连接外部工具和数据源</li>
+<li><strong>AI 思考过程</strong> - 展示 AI 的推理逻辑</li>
+</ol>
+<h3 id="交互确认系统">交互确认系统</h3>
+<ol start="21" type="1">
+<li><strong>交互式提问</strong> - 多选项用户问答</li>
+<li><strong>计划执行确认</strong> - AI计划审批</li>
+<li><strong>代码修改确认</strong> - 文件操作确认</li>
+<li><strong>命令执行确认</strong> - Bash命令审批</li>
+</ol>
+<h3 id="配置与管理">配置与管理</h3>
+<ol start="25" type="1">
+<li><strong>配置设置</strong> - AI模型和API参数</li>
+<li><strong>会话管理</strong> - 多会话切换和状态</li>
+</ol>
+<hr />
+<h2 id="核心聊天体验-1">1. 核心聊天体验</h2>
+<h3 id="欢迎界面">1.1 欢迎界面</h3>
+<p>当用户首次打开 Wave 代码智聊时，会看到亲切的欢迎信息，引导用户开始对话。</p>
+<figure>
+<img src="./screenshots/spec-welcome.png" alt="" /><figcaption>欢迎界面</figcaption>
+</figure>
+<h3 id="基础对话">1.2 基础对话</h3>
+<p>支持 Markdown 格式的文本交互，能够生成带有语法高亮的代码块，方便用户直接阅读和复制。</p>
+<figure>
+<img src="./screenshots/spec-basic-chat.png" alt="" /><figcaption>基础对话</figcaption>
+</figure>
+<h3 id="代码选择引用">1.3 代码选择引用</h3>
+<p>当用户在编辑器中选中代码并提问时，Wave 会自动识别并引用该代码段，提供精准的上下文支持。</p>
+<figure>
+<img src="./screenshots/spec-selection.png" alt="" /><figcaption>代码选择引用</figcaption>
+</figure>
+<hr />
+<h2 id="智能输入与上下文-1">2. 智能输入与上下文</h2>
+<h3 id="指令系统-slash-commands">2.1 指令系统 (Slash Commands)</h3>
+<p>通过输入 <code>/</code>，用户可以快速调用预设的指令，如 <code>/explain</code>、<code>/fix</code> 等，提高操作效率。</p>
+<figure>
+<img src="./screenshots/spec-slash-commands.png" alt="" /><figcaption>指令系统</figcaption>
+</figure>
+<h3 id="文件建议-提及">2.2 文件建议 (@ 提及)</h3>
+<p>通过输入 <code>@</code>，用户可以轻松地将项目中的文件添加到对话上下文中，让 AI 更好地理解项目结构。</p>
+<figure>
+<img src="./screenshots/spec-file-suggestions.png" alt="" /><figcaption>文件建议</figcaption>
+</figure>
+<h3 id="图片附件">2.3 图片附件</h3>
+<p>用户可以通过粘贴或点击按钮上传图片到对话中。图片会显示在输入框上方作为附件，发送后 AI 可以对图片内容进行识别和分析。</p>
+<figure>
+<img src="./screenshots/spec-image-attachment.png" alt="" /><figcaption>图片附件</figcaption>
+</figure>
+<h3 id="知识库集成">2.4 知识库集成</h3>
+<p>通过 <code>@</code> 提及功能，用户可以浏览和搜索接入的外部知识库。支持多级目录浏览，并能将知识库中的文件内容作为上下文提供给 AI。</p>
+<figure>
+<img src="./screenshots/spec-kb-suggestions.png" alt="" /><figcaption>知识库集成</figcaption>
+</figure>
+<h3 id="权限模式管理">2.5 权限模式管理</h3>
+<p>Wave 代码智聊 提供三种权限管理模式，用户可以根据需要灵活切换：</p>
+<h4 id="默认模式修改前询问">1. 默认模式（修改前询问）</h4>
+<figure>
+<img src="./screenshots/spec-permission-mode-default.png" alt="" /><figcaption>权限模式 - 默认</figcaption>
+</figure>
+<p>在默认模式下，AI 执行任何涉及文件修改或系统操作的工具之前，都会先向用户请求确认。这是最安全的模式，适合初次使用或处理重要项目时使用。</p>
+<h4 id="自动接受修改模式">2. 自动接受修改模式</h4>
+<figure>
+<img src="./screenshots/spec-permission-mode-accept.png" alt="" /><figcaption>权限模式 - 自动接受修改</figcaption>
+</figure>
+<p>在此模式下，AI 可以自动执行文件编辑、创建和删除操作，无需每次确认。适合在信任 AI 建议且希望提高效率的场景下使用。</p>
+<h4 id="计划模式">3. 计划模式</h4>
+<figure>
+<img src="./screenshots/spec-permission-mode-plan.png" alt="" /><figcaption>权限模式 - 计划模式</figcaption>
+</figure>
+<p>计划模式是一种特殊的工作模式，AI 只能修改计划文件（通常是 <code>.wave/plans/</code> 目录下的文件），用于协作制定和完善开发计划，而不会直接修改项目代码。这种模式特别适合项目规划阶段。</p>
+<p><strong>特点</strong>： - 一键切换：点击输入框左下角的权限模式按钮即可循环切换三种模式 - 视觉区分：每种模式都有不同的图标和颜色标识 - 实时生效：切换后立即应用到当前会话中</p>
+<hr />
+<h2 id="增强型-agent-能力">3. 增强型 Agent 能力</h2>
+<h3 id="终端工具-bash-tool">3.1 终端工具 (Bash Tool)</h3>
+<p>AI 可以执行终端命令并实时展示输入与输出，帮助用户完成自动化任务、运行测试或安装依赖。</p>
+<figure>
+<img src="./screenshots/spec-bash.png" alt="" /><figcaption>终端工具</figcaption>
+</figure>
+<h3 id="文件差异对比-diff-viewer">3.2 文件差异对比 (Diff Viewer)</h3>
+<p>当 AI 建议修改文件时，会通过直观的 Diff 视图展示更改内容，用户可以清晰地看到每一行代码的变化。</p>
+<figure>
+<img src="./screenshots/spec-diff-viewer.png" alt="" /><figcaption>文件差异对比</figcaption>
+</figure>
+<h3 id="任务清单-todo-list">3.3 任务清单 (Todo List)</h3>
+<p>AI 会根据任务目标自动生成并管理 Todo 清单，实时展示任务进度（待办、进行中、已完成）。</p>
+<figure>
+<img src="./screenshots/spec-todo-list.png" alt="" /><figcaption>任务清单</figcaption>
+</figure>
+<h3 id="子代理状态-subagent-display">3.4 子代理状态 (Subagent Display)</h3>
+<p>对于复杂的任务，Wave 会启动子代理（如 Explore 代理）进行深度探索，并展示其当前的工作状态。</p>
+<figure>
+<img src="./screenshots/spec-subagent.png" alt="" /><figcaption>子代理状态</figcaption>
+</figure>
+<h3 id="mermaid-图表渲染">3.5 Mermaid 图表渲染</h3>
+<p>支持在聊天中直接渲染 Mermaid 流程图、时序图等。提供预览和源码切换，并支持全屏查看、缩放平移以及下载为 SVG 或 PNG 格式。</p>
+<p><img src="./screenshots/spec-mermaid.png" alt="Mermaid 图表" /> <img src="./screenshots/spec-mermaid-fullscreen.png" alt="Mermaid 全屏" /></p>
+<h3 id="交互式提问-ask-user">3.6 交互式提问 (Ask User)</h3>
+<p>当 AI 需要更多信息或需要用户做出决策时，会通过交互式表单向用户提问。</p>
+<figure>
+<img src="./screenshots/spec-ask-user.png" alt="" /><figcaption>交互式提问</figcaption>
+</figure>
+<h3 id="计划执行确认-plan-confirmation">3.7 计划执行确认 (Plan Confirmation)</h3>
+<p>当 AI 制定了详细的执行计划时，会向用户展示计划内容并请求确认。用户可以选择批准执行或提供反馈意见。</p>
+<p><strong>主要特性：</strong> - 清晰显示完整的执行计划内容 - 支持 Markdown 格式的计划展示 - 提供“批准并继续”和“批准并自动接受后续修改”选项 - 支持用户反馈和计划修改建议</p>
+<figure>
+<img src="./screenshots/spec-plan-confirm.png" alt="" /><figcaption>计划执行确认</figcaption>
+</figure>
+<h3 id="代码修改确认-code-edit-confirmation">3.8 代码修改确认 (Code Edit Confirmation)</h3>
+<p>在进行代码编辑、文件写入或删除操作前，系统会显示具体的修改内容供用户确认。</p>
+<p><strong>主要特性：</strong> - 显示文件路径和修改的具体内容 - 集成差异对比器显示代码变更 - 支持批准单次修改或设置自动批准规则 - 提供反馈机制让用户指导修改方向</p>
+<figure>
+<img src="./screenshots/spec-edit-confirm.png" alt="" /><figcaption>代码修改确认</figcaption>
+</figure>
+<h3 id="命令执行确认-bash-command-confirmation">3.9 命令执行确认 (Bash Command Confirmation)</h3>
+<p>执行系统命令前会显示具体的命令内容，确保用户了解将要执行的操作。</p>
+<p><strong>主要特性：</strong> - 清晰显示即将执行的 Bash 命令 - 提供命令描述和执行目的说明 - 支持单次批准或设置持久化规则 - 可按命令前缀或具体命令设置自动批准</p>
+<figure>
+<img src="./screenshots/spec-bash-confirm.png" alt="" /><figcaption>命令执行确认</figcaption>
+</figure>
+<h3 id="文件搜索与探索">3.10 文件搜索与探索</h3>
+<p>AI 可以使用多种工具来探索项目代码库，这些工具的执行过程和结果都会以直观的工具块形式展示，并在标题栏显示关键参数（Compact Parameters）： - <strong>Task (Explore)</strong>: 启动专门的子代理进行深度探索，标题显示任务描述（如 <code>Explore: 查找所有 API 定义</code>） - <strong>Glob</strong>: 按模式搜索文件，标题显示搜索模式和路径（如 <code>src/**/*.ts in src</code>） - <strong>Grep</strong>: 在文件中搜索文本内容，标题显示搜索模式、文件类型和路径（如 <code>interface.*API ts in src</code>） - <strong>LS</strong>: 列出目录内容，标题显示目标路径（如 <code>src</code>） - <strong>Read</strong>: 读取文件内容，标题显示文件路径及读取范围（如 <code>src/main.ts 1:2000</code>）</p>
+<figure>
+<img src="./screenshots/spec-exploration.png" alt="" /><figcaption>文件探索</figcaption>
+</figure>
+<h3 id="文件操作工具">3.11 文件操作工具</h3>
+<p>除了基础的编辑，AI 还可以执行更复杂的文件操作，工具标题会显示操作的文件路径和摘要： - <strong>Write</strong>: 创建新文件并写入内容，标题显示文件路径及内容摘要（如 <code>src/new-file.ts 1 lines, 29 chars</code>） - <strong>Delete</strong>: 删除不再需要的文件，标题显示目标文件路径（如 <code>old-config.json</code>） - <strong>MultiEdit</strong>: 在一个操作中对文件进行多处修改，标题显示文件路径及修改次数（如 <code>src/app.tsx (2 edits)</code>）</p>
+<figure>
+<img src="./screenshots/spec-file-ops.png" alt="" /><figcaption>文件操作</figcaption>
+</figure>
+<h3 id="视觉理解">3.12 视觉理解</h3>
+<p>当用户上传图片后，AI 可以识别图片中的 UI 设计、架构图或错误截图，并结合代码提供针对性的建议。</p>
+<figure>
+<img src="./screenshots/spec-vision.png" alt="" /><figcaption>视觉理解</figcaption>
+</figure>
+<h3 id="lsp-代码智能">3.13 LSP 代码智能</h3>
+<p>Wave 集成了 Language Server Protocol (LSP)，使 AI 能够像 IDE 一样理解代码。工具标题会显示具体的操作和位置（如 <code>goToDefinition src/main.ts:10:5</code>）： - <strong>Go to Definition</strong>: 查找符号定义 - <strong>Find References</strong>: 查找所有引用 - <strong>Hover</strong>: 获取类型信息和文档 - <strong>Call Hierarchy</strong>: 分析函数调用链</p>
+<figure>
+<img src="./screenshots/spec-lsp.png" alt="" /><figcaption>LSP 智能</figcaption>
+</figure>
+<h3 id="skill-技能系统">3.14 Skill 技能系统</h3>
+<p>Skill 是预设的自动化任务模板，用于处理特定的复杂任务（如文档处理、PDF 解析等）。AI 可以根据需要调用这些技能来扩展其能力。</p>
+<figure>
+<img src="./screenshots/spec-skill.png" alt="" /><figcaption>Skill 系统</figcaption>
+</figure>
+<h3 id="mcp-协议集成">3.15 MCP 协议集成</h3>
+<p>支持 Model Context Protocol (MCP)，允许 AI 连接到外部的 MCP 服务器，从而获取更多的上下文信息或调用外部工具。</p>
+<figure>
+<img src="./screenshots/spec-mcp.png" alt="" /><figcaption>MCP 集成</figcaption>
+</figure>
+<h3 id="ai-思考过程">3.16 AI 思考过程</h3>
+<p>对于支持推理的模型（如 DeepSeek R1, OpenAI o1），Wave 可以展示 AI 的思考过程，让用户了解 AI 是如何得出结论的。</p>
+<figure>
+<img src="./screenshots/spec-reasoning.png" alt="" /><figcaption>AI 思考过程</figcaption>
+</figure>
+<hr />
+<h2 id="会话与配置管理">4. 会话与配置管理</h2>
+<h3 id="会话管理">4.1 会话管理</h3>
+<p>扩展提供完整的会话管理功能，支持多个对话会话的创建、切换和管理。</p>
+<p><strong>主要特性：</strong> - 智能会话切换器，支持下拉选择历史会话 - 优先显示会话的首条消息内容作为会话标题 - 支持主会话和子代理会话的分类管理 - 实时同步会话状态和令牌使用统计 - 会话元数据包括工作目录、最后活跃时间等 - 当会话标题过长时自动截断并显示省略号</p>
+<figure>
+<img src="./screenshots/spec-sessions.png" alt="" /><figcaption>会话管理</figcaption>
+</figure>
+<h3 id="配置设置">4.2 配置设置</h3>
+<p>用户可以自定义 AI 模型、API Key、Base URL 等关键参数，以适配不同的 AI 服务提供商。</p>
+<figure>
+<img src="./screenshots/spec-configuration.png" alt="" /><figcaption>配置设置</figcaption>
+</figure>
+<hr />
+<h2 id="产品特色总结">产品特色总结</h2>
+<p>Wave 代码智聊通过 26 个精心设计的功能模块，为开发者提供了完整的AI辅助编程体验：</p>
+<h3 id="核心优势">🚀 核心优势</h3>
+<ul>
+<li><strong>智能上下文理解</strong>：自动识别代码选择、文件引用和项目结构</li>
+<li><strong>多层级权限控制</strong>：灵活的操作权限模式，确保代码安全</li>
+<li><strong>丰富的可视化支持</strong>：Mermaid图表、代码差异、任务管理等</li>
+<li><strong>完善的确认机制</strong>：所有关键操作都有明确的用户确认流程</li>
+</ul>
+<h3 id="设计理念">🎯 设计理念</h3>
+<ul>
+<li><strong>用户友好</strong>：直观的界面设计和清晰的操作流程</li>
+<li><strong>安全可控</strong>：所有文件操作和命令执行都需用户确认</li>
+<li><strong>高效便捷</strong>：斜杠命令、文件建议等快速输入方式</li>
+<li><strong>扩展性强</strong>：支持多种AI模型和自定义配置</li>
+</ul>
+<p>Wave 代码智聊致力于成为开发者的智能编程伙伴，在提升开发效率的同时确保代码质量和项目安全。</p>
+</body>
+</html>
