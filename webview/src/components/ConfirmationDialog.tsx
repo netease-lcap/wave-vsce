@@ -28,6 +28,7 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
 
   const applyButtonRef = useRef<HTMLButtonElement>(null);
   const autoButtonRef = useRef<HTMLButtonElement>(null);
+  const planContentRef = useRef<HTMLDivElement>(null);
 
   const handleReject = useCallback(() => {
     onReject(confirmation.confirmationId);
@@ -63,15 +64,19 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
   }, [confirmation]);
 
   useEffect(() => {
-    // Focus on the first available button
-    const initialButtons = [applyButtonRef, autoButtonRef];
-    for (const ref of initialButtons) {
-      if (ref.current && !ref.current.disabled) {
-        ref.current.focus();
-        break;
+    if (confirmation.toolName === EXIT_PLAN_MODE_TOOL_NAME && confirmation.toolInput?.plan_content) {
+      planContentRef.current?.focus();
+    } else {
+      // Focus on the first available button
+      const initialButtons = [applyButtonRef, autoButtonRef];
+      for (const ref of initialButtons) {
+        if (ref.current && !ref.current.disabled) {
+          ref.current.focus();
+          break;
+        }
       }
     }
-  }, [confirmation.confirmationId, currentQuestionIndex]);
+  }, [confirmation.confirmationId, currentQuestionIndex, confirmation.toolName, confirmation.toolInput?.plan_content]);
 
   const handleCompositionStart = useCallback(() => {
     setIsComposing(true);
@@ -199,7 +204,7 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
 
     const html = DOMPurify.sanitize(marked.parse(confirmation.toolInput.plan_content) as string);
     return (
-      <div className="plan-content-preview">
+      <div className="plan-content-preview" ref={planContentRef} tabIndex={0}>
         <h3>计划内容：</h3>
         <div className="markdown-body" dangerouslySetInnerHTML={{ __html: html }} />
       </div>

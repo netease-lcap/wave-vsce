@@ -254,6 +254,11 @@
   overflow-y: auto;
 }
 
+.plan-content-preview:focus {
+  outline: 1px solid var(--vscode-focusBorder);
+  outline-offset: -1px;
+}
+
 .plan-content-preview h3 {
   font-size: 13px;
   margin-top: 0;
