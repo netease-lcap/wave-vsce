@@ -284,6 +284,7 @@ export const MermaidRenderer: React.FC<MermaidRendererProps> = ({ content, class
             useMaxWidth: true
           },
           logLevel: 'error',
+          suppressErrorRendering: true,
           maxTextSize: 50000,
           maxEdges: 500,
           dompurifyConfig: {
@@ -382,27 +383,26 @@ export const MermaidRenderer: React.FC<MermaidRendererProps> = ({ content, class
         setSvgContent(result.svg);
         lastRenderedContent.current = diagramContent;
         
+      } catch (err) {
+        console.error('Mermaid rendering error:', err);
+        const errorMessage = err instanceof Error ? err.message : 'Failed to render diagram';
+        
+        // Provide helpful error messages
+        if (errorMessage.includes('Parse error') || errorMessage.includes('syntax')) {
+          setError(`Syntax error: ${errorMessage}. Please check your diagram syntax.`);
+        } else if (errorMessage.includes('firstChild') || errorMessage.includes('null')) {
+          setError('Rendering error: DOM element not available. Please try again.');
+        } else {
+          setError(errorMessage);
+        }
+        setSvgContent('');
+        lastRenderedContent.current = ''; // Reset on error
       } finally {
         // Clean up temporary container
         if (tempDiv.parentNode) {
           tempDiv.parentNode.removeChild(tempDiv);
         }
       }
-      
-    } catch (err) {
-      console.error('Mermaid rendering error:', err);
-      const errorMessage = err instanceof Error ? err.message : 'Failed to render diagram';
-      
-      // Provide helpful error messages
-      if (errorMessage.includes('Parse error') || errorMessage.includes('syntax')) {
-        setError(`Syntax error: ${errorMessage}. Please check your diagram syntax.`);
-      } else if (errorMessage.includes('firstChild') || errorMessage.includes('null')) {
-        setError('Rendering error: DOM element not available. Please try again.');
-      } else {
-        setError(errorMessage);
-      }
-      setSvgContent('');
-      lastRenderedContent.current = ''; // Reset on error
     } finally {
       setIsRendering(false);
     }
