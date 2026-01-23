@@ -17,3 +17,6 @@ bin/*
 !bin/.gitkeep
 
 designs/
+
+.env
+screenshots/

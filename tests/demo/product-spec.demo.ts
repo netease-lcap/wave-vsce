@@ -46,7 +46,7 @@ test.describe('Product Specification Screenshots', () => {
 
         // 1. Welcome Message
         await ui.verifyMessageCount(1);
-        await webviewPage.screenshot({ path: 'test-results/spec-welcome.png' });
+        await webviewPage.screenshot({ path: 'screenshots/spec-welcome.png' });
 
         // 2. Basic Chat (Markdown & Code)
         const basicChat = [
@@ -55,7 +55,7 @@ test.describe('Product Specification Screenshots', () => {
         ];
         await injector.updateMessages(basicChat);
         await injector.endStreaming();
-        await webviewPage.screenshot({ path: 'test-results/spec-basic-chat.png' });
+        await webviewPage.screenshot({ path: 'screenshots/spec-basic-chat.png' });
 
         // 3. Slash Commands
         await injector.updateMessages([]);
@@ -77,7 +77,7 @@ test.describe('Product Specification Screenshots', () => {
         });
 
         await webviewPage.waitForSelector('.slash-command-item', { state: 'visible', timeout: 5000 });
-        await webviewPage.screenshot({ path: 'test-results/spec-slash-commands.png' });
+        await webviewPage.screenshot({ path: 'screenshots/spec-slash-commands.png' });
         await webviewPage.keyboard.press('Escape');
 
         // 4. File Suggestions (@)
@@ -112,7 +112,7 @@ test.describe('Product Specification Screenshots', () => {
         });
 
         await webviewPage.waitForSelector('.suggestion-item', { state: 'visible', timeout: 5000 });
-        await webviewPage.screenshot({ path: 'test-results/spec-file-suggestions.png' });
+        await webviewPage.screenshot({ path: 'screenshots/spec-file-suggestions.png' });
         await webviewPage.keyboard.press('Escape');
         await webviewPage.keyboard.press('Control+A');
         await webviewPage.keyboard.press('Backspace');
@@ -124,7 +124,7 @@ test.describe('Product Specification Screenshots', () => {
         await injector.updateMessages(mermaidChat);
         await injector.endStreaming();
         await webviewPage.waitForSelector('.mermaid-container svg');
-        await webviewPage.screenshot({ path: 'test-results/spec-mermaid.png' });
+        await webviewPage.screenshot({ path: 'screenshots/spec-mermaid.png' });
 
         // 6. Diff Viewer - 使用 MockDataGenerator 的 Edit 工具
         const diffMessage: Message = {
@@ -146,7 +146,7 @@ test.describe('Product Specification Screenshots', () => {
         };
         await injector.updateMessages([diffMessage]);
         await webviewPage.waitForSelector('.tool-container');
-        await webviewPage.screenshot({ path: 'test-results/spec-diff-viewer.png' });
+        await webviewPage.screenshot({ path: 'screenshots/spec-diff-viewer.png' });
 
         // 7. Todo List - 使用正确的 TodoWrite 工具格式
         const todoMessage: Message = {
@@ -171,7 +171,7 @@ test.describe('Product Specification Screenshots', () => {
         };
         await injector.updateMessages([todoMessage]);
         await webviewPage.waitForSelector('.todo-list');
-        await webviewPage.screenshot({ path: 'test-results/spec-todo-list.png' });
+        await webviewPage.screenshot({ path: 'screenshots/spec-todo-list.png' });
 
         // 8. Subagent Display - 使用正确的 SubagentBlock 格式
         const subagentMessage: Message = {
@@ -216,7 +216,7 @@ test.describe('Product Specification Screenshots', () => {
         });
         
         await webviewPage.waitForSelector('.subagent-display');
-        await webviewPage.screenshot({ path: 'test-results/spec-subagent.png' });
+        await webviewPage.screenshot({ path: 'screenshots/spec-subagent.png' });
 
         // 9. Bash Tool - 使用 MockDataGenerator
         const bashMessage: Message = {
@@ -234,7 +234,7 @@ test.describe('Product Specification Screenshots', () => {
         };
         await injector.updateMessages([bashMessage]);
         await webviewPage.waitForSelector('.bash-command-unified');
-        await webviewPage.screenshot({ path: 'test-results/spec-bash.png' });
+        await webviewPage.screenshot({ path: 'screenshots/spec-bash.png' });
 
         // 10. Ask User Question - 显示确认对话框
         const askUserMessage: Message = {
@@ -281,7 +281,7 @@ test.describe('Product Specification Screenshots', () => {
         });
         
         await webviewPage.waitForSelector('.confirmation-dialog');
-        await webviewPage.screenshot({ path: 'test-results/spec-ask-user.png' });
+        await webviewPage.screenshot({ path: 'screenshots/spec-ask-user.png' });
         
         // 关闭确认对话框以便继续其他截图
         await webviewPage.keyboard.press('Escape');
@@ -301,7 +301,7 @@ test.describe('Product Specification Screenshots', () => {
         });
         await webviewPage.click('.configuration-button');
         await webviewPage.waitForSelector('.configuration-dialog');
-        await webviewPage.screenshot({ path: 'test-results/spec-configuration.png' });
+        await webviewPage.screenshot({ path: 'screenshots/spec-configuration.png' });
         await webviewPage.keyboard.press('Escape');
         await webviewPage.waitForSelector('.configuration-dialog', { state: 'hidden' });
 
@@ -313,21 +313,21 @@ test.describe('Product Specification Screenshots', () => {
             mode: 'default'
         });
         await webviewPage.waitForSelector('.permission-mode-toggle:has-text("修改前询问")');
-        await inputContainer.screenshot({ path: 'test-results/spec-permission-mode-default.png' });
+        await inputContainer.screenshot({ path: 'screenshots/spec-permission-mode-default.png' });
 
         // Mode 2: Accept Edits (自动接受修改)
         await injector.simulateExtensionMessage('updatePermissionMode', {
             mode: 'acceptEdits'
         });
         await webviewPage.waitForSelector('.permission-mode-toggle:has-text("自动接受修改")');
-        await inputContainer.screenshot({ path: 'test-results/spec-permission-mode-accept.png' });
+        await inputContainer.screenshot({ path: 'screenshots/spec-permission-mode-accept.png' });
 
         // Mode 3: Plan Mode (计划模式)
         await injector.simulateExtensionMessage('updatePermissionMode', {
             mode: 'plan'
         });
         await webviewPage.waitForSelector('.permission-mode-toggle:has-text("计划模式")');
-        await inputContainer.screenshot({ path: 'test-results/spec-permission-mode-plan.png' });
+        await inputContainer.screenshot({ path: 'screenshots/spec-permission-mode-plan.png' });
 
         // Reset to default for remaining screenshots
         await injector.simulateExtensionMessage('updatePermissionMode', {
@@ -347,7 +347,7 @@ test.describe('Product Specification Screenshots', () => {
                 ]
             }
         ]);
-        await webviewPage.screenshot({ path: 'test-results/spec-selection.png' });
+        await webviewPage.screenshot({ path: 'screenshots/spec-selection.png' });
 
         // 14. Session Selector - 使用 SDK 的 SessionMetadata 类型并添加 firstMessageContent
         const now = Date.now();
@@ -395,7 +395,7 @@ test.describe('Product Specification Screenshots', () => {
             }
         });
         
-        await webviewPage.screenshot({ path: 'test-results/spec-sessions.png' });
+        await webviewPage.screenshot({ path: 'screenshots/spec-sessions.png' });
 
         // 恢复 select 状态
         await webviewPage.evaluate(() => {
@@ -431,7 +431,7 @@ test.describe('Product Specification Screenshots', () => {
         });
         const planConfirmDialog = webviewPage.locator('.confirmation-dialog');
         await planConfirmDialog.waitFor({ state: 'visible' });
-        await planConfirmDialog.screenshot({ path: 'test-results/spec-plan-confirm.png' });
+        await planConfirmDialog.screenshot({ path: 'screenshots/spec-plan-confirm.png' });
 
         // 关闭当前确认对话框
         await webviewPage.click('.confirmation-close-btn');
@@ -450,7 +450,7 @@ test.describe('Product Specification Screenshots', () => {
         });
         const editConfirmDialog = webviewPage.locator('.confirmation-dialog');
         await editConfirmDialog.waitFor({ state: 'visible' });
-        await editConfirmDialog.screenshot({ path: 'test-results/spec-edit-confirm.png' });
+        await editConfirmDialog.screenshot({ path: 'screenshots/spec-edit-confirm.png' });
 
         // 关闭当前确认对话框
         await webviewPage.click('.confirmation-close-btn');
@@ -468,7 +468,7 @@ test.describe('Product Specification Screenshots', () => {
         });
         const bashConfirmDialog = webviewPage.locator('.confirmation-dialog');
         await bashConfirmDialog.waitFor({ state: 'visible' });
-        await bashConfirmDialog.screenshot({ path: 'test-results/spec-bash-confirm.png' });
+        await bashConfirmDialog.screenshot({ path: 'screenshots/spec-bash-confirm.png' });
 
         // 18. Image Attachment
         await injector.simulateExtensionMessage('setInitialState', {
@@ -495,7 +495,7 @@ test.describe('Product Specification Screenshots', () => {
             ]
         });
         await webviewPage.waitForSelector('.attached-images');
-        await webviewPage.locator('.input-container').screenshot({ path: 'test-results/spec-image-attachment.png' });
+        await webviewPage.locator('.input-container').screenshot({ path: 'screenshots/spec-image-attachment.png' });
 
         // 19. KB Suggestions
         await webviewPage.focus('[data-testid="message-input"]');
@@ -516,7 +516,7 @@ test.describe('Product Specification Screenshots', () => {
         });
         
         await webviewPage.waitForSelector('.suggestion-item:has-text("知识库: 技术文档库")');
-        await webviewPage.screenshot({ path: 'test-results/spec-kb-suggestions.png' });
+        await webviewPage.screenshot({ path: 'screenshots/spec-kb-suggestions.png' });
         await webviewPage.keyboard.press('Escape');
 
         // 20. Exploration Tools
@@ -574,7 +574,7 @@ test.describe('Product Specification Screenshots', () => {
         ];
         await injector.updateMessages(explorationMessages as any);
         await webviewPage.waitForSelector('.tool-container');
-        await webviewPage.locator('.messages-container').screenshot({ path: 'test-results/spec-exploration.png' });
+        await webviewPage.locator('.messages-container').screenshot({ path: 'screenshots/spec-exploration.png' });
 
         // 21. File Operation Tools
         const fileOpMessages: Message[] = [
@@ -613,7 +613,7 @@ test.describe('Product Specification Screenshots', () => {
         ];
         await injector.updateMessages(fileOpMessages);
         await webviewPage.waitForSelector('.tool-container');
-        await webviewPage.locator('.messages-container').screenshot({ path: 'test-results/spec-file-ops.png' });
+        await webviewPage.locator('.messages-container').screenshot({ path: 'screenshots/spec-file-ops.png' });
 
         // 22. Vision
         const visionMessages = [
@@ -627,7 +627,7 @@ test.describe('Product Specification Screenshots', () => {
             MockDataGenerator.createAssistantMessage('这张图片显示了一个简单的 UI 布局，包含一个侧边栏和一个主内容区域。侧边栏使用了深色主题...')
         ];
         await injector.updateMessages(visionMessages as any);
-        await webviewPage.locator('.messages-container').screenshot({ path: 'test-results/spec-vision.png' });
+        await webviewPage.locator('.messages-container').screenshot({ path: 'screenshots/spec-vision.png' });
 
         // 23. Mermaid Fullscreen
         const mermaidMsg = [
@@ -637,7 +637,7 @@ test.describe('Product Specification Screenshots', () => {
         await webviewPage.waitForSelector('.mermaid-container svg');
         await webviewPage.click('.mermaid-container'); // Click to open fullscreen
         await webviewPage.waitForSelector('.mermaid-fullscreen-modal');
-        await webviewPage.screenshot({ path: 'test-results/spec-mermaid-fullscreen.png' });
+        await webviewPage.screenshot({ path: 'screenshots/spec-mermaid-fullscreen.png' });
         await webviewPage.keyboard.press('Escape');
 
         // 24. LSP
@@ -682,7 +682,7 @@ test.describe('Product Specification Screenshots', () => {
                 }
             ]
         });
-        await webviewPage.locator('.messages-container').screenshot({ path: 'test-results/spec-lsp.png' });
+        await webviewPage.locator('.messages-container').screenshot({ path: 'screenshots/spec-lsp.png' });
 
         // 25. Skill
         await injector.simulateExtensionMessage('setInitialState', {
@@ -703,7 +703,7 @@ test.describe('Product Specification Screenshots', () => {
                 }
             ]
         });
-        await webviewPage.locator('.messages-container').screenshot({ path: 'test-results/spec-skill.png' });
+        await webviewPage.locator('.messages-container').screenshot({ path: 'screenshots/spec-skill.png' });
 
         // 26. MCP
         await injector.simulateExtensionMessage('setInitialState', {
@@ -716,7 +716,7 @@ test.describe('Product Specification Screenshots', () => {
                 )
             ]
         });
-        await webviewPage.locator('.messages-container').screenshot({ path: 'test-results/spec-mcp.png' });
+        await webviewPage.locator('.messages-container').screenshot({ path: 'screenshots/spec-mcp.png' });
 
         // 27. Reasoning
         await injector.simulateExtensionMessage('setInitialState', {
@@ -736,6 +736,6 @@ test.describe('Product Specification Screenshots', () => {
                 }
             ]
         });
-        await webviewPage.locator('.messages-container').screenshot({ path: 'test-results/spec-reasoning.png' });
+        await webviewPage.locator('.messages-container').screenshot({ path: 'screenshots/spec-reasoning.png' });
     });
 });
