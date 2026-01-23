@@ -88,7 +88,8 @@
 
 .question-header-row {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
+  justify-content: space-between;
   gap: 8px;
 }
 
@@ -222,7 +223,6 @@
 .question-progress {
   font-size: 11px;
   color: var(--vscode-descriptionForeground);
-  margin-bottom: 4px;
   font-weight: 500;
 }
 
