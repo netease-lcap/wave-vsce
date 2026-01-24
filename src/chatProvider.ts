@@ -161,14 +161,18 @@ export class ChatProvider implements vscode.WebviewViewProvider {
         try {
             const config = await this.configService.loadConfiguration();
             
-            const isAuthValid = config.authMethod === 'apiKey' ? !!config.apiKey : !!config.headers;
-            if (!isAuthValid || !config.baseURL || !config.agentModel || !config.fastModel) {
+            const isAuthValid = config.authMethod === 'apiKey' 
+                ? (!!config.apiKey || !!process.env.WAVE_API_KEY) 
+                : (!!config.headers || !!process.env.WAVE_CUSTOM_HEADERS);
+            const isBaseURLValid = !!config.baseURL || !!process.env.WAVE_BASE_URL;
+
+            if (!isAuthValid || !isBaseURLValid) {
                 console.log(`Skipping agent creation for ${viewType} due to missing configuration`);
                 
                 this.webviewManager.postMessage({
                     command: 'showConfiguration',
                     configurationData: config,
-                    error: '请先在设置中配置鉴权信息, Base URL 和模型名称'
+                    error: '请先在设置中配置鉴权信息 (API Key 或 Headers) 和 Base URL。也可以通过环境变量 WAVE_API_KEY/WAVE_CUSTOM_HEADERS 和 WAVE_BASE_URL 进行配置。'
                 }, viewType, windowId);
                 
                 return;

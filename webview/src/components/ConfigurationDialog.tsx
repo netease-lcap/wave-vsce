@@ -28,12 +28,7 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps> = ({
     backendLink: ''
   });
 
-  const isFormValid = !!(
-    (formData.authMethod === 'apiKey' ? formData.apiKey?.trim() : formData.headers?.trim()) &&
-    formData.baseURL?.trim() &&
-    formData.agentModel?.trim() &&
-    formData.fastModel?.trim()
-  );
+  const isFormValid = true;
 
   const dialogRef = useRef<HTMLDivElement>(null);
 
@@ -107,7 +102,7 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps> = ({
 
         <form onSubmit={handleSubmit} className="configuration-form">
         <div className="configuration-field">
-          <label>鉴权方式 <span className="required-star">*</span>:</label>
+          <label>鉴权方式:</label>
           <div className="auth-method-radio-group">
             <label className="radio-label">
               <input
@@ -136,68 +131,63 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps> = ({
 
         {formData.authMethod === 'apiKey' ? (
           <div className="configuration-field">
-            <label htmlFor="apiKey">API Key <span className="required-star">*</span>:</label>
+            <label htmlFor="apiKey">API Key:</label>
             <input
               id="apiKey"
               type="password"
               value={formData.apiKey || ''}
               onChange={(e) => handleInputChange('apiKey', e.target.value)}
-              placeholder="输入 API Key"
+              placeholder="输入 API Key (或设置 WAVE_API_KEY 环境变量)"
               disabled={isLoading}
-              required
             />
           </div>
         ) : (
           <div className="configuration-field">
-            <label htmlFor="headers">Headers (JSON) <span className="required-star">*</span>:</label>
+            <label htmlFor="headers">Headers (JSON):</label>
             <input
               id="headers"
               type="text"
               value={formData.headers || ''}
               onChange={(e) => handleInputChange('headers', e.target.value)}
-              placeholder='{"Authorization": "Bearer ..."}'
+              placeholder='{"Authorization": "Bearer ..."} (或设置 WAVE_CUSTOM_HEADERS)'
               disabled={isLoading}
-              required
             />
           </div>
         )}
 
         <div className="configuration-field">
-          <label htmlFor="baseURL">Base URL <span className="required-star">*</span>:</label>
+          <label htmlFor="baseURL">Base URL:</label>
           <input
             id="baseURL"
             type="url"
             value={formData.baseURL || ''}
             onChange={(e) => handleInputChange('baseURL', e.target.value)}
-            placeholder="https://api.example.com/v1"
+            placeholder="https://api.example.com/v1 (或设置 WAVE_BASE_URL)"
             disabled={isLoading}
-            required
           />
         </div>
 
         <div className="configuration-field">
-          <label htmlFor="agentModel">Agent Model <span className="required-star">*</span>:</label>
+          <label htmlFor="agentModel">Agent Model:</label>
           <input
             id="agentModel"
             type="text"
             value={formData.agentModel || ''}
             onChange={(e) => handleInputChange('agentModel', e.target.value)}
-            placeholder="请输入模型名称"
+            placeholder="请输入模型名称 (或设置 WAVE_MODEL)"
             disabled={isLoading}
-            required
           />
         </div>
 
         <div className="configuration-field">
-          <label htmlFor="fastModel">Fast Model <span className="required-star">*</span>:</label>
+          <label htmlFor="fastModel">Fast Model:</label>
           <input
             id="fastModel"
             type="text"
             value={formData.fastModel || ''}
             onChange={(e) => handleInputChange('fastModel', e.target.value)}
-            placeholder="请输入快速模型名称"
+            placeholder="请输入快速模型名称 (或设置 WAVE_FAST_MODEL)"
             disabled={isLoading}
-            required
           />
         </div>
 
