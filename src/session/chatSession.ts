@@ -57,15 +57,10 @@ export class ChatSession {
                 console.log(`设置智能体工作目录为: ${workdir}`);
             }
             
-            const isAuthValid = config.authMethod === 'apiKey' 
-                ? (!!config.apiKey || !!process.env.WAVE_API_KEY) 
-                : (!!config.headers || !!process.env.WAVE_CUSTOM_HEADERS);
+            const isAuthValid = (!!config.apiKey || !!process.env.WAVE_API_KEY) 
+                || (!!config.headers || !!process.env.WAVE_CUSTOM_HEADERS);
             const isBaseURLValid = !!config.baseURL || !!process.env.WAVE_BASE_URL;
 
-            if (!isAuthValid || !isBaseURLValid) {
-                throw new Error('请先在设置中配置鉴权信息 (API Key 或 Headers) 和 Base URL');
-            }
-            
             const agentCallbacks: AgentCallbacks = {
                 onMessagesChange: (messages: Message[]) => {
                     this.throttledUpdateChatMessages(messages);
@@ -92,9 +87,9 @@ export class ChatSession {
                 callbacks: agentCallbacks,
                 workdir,
                 restoreSessionId,
-                apiKey: config.authMethod === 'apiKey' ? config.apiKey : '',
-                defaultHeaders: config.authMethod === 'headers' ? this.parseHeaders(config.headers) : undefined,
-                baseURL: config.baseURL,
+                apiKey: config.apiKey || undefined,
+                defaultHeaders: this.parseHeaders(config.headers),
+                baseURL: config.baseURL || undefined,
                 agentModel: config.agentModel,
                 fastModel: config.fastModel,
                 lspManager: new VscodeLspAdapter(),
@@ -173,16 +168,28 @@ export class ChatSession {
 
     public updateConfig(config: ConfigurationData) {
         if (this.agent) {
+            const gateway: any = {};
+            if (config.apiKey) {
+                gateway.apiKey = config.apiKey;
+            }
+            if (config.headers) {
+                gateway.defaultHeaders = this.parseHeaders(config.headers);
+            }
+            if (config.baseURL) {
+                gateway.baseURL = config.baseURL;
+            }
+
+            const model: any = {};
+            if (config.agentModel) {
+                model.agentModel = config.agentModel;
+            }
+            if (config.fastModel) {
+                model.fastModel = config.fastModel;
+            }
+
             this.agent.updateConfig({
-                gateway: {
-                    apiKey: config.authMethod === 'apiKey' ? config.apiKey : '',
-                    defaultHeaders: config.authMethod === 'headers' ? this.parseHeaders(config.headers) : undefined,
-                    baseURL: config.baseURL
-                },
-                model: {
-                    agentModel: config.agentModel,
-                    fastModel: config.fastModel
-                }
+                gateway,
+                model
             });
         }
     }
