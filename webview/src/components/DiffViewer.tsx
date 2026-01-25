@@ -34,7 +34,7 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({ toolBlock, toolName, par
 
   const showDiff =
     changes.length > 0 &&
-    (toolBlock ? ["running", "end"].includes(toolBlock.stage) : true) &&
+    (toolBlock ? ["end"].includes(toolBlock.stage) : true) &&
     (toolBlock?.name || toolName) &&
     [WRITE_TOOL_NAME, EDIT_TOOL_NAME, MULTI_EDIT_TOOL_NAME].includes(toolBlock?.name || toolName || "");
 
