@@ -2,7 +2,7 @@
   "name": "wave-vscode-chat",
   "displayName": "Wave 代码智聊",
   "description": "Wave code for VS Code",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "publisher": "wave-code",
   "icon": "LOGO.png",
   "repository": {
