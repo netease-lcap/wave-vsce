@@ -72,9 +72,11 @@
         <li>打开 <a href="https://modelspace.netease.com/model_access/app_manage" target="_blank" style="color: #007acc;">ModelSpace App 管理</a>，新建 App，生成的 <strong>App Code</strong> 将作为 <code>X-AIGW-APP</code>。</li>
         <li>给 App 添加成员。</li>
         <li>每个成员访问 <a href="https://console-auth.nie.netease.com/mymessage/mymessage" target="_blank" style="color: #007acc;">权限控制台</a>，复制 <strong>v2 Token</strong> 内容，作为 <code>X-Access-Token</code>。</li>
-        <li>在插件配置中添加 Headers：</li>
+        <li>在插件配置中添加 Headers：
+          <pre style="background-color: #f4f4f4; padding: 12px; border-radius: 4px; overflow-x: auto; font-family: monospace; font-size: 14px; margin-top: 10px;">{"X-AIGW-APP": "_wave_code", "X-Access-Token": "your_access_token"}</pre>
+        </li>
+        <li>将 <strong>BASE URL</strong> 配置为：<code>https://aigw.netease.com/v1</code></li>
       </ol>
-      <pre style="background-color: #f4f4f4; padding: 12px; border-radius: 4px; overflow-x: auto; font-family: monospace; font-size: 14px;">{"X-AIGW-APP": "_wave_code", "X-Access-Token": "your_access_token"}</pre>
     </div>
   </div>
 
