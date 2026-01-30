@@ -68,9 +68,9 @@ export class ChatProvider implements vscode.WebviewViewProvider {
                 initializeAgent: (viewType, windowId, restoreSessionId) => this.initializeAgent(viewType, windowId, restoreSessionId),
                 listSessions: (viewType, windowId) => this.listSessions(viewType, windowId),
                 updateAllSessionsConfig: (config) => {
-                    this.sidebarSession.updateConfig(config);
-                    this.tabSession.updateConfig(config);
-                    this.windowSessions.forEach(session => session.updateConfig(config));
+                    this.sidebarSession.updateConfig(config, this.context.extensionMode);
+                    this.tabSession.updateConfig(config, this.context.extensionMode);
+                    this.windowSessions.forEach(session => session.updateConfig(config, this.context.extensionMode));
                 },
                 getSelection: () => this.selectionService.getSelection()
             }

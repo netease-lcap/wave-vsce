@@ -167,32 +167,21 @@ export class ChatSession {
         }
     }
 
-    public updateConfig(config: ConfigurationData) {
+    public async updateConfig(config: ConfigurationData, extensionMode: vscode.ExtensionMode) {
         if (this.agent) {
-            const gateway: any = {};
-            if (config.apiKey) {
-                gateway.apiKey = config.apiKey;
+            const currentSessionId = this.sessionId;
+            console.log(`正在重新创建 ${this.viewType} 智能体以更新配置...`);
+            
+            // 销毁当前 agent，但不清除消息和会话 ID，因为我们要恢复它们
+            try {
+                await this.agent.destroy();
+            } catch (error) {
+                console.error(`销毁旧 agent 时出错:`, error);
             }
-            if (config.headers) {
-                gateway.defaultHeaders = this.parseHeaders(config.headers);
-            }
-            if (config.baseURL) {
-                gateway.baseURL = config.baseURL;
-            }
+            this.agent = undefined;
 
-            const model: any = {};
-            if (config.agentModel) {
-                model.agentModel = config.agentModel;
-            }
-            if (config.fastModel) {
-                model.fastModel = config.fastModel;
-            }
-
-            (this.agent as any).updateConfig({
-                gateway,
-                model,
-                language: config.language
-            });
+            // 重新初始化
+            await this.initialize(config, extensionMode, currentSessionId);
         }
     }
 
