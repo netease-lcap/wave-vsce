@@ -38,8 +38,7 @@ test.describe('Product Specification Screenshots', () => {
                 apiKey: 'sk-xxxxxxxxxxxxxxxx',
                 baseURL: 'https://api.openai.com/v1',
                 agentModel: 'gpt-4',
-                fastModel: 'gpt-3.5-turbo',
-                backendLink: '' // Disable KB for file suggestions screenshot
+                fastModel: 'gpt-3.5-turbo'
             },
             permissionMode: 'default'
         });
@@ -288,15 +287,14 @@ test.describe('Product Specification Screenshots', () => {
         await webviewPage.waitForSelector('.confirmation-dialog', { state: 'hidden' });
 
         // 11. Configuration Dialog
-        // Update config to show backendLink in the dialog
+        // Update config
         await injector.simulateExtensionMessage('configurationResponse', {
             configurationData: {
                 authMethod: 'apiKey',
                 apiKey: 'sk-xxxxxxxxxxxxxxxx',
                 baseURL: 'https://api.openai.com/v1',
                 agentModel: 'gpt-4',
-                fastModel: 'gpt-3.5-turbo',
-                backendLink: 'https://wave.example.com'
+                fastModel: 'gpt-3.5-turbo'
             }
         });
         await webviewPage.click('.configuration-button');
@@ -480,8 +478,7 @@ test.describe('Product Specification Screenshots', () => {
                 apiKey: 'sk-xxxxxxxxxxxxxxxx',
                 baseURL: 'https://api.openai.com/v1',
                 agentModel: 'gpt-4',
-                fastModel: 'gpt-3.5-turbo',
-                backendLink: ''
+                fastModel: 'gpt-3.5-turbo'
             },
             permissionMode: 'default',
             inputContent: '请分析这张图片中的 UI 设计',
@@ -497,29 +494,7 @@ test.describe('Product Specification Screenshots', () => {
         await webviewPage.waitForSelector('.attached-images');
         await webviewPage.locator('.input-container').screenshot({ path: 'screenshots/spec-image-attachment.png' });
 
-        // 19. KB Suggestions
-        await webviewPage.focus('[data-testid="message-input"]');
-        await webviewPage.keyboard.press('Control+A');
-        await webviewPage.keyboard.press('Backspace');
-        await webviewPage.keyboard.type('@');
-        
-        // Simulate KB items response
-        await injector.simulateExtensionMessage('kbItemsResponse', {
-            level: 'root',
-            result: {
-                success: true,
-                data: [
-                    { id: 'kb-1', name: '技术文档库' },
-                    { id: 'kb-2', name: '项目规范' }
-                ]
-            }
-        });
-        
-        await webviewPage.waitForSelector('.suggestion-item:has-text("知识库: 技术文档库")');
-        await webviewPage.screenshot({ path: 'screenshots/spec-kb-suggestions.png' });
-        await webviewPage.keyboard.press('Escape');
-
-        // 20. Exploration Tools
+        // 19. Exploration Tools
         const explorationMessages: Message[] = [
             {
                 role: 'assistant',
