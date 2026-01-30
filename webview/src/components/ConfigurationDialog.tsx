@@ -24,7 +24,8 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps> = ({
     baseURL: '',
     agentModel: '',
     fastModel: '',
-    backendLink: ''
+    backendLink: '',
+    language: ''
   });
 
   const isFormValid = true;
@@ -164,6 +165,20 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps> = ({
             placeholder="知识库、代码地图后台链接"
             disabled={isLoading}
           />
+        </div>
+
+        <div className="configuration-field">
+          <label htmlFor="language">语言 (Language):</label>
+          <select
+            id="language"
+            value={formData.language || 'Chinese'}
+            onChange={(e) => handleInputChange('language', e.target.value)}
+            disabled={isLoading}
+            className="configuration-select"
+          >
+            <option value="Chinese">中文</option>
+            <option value="English">英文</option>
+          </select>
         </div>
 
         {error && (

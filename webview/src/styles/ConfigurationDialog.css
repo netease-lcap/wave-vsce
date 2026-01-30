@@ -61,7 +61,8 @@
     margin-left: 2px;
 }
 
-.configuration-field input {
+.configuration-field input,
+.configuration-field select {
     background-color: var(--vscode-input-background);
     color: var(--vscode-input-foreground);
     border: 1px solid var(--vscode-input-border);
@@ -72,12 +73,14 @@
     min-height: 20px;
 }
 
-.configuration-field input:focus {
+.configuration-field input:focus,
+.configuration-field select:focus {
     outline: none;
     border-color: var(--vscode-focusBorder);
 }
 
-.configuration-field input:disabled {
+.configuration-field input:disabled,
+.configuration-field select:disabled {
     opacity: 0.6;
     cursor: not-allowed;
 }

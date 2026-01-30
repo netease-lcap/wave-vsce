@@ -92,11 +92,12 @@ export class ChatSession {
                 baseURL: config.baseURL || undefined,
                 agentModel: config.agentModel,
                 fastModel: config.fastModel,
+                language: config.language,
                 lspManager: new VscodeLspAdapter(),
                 canUseTool: async (context: ToolPermissionContext): Promise<PermissionDecision> => {
                     return await this.callbacks.onToolPermissionRequest(context);
                 }
-            });
+            } as any);
             
             console.log(`${this.viewType} 智能体初始化成功`);
             
@@ -187,9 +188,10 @@ export class ChatSession {
                 model.fastModel = config.fastModel;
             }
 
-            this.agent.updateConfig({
+            (this.agent as any).updateConfig({
                 gateway,
-                model
+                model,
+                language: config.language
             });
         }
     }

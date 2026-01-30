@@ -277,6 +277,8 @@ export interface ConfigurationData {
   fastModel?: string;
   /** Backend link for @ mention integration and other services */
   backendLink?: string;
+  /** Preferred language for agent communication */
+  language?: string;
 }
 
 export interface SelectionInfo {
