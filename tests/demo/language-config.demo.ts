@@ -36,7 +36,8 @@ test.describe('Language Configuration Demo', () => {
         await expect(chineseOption).toBeAttached();
         await expect(englishOption).toBeAttached();
         
-        // Take screenshot to manually verify UI
-        await webviewPage.screenshot({ path: 'screenshots/language-config-ui.png' });
+        // Take screenshot of the dialog only
+        const dialog = webviewPage.locator('.configuration-dialog');
+        await dialog.screenshot({ path: 'screenshots/language-config-ui.png' });
     });
 });
