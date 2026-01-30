@@ -12,7 +12,6 @@ import {
 import { ChatSession } from './session/chatSession';
 import { ConfigurationService } from './services/configurationService';
 import { FileService } from './services/fileService';
-import { KnowledgeBaseService } from './services/kbService';
 import { SessionService } from './services/sessionService';
 import { SelectionService, SelectionInfo } from './services/selectionService';
 import { WebviewManager } from './session/webviewManager';
@@ -28,7 +27,6 @@ export class ChatProvider implements vscode.WebviewViewProvider {
 
     private configService: ConfigurationService;
     private fileService: FileService;
-    private kbService: KnowledgeBaseService;
     private sessionService: SessionService;
     private selectionService: SelectionService;
     private webviewManager: WebviewManager;
@@ -38,7 +36,6 @@ export class ChatProvider implements vscode.WebviewViewProvider {
         this.context = context;
         this.configService = new ConfigurationService(context);
         this.fileService = new FileService();
-        this.kbService = new KnowledgeBaseService();
         this.sessionService = new SessionService();
         this.selectionService = new SelectionService(context);
 
@@ -64,7 +61,6 @@ export class ChatProvider implements vscode.WebviewViewProvider {
         this.messageHandler = new MessageHandler(
             this.configService,
             this.fileService,
-            this.kbService,
             this.sessionService,
             {
                 getChatSession: (viewType, windowId) => this.getChatSession(viewType, windowId),

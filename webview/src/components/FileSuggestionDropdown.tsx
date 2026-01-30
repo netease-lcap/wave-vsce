@@ -16,9 +16,7 @@ export const FileSuggestionDropdown: React.FC<FileSuggestionDropdownProps> = ({
   onClose,
   position,
   filterText,
-  isLoading = false,
-  hasKnowledgeBase = false,
-  isKbNavigationActive = false
+  isLoading = false
 }) => {
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -38,16 +36,11 @@ export const FileSuggestionDropdown: React.FC<FileSuggestionDropdownProps> = ({
 
   // Scroll selected item into view
   useEffect(() => {
-    if (dropdownRef.current && selectedIndex >= -2) {
-      const hasUploadOption = !filterText && !isKbNavigationActive;
-      const hasKB = hasUploadOption && hasKnowledgeBase;
+    if (dropdownRef.current && selectedIndex >= -1) {
+      const hasUploadOption = !filterText;
       let actualIndex = selectedIndex;
       if (hasUploadOption) {
-        if (hasKB) {
-          actualIndex = selectedIndex + 2;
-        } else {
-          actualIndex = selectedIndex + 1;
-        }
+        actualIndex = selectedIndex + 1;
       }
       
       if (actualIndex >= 0 && actualIndex < dropdownRef.current.children.length) {
@@ -107,11 +100,11 @@ export const FileSuggestionDropdown: React.FC<FileSuggestionDropdownProps> = ({
         left: `${position.left}px`,
       }}
     >
-      {/* Show upload option only when there's no filter text and not in KB navigation */}
-      {!filterText && !isKbNavigationActive && (
+      {/* Show upload option only when there's no filter text */}
+      {!filterText && (
         <div
           key="upload-option"
-          className={`suggestion-item upload-option ${(hasKnowledgeBase ? selectedIndex === -2 : selectedIndex === -1) ? 'selected' : ''}`}
+          className={`suggestion-item upload-option ${selectedIndex === -1 ? 'selected' : ''}`}
           onClick={() => onSelect({
             path: '__upload__',
             relativePath: '__upload__',
@@ -126,29 +119,6 @@ export const FileSuggestionDropdown: React.FC<FileSuggestionDropdownProps> = ({
           <div className="suggestion-content">
             <div className="suggestion-name">上传本地文件</div>
             <div className="suggestion-path">选择本地文件上传到临时目录</div>
-          </div>
-        </div>
-      )}
-
-      {/* Show knowledge base option only when there's no filter text, it's configured, and not already in KB navigation */}
-      {!filterText && hasKnowledgeBase && !isKbNavigationActive && (
-        <div
-          key="kb-option"
-          className={`suggestion-item kb-option ${selectedIndex === -1 ? 'selected' : ''}`}
-          onClick={() => onSelect({
-            path: '__kb__',
-            relativePath: '__kb__',
-            name: '知识库',
-            extension: '',
-            icon: 'codicon-library',
-            isDirectory: true,
-            isKnowledgeBaseOption: true
-          })}
-        >
-          <span className="suggestion-icon codicon codicon-library"></span>
-          <div className="suggestion-content">
-            <div className="suggestion-name">知识库</div>
-            <div className="suggestion-path">浏览并选择知识库中的文件</div>
           </div>
         </div>
       )}
@@ -178,7 +148,7 @@ export const FileSuggestionDropdown: React.FC<FileSuggestionDropdownProps> = ({
         <div className="suggestion-item suggestion-empty">
           <span className="codicon codicon-loading"></span>
           <div className="suggestion-content">
-            <div className="suggestion-name">{isKbNavigationActive ? '正在加载知识库...' : '正在搜索文件...'}</div>
+            <div className="suggestion-name">正在搜索文件...</div>
             <div className="suggestion-path">请稍等</div>
           </div>
         </div>
@@ -187,17 +157,17 @@ export const FileSuggestionDropdown: React.FC<FileSuggestionDropdownProps> = ({
         <div className="suggestion-item suggestion-empty">
           <span className="codicon codicon-search"></span>
           <div className="suggestion-content">
-            <div className="suggestion-name">未找到匹配的{isKbNavigationActive ? '内容' : '文件'}</div>
+            <div className="suggestion-name">未找到匹配的文件</div>
             <div className="suggestion-path">尝试修改搜索关键词</div>
           </div>
         </div>
       )}
       {!isLoading && suggestions.length === 0 && !filterText && (
         <div className="suggestion-item suggestion-empty">
-          <span className={`codicon ${isKbNavigationActive ? 'codicon-info' : 'codicon-folder'}`}></span>
+          <span className="codicon codicon-folder"></span>
           <div className="suggestion-content">
-            <div className="suggestion-name">{isKbNavigationActive ? '知识库暂无内容' : '开始输入文件名'}</div>
-            <div className="suggestion-path">{isKbNavigationActive ? '该目录下没有可显示的项目' : '输入文件名或路径进行搜索'}</div>
+            <div className="suggestion-name">开始输入文件名</div>
+            <div className="suggestion-path">输入文件名或路径进行搜索</div>
           </div>
         </div>
       )}

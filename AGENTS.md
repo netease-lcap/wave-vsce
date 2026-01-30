@@ -26,7 +26,7 @@ This file provides guidance to Wave Code when working with code in this reposito
 - **`src/session/chatSession.ts`**: 封装 `wave-agent-sdk`。处理智能体初始化、消息发送和配置更新。
 - **`src/session/messageHandler.ts`**: 处理来自 webview 的消息并将其分发到相应的服务或会话。
 - **`src/session/webviewManager.ts`**: 管理不同 webview 面板（侧边栏、标签页/窗口的 WebviewPanel）的创建和通信。
-- **`src/services/`**: 包含配置、文件操作、知识库集成和会话持久化的业务逻辑。
+- **`src/services/`**: 包含配置、文件操作和会话持久化的业务逻辑。
 
 ### 前端 (Webview)
 - **`webview/src/index.tsx`**: React 应用程序的入口点。

@@ -4,7 +4,6 @@ import { ChatSession } from './chatSession';
 import { SelectionInfo } from '../services/selectionService';
 import { ConfigurationService } from '../services/configurationService';
 import { FileService } from '../services/fileService';
-import { KnowledgeBaseService } from '../services/kbService';
 import { SessionService } from '../services/sessionService';
 import { SessionMetadata } from 'wave-agent-sdk';
 
@@ -20,20 +19,17 @@ export interface MessageHandlerContext {
 export class MessageHandler {
     private configService: ConfigurationService;
     private fileService: FileService;
-    private kbService: KnowledgeBaseService;
     private sessionService: SessionService;
     private context: MessageHandlerContext;
 
     constructor(
         configService: ConfigurationService,
         fileService: FileService,
-        kbService: KnowledgeBaseService,
         sessionService: SessionService,
         context: MessageHandlerContext
     ) {
         this.configService = configService;
         this.fileService = fileService;
-        this.kbService = kbService;
         this.sessionService = sessionService;
         this.context = context;
     }
@@ -73,12 +69,6 @@ export class MessageHandler {
                 break;
             case 'uploadFilesToArtifacts':
                 await this.handleUploadFilesToArtifacts(message.files, viewType, windowId);
-                break;
-            case 'downloadKbFile':
-                await this.handleDownloadKbFile(message.fileId, message.fileName, message.backendLink, viewType, windowId);
-                break;
-            case 'getKbItems':
-                await this.handleGetKbItems(message.level, message.kbId, message.folderId, message.backendLink, viewType, windowId);
                 break;
             case 'showError':
                 vscode.window.showErrorMessage(message.message);
@@ -354,42 +344,6 @@ export class MessageHandler {
             this.context.postMessage({
                 command: 'slashCommandsError',
                 error: '获取指令失败: ' + error
-            }, viewType, windowId);
-        }
-    }
-
-    private async handleGetKbItems(level: string, kbId: string | number | undefined, folderId: string | number | undefined, backendLink: string, viewType?: 'sidebar' | 'tab' | 'window', windowId?: string) {
-        try {
-            const result = await this.kbService.getKbItems(level, kbId, folderId, backendLink);
-            this.context.postMessage({
-                command: 'kbItemsResponse',
-                level,
-                kbId,
-                folderId,
-                result
-            }, viewType, windowId);
-        } catch (error) {
-            console.error('[KnowledgeBase] 获取数据失败:', error);
-            this.context.postMessage({
-                command: 'kbItemsError',
-                error: '获取知识库数据失败: ' + (error instanceof Error ? error.message : String(error))
-            }, viewType, windowId);
-        }
-    }
-
-    private async handleDownloadKbFile(fileId: string | number, fileName: string, backendLink: string, viewType?: 'sidebar' | 'tab' | 'window', windowId?: string) {
-        try {
-            const finalPath = await this.kbService.downloadKbFile(fileId, fileName, backendLink);
-            this.context.postMessage({
-                command: 'kbFileDownloaded',
-                tempPath: finalPath
-            }, viewType, windowId);
-        } catch (error) {
-            console.error('[KnowledgeBase] 下载知识库文件失败:', error);
-            vscode.window.showErrorMessage('下载知识库文件失败: ' + (error instanceof Error ? error.message : String(error)));
-            this.context.postMessage({
-                command: 'kbFileDownloadError',
-                error: '下载失败: ' + (error instanceof Error ? error.message : String(error))
             }, viewType, windowId);
         }
     }

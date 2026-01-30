@@ -99,17 +99,6 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
   const [isComposing, setIsComposing] = useState(false);
   const [attachedImages, setAttachedImages] = useState<AttachedImage[]>(initialAttachedImages || []);
   
-  // Knowledge Base navigation state
-  const [kbNavigation, setKbNavigation] = useState<{
-    isActive: boolean;
-    level: 'root' | 'kb' | 'folder';
-    kbId?: string | number;
-    folderId?: string | number;
-  }>({
-    isActive: false,
-    level: 'root'
-  });
-
   // Store the atMention state when file upload is triggered
   const [uploadAtMentionState, setUploadAtMentionState] = useState<AtMentionState>({ 
     isActive: false, 
@@ -166,7 +155,6 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
     setSuggestions([]);
     setSelectedIndex(0);
     setIsLoadingSuggestions(false);
-    setKbNavigation({ isActive: false, level: 'root' });
   }, []);
 
   // Close 指令 popup helper
@@ -314,33 +302,15 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
   // Debounced file suggestion requests
   useEffect(() => {
     if (atMention.isActive) {
-      if (kbNavigation.isActive) {
-        fetchKnowledgeBaseItems();
-      } else {
-        const timer = setTimeout(() => {
-          requestFileSuggestions(atMention.filterText);
-        }, 150);
-        return () => clearTimeout(timer);
-      }
+      const timer = setTimeout(() => {
+        requestFileSuggestions(atMention.filterText);
+      }, 150);
+      return () => clearTimeout(timer);
     } else {
       setSuggestions([]);
       setIsLoadingSuggestions(false);
-      setKbNavigation({ isActive: false, level: 'root' });
     }
-  }, [atMention.isActive, atMention.filterText, requestFileSuggestions, kbNavigation.isActive, kbNavigation.level, kbNavigation.kbId, kbNavigation.folderId]);
-
-  const fetchKnowledgeBaseItems = useCallback(() => {
-    if (!configurationData?.backendLink) return;
-
-    setIsLoadingSuggestions(true);
-    vscode.postMessage({
-      command: 'getKbItems',
-      level: kbNavigation.level,
-      kbId: kbNavigation.kbId,
-      folderId: kbNavigation.folderId,
-      backendLink: configurationData.backendLink
-    });
-  }, [configurationData?.backendLink, kbNavigation, vscode]);
+  }, [atMention.isActive, atMention.filterText, requestFileSuggestions]);
 
   // Debounced 指令 requests
   useEffect(() => {
@@ -397,11 +367,9 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
         // Only process if this is the latest request
         if (data.requestId === requestIdRef.current) {
           setSuggestions(data.suggestions || []);
-          // Set initial selected index: -2 if no filter text and both options available, -1 if only upload, 0 otherwise
+          // Set initial selected index: -1 if no filter text (upload option), 0 otherwise
           const hasFilterText = data.filterText && data.filterText.trim();
-          const hasUploadOption = !hasFilterText && !kbNavigation.isActive;
-          const hasKB = hasUploadOption && configurationData?.backendLink && configurationData.backendLink.trim() !== '';
-          setSelectedIndex(hasFilterText ? 0 : (hasKB ? -2 : -1));
+          setSelectedIndex(hasFilterText ? 0 : -1);
           setIsLoadingSuggestions(false);
         }
       } else if (data.command === 'fileSuggestionsError') {
@@ -428,96 +396,6 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
       } else if (data.command === 'uploadError') {
         console.error('文件上传失败:', data.error);
         // Could show an error notification here if needed
-      } else if (data.command === 'kbItemsResponse') {
-        const { level, kbId, folderId, result } = data;
-        
-        if (!result || !result.success) {
-          console.error('获取知识库数据失败:', result?.error || '未知错误');
-          setIsLoadingSuggestions(false);
-          return;
-        }
-
-        // Handle both { data: { data: [] } } and { data: [] } formats
-        let dataItems = [];
-        if (result.data) {
-          if (Array.isArray(result.data)) {
-            dataItems = result.data;
-          } else if (result.data.data && Array.isArray(result.data.data)) {
-            dataItems = result.data.data;
-          }
-        }
-        let items: FileItem[] = [];
-
-        if (level === 'root') {
-          items = dataItems.map((kb: any) => ({
-            path: `kb:${kb.id}`,
-            relativePath: `知识库: ${kb.name}`,
-            name: kb.name,
-            extension: '',
-            icon: 'codicon-library',
-            isDirectory: true,
-            isKnowledgeBaseOption: true,
-            kbType: 'kb',
-            kbId: kb.id
-          }));
-        } else if (level === 'kb') {
-          items = dataItems.map((folder: any) => ({
-            path: `folder:${folder.id}`,
-            relativePath: `目录: ${folder.name}`,
-            name: folder.name,
-            extension: '',
-            icon: 'codicon-folder',
-            isDirectory: true,
-            isKnowledgeBaseOption: true,
-            kbType: 'folder',
-            kbId: kbId,
-            folderId: folder.id
-          }));
-        } else if (level === 'folder') {
-          items = dataItems.map((file: any) => ({
-            path: `file:${file.id}`,
-            relativePath: `文件: ${file.original_filename}`,
-            name: file.original_filename,
-            extension: file.original_filename.split('.').pop() || '',
-            icon: 'codicon-file',
-            isDirectory: false,
-            isKnowledgeBaseOption: true,
-            kbType: 'file',
-            kbId: kbId,
-            folderId: folderId,
-            fileId: file.id
-          }));
-        }
-
-        setSuggestions(items);
-        setSelectedIndex(0);
-        setIsLoadingSuggestions(false);
-      } else if (data.command === 'kbItemsError') {
-        console.error('知识库错误:', data.error);
-        setIsLoadingSuggestions(false);
-      } else if (data.command === 'kbFileDownloadError') {
-        console.error('知识库文件下载失败:', data.error);
-        setIsLoadingSuggestions(false);
-      } else if (data.command === 'kbFileDownloaded') {
-        console.log('知识库文件下载成功:', data.tempPath);
-        
-        // Insert the temporary path into the input
-        const filePathWithSpace = data.tempPath + ' ';
-        const newMessage = message.slice(0, atMention.startPos) +
-                          filePathWithSpace +
-                          message.slice(atMention.endPos);
-
-        setMessage(newMessage);
-        closeDropdown();
-
-        // Focus back to textarea and set cursor position
-        setTimeout(() => {
-          if (textareaRef.current) {
-            textareaRef.current.focus();
-            const newCursorPos = atMention.startPos + filePathWithSpace.length;
-            textareaRef.current.setSelectionRange(newCursorPos, newCursorPos);
-          }
-        }, 0);
       }
     };
 
@@ -533,39 +411,6 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
     if (file.isUploadOption) {
       handleFileUpload();
       return;
-    }
-
-    // Handle knowledge base option selection
-    if (file.isKnowledgeBaseOption) {
-      if (file.path === '__kb__') {
-        setKbNavigation({ isActive: true, level: 'root' });
-        setSelectedIndex(0);
-        setSuggestions([]);
-        setIsLoadingSuggestions(true);
-        return;
-      }
-
-      if (file.kbType === 'kb') {
-        setKbNavigation({ isActive: true, level: 'kb', kbId: file.kbId });
-        setSelectedIndex(0);
-        setSuggestions([]);
-        setIsLoadingSuggestions(true);
-        return;
-      }
-
-      if (file.kbType === 'folder') {
-        setKbNavigation({ isActive: true, level: 'folder', kbId: file.kbId, folderId: file.folderId });
-        setSelectedIndex(0);
-        setSuggestions([]);
-        setIsLoadingSuggestions(true);
-        return;
-      }
-
-      if (file.kbType === 'file') {
-        // Download file and insert path
-        handleKbFileDownload(file);
-        return;
-      }
     }
 
     const filePathWithSpace = file.relativePath + ' '; // Add space after file path
@@ -654,18 +499,6 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
     closeDropdown();
   }, [atMention, vscode, closeDropdown]);
 
-  const handleKbFileDownload = useCallback((file: FileItem) => {
-    if (!configurationData?.backendLink || !file.fileId) return;
-
-    setIsLoadingSuggestions(true);
-    vscode.postMessage({
-      command: 'downloadKbFile',
-      fileId: file.fileId,
-      fileName: file.name,
-      backendLink: configurationData.backendLink
-    });
-  }, [configurationData?.backendLink, vscode]);
-
   // Handle 指令 selection
   const handleSlashCommandSelect = useCallback((command: SlashCommand) => {
     if (!textareaRef.current) return;
@@ -735,10 +568,9 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
 
     // Handle dropdown navigation
     if (atMention.isActive && (suggestions.length > 0 || !atMention.filterText)) {
-      const hasUploadOption = !atMention.filterText && !kbNavigation.isActive;
-      const hasKB = hasUploadOption && configurationData?.backendLink && configurationData.backendLink.trim() !== '';
+      const hasUploadOption = !atMention.filterText;
       const totalItems = suggestions.length;
-      const minIndex = hasUploadOption ? (hasKB ? -2 : -1) : 0;
+      const minIndex = hasUploadOption ? -1 : 0;
       const maxIndex = suggestions.length - 1;
 
       switch (event.key) {
@@ -752,20 +584,9 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
           return;
         case 'Enter':
           event.preventDefault();
-          if (hasUploadOption && ((hasKB && selectedIndex === -2) || (!hasKB && selectedIndex === -1))) {
+          if (hasUploadOption && selectedIndex === -1) {
             // Handle upload option
             handleFileUpload();
-          } else if (hasUploadOption && hasKB && selectedIndex === -1) {
-            // Handle knowledge base option
-            handleFileSelect({
-              path: '__kb__',
-              relativePath: '__kb__',
-              name: '知识库',
-              extension: '',
-              icon: 'codicon-library',
-              isDirectory: true,
-              isKnowledgeBaseOption: true
-            });
           } else if (suggestions[selectedIndex]) {
             handleFileSelect(suggestions[selectedIndex]);
           }
@@ -1052,15 +873,13 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
         {/* File Suggestion Dropdown */}
         <FileSuggestionDropdown
           suggestions={suggestions}
-          isVisible={!!(atMention.isActive && (suggestions.length > 0 || isLoadingSuggestions || (!atMention.filterText && configurationData?.backendLink && configurationData.backendLink.trim() !== '' && !kbNavigation.isActive)))}
+          isVisible={!!(atMention.isActive && (suggestions.length > 0 || isLoadingSuggestions || !atMention.filterText))}
           selectedIndex={selectedIndex}
           onSelect={handleFileSelect}
           onClose={closeDropdown}
           position={dropdownPosition}
           filterText={atMention.filterText}
           isLoading={isLoadingSuggestions}
-          hasKnowledgeBase={!!(configurationData?.backendLink && configurationData.backendLink.trim() !== '')}
-          isKbNavigationActive={kbNavigation.isActive}
         />
 
         {/* 指令弹窗 */}

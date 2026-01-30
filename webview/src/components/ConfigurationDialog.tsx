@@ -24,7 +24,6 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps> = ({
     baseURL: '',
     agentModel: '',
     fastModel: '',
-    backendLink: '',
     language: ''
   });
 
@@ -151,18 +150,6 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps> = ({
             value={formData.fastModel || ''}
             onChange={(e) => handleInputChange('fastModel', e.target.value)}
             placeholder="请输入快速模型名称 (或设置 WAVE_FAST_MODEL)"
-            disabled={isLoading}
-          />
-        </div>
-
-        <div className="configuration-field">
-          <label htmlFor="backendLink">后台链接:</label>
-          <input
-            id="backendLink"
-            type="url"
-            value={formData.backendLink || ''}
-            onChange={(e) => handleInputChange('backendLink', e.target.value)}
-            placeholder="知识库、代码地图后台链接"
             disabled={isLoading}
           />
         </div>

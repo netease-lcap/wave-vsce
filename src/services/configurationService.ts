@@ -6,7 +6,6 @@ export interface ConfigurationData {
     baseURL: string;
     agentModel: string;
     fastModel: string;
-    backendLink: string;
     language?: string;
 }
 
@@ -20,7 +19,6 @@ export class ConfigurationService {
             baseURL: this.context.globalState.get<string>('baseURL') || '',
             agentModel: this.context.globalState.get<string>('agentModel') || '',
             fastModel: this.context.globalState.get<string>('fastModel') || '',
-            backendLink: this.context.globalState.get<string>('backendLink') || '',
             language: this.context.globalState.get<string>('language') || ''
         };
     }
@@ -32,7 +30,6 @@ export class ConfigurationService {
             if (configData.baseURL !== undefined) await this.context.globalState.update('baseURL', configData.baseURL);
             if (configData.agentModel !== undefined) await this.context.globalState.update('agentModel', configData.agentModel);
             if (configData.fastModel !== undefined) await this.context.globalState.update('fastModel', configData.fastModel);
-            if (configData.backendLink !== undefined) await this.context.globalState.update('backendLink', configData.backendLink);
             if (configData.language !== undefined) await this.context.globalState.update('language', configData.language);
         } catch (error) {
             console.error('Failed to save configuration:', error);
