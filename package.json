@@ -79,9 +79,7 @@
     "package": "node scripts/package.js",
     "test": "npm run test:playwright",
     "test:playwright": "playwright test --project=chromium",
-    "test:playwright:ui": "playwright test --project=chromium --ui",
     "test:demo": "playwright test --project=demo",
-    "test:demo:ui": "playwright test --project=demo --ui",
     "deploy:spec": "bash scripts/deploy-spec.sh"
   },
   "devDependencies": {
