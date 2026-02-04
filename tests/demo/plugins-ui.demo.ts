@@ -33,21 +33,44 @@ test.describe('Plugin Configuration UI Demo', () => {
                 command: 'listPluginsResponse',
                 plugins: [
                     {
-                        id: 'test-plugin@market1',
-                        name: 'Test Plugin',
-                        description: 'A sample plugin for testing',
-                        marketplace: 'market1',
+                        id: 'commit-commands@wave-plugins-official',
+                        name: 'commit-commands',
+                        description: 'Commands for git commit workflows including commit, push, and PR creation',
+                        marketplace: 'wave-plugins-official',
                         installed: false,
                         version: '1.0.0'
                     },
                     {
-                        id: 'installed-plugin@market1',
-                        name: 'Installed Plugin',
-                        description: 'Already installed plugin',
-                        marketplace: 'market1',
-                        installed: true,
-                        enabled: true,
-                        version: '2.1.0'
+                        id: 'document-skills@wave-plugins-official',
+                        name: 'document-skills',
+                        description: 'Collection of document processing suite including Excel, Word, PowerPoint, and PDF capabilities',
+                        marketplace: 'wave-plugins-official',
+                        installed: false,
+                        version: '1.0.0'
+                    },
+                    {
+                        id: 'typescript-lsp@wave-plugins-official',
+                        name: 'typescript-lsp',
+                        description: 'TypeScript/JavaScript language server for enhanced code intelligence',
+                        marketplace: 'wave-plugins-official',
+                        installed: false,
+                        version: '1.0.0'
+                    },
+                    {
+                        id: 'chrome-headless@wave-plugins-official',
+                        name: 'chrome-headless',
+                        description: 'Chrome DevTools Protocol MCP server for headless browser automation',
+                        marketplace: 'wave-plugins-official',
+                        installed: false,
+                        version: '1.0.0'
+                    },
+                    {
+                        id: 'sdd@wave-plugins-official',
+                        name: 'sdd',
+                        description: '规格驱动开发工作流，用于创建和管理技术规格文档',
+                        marketplace: 'wave-plugins-official',
+                        installed: false,
+                        version: '1.0.0'
                     }
                 ]
             }, '*');
@@ -69,7 +92,7 @@ test.describe('Plugin Configuration UI Demo', () => {
             window.postMessage({
                 command: 'listMarketplacesResponse',
                 marketplaces: [
-                    { name: 'market1', url: 'https://github.com/owner/repo' }
+                                        { name: 'wave-plugins-official', url: 'https://github.com/wave-team/wave-plugins-official' }
                 ]
             }, '*');
         });
