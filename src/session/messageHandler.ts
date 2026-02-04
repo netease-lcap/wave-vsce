@@ -133,6 +133,10 @@ export class MessageHandler {
             await this.pluginService.installPlugin(pluginId, scope);
             vscode.window.showInformationMessage(`插件 ${pluginId} 安装成功`);
             await this.handleListPlugins(viewType, windowId);
+            
+            // Reload config and recreate agents to apply plugin changes
+            const config = await this.configService.loadConfiguration();
+            this.context.updateAllSessionsConfig(config);
         } catch (error) {
             vscode.window.showErrorMessage('安装插件失败: ' + error);
         }
@@ -142,6 +146,10 @@ export class MessageHandler {
         try {
             await this.pluginService.enablePlugin(pluginId, scope);
             await this.handleListPlugins(viewType, windowId);
+            
+            // Reload config and recreate agents to apply plugin changes
+            const config = await this.configService.loadConfiguration();
+            this.context.updateAllSessionsConfig(config);
         } catch (error) {
             vscode.window.showErrorMessage('启用插件失败: ' + error);
         }
@@ -151,6 +159,10 @@ export class MessageHandler {
         try {
             await this.pluginService.disablePlugin(pluginId, scope);
             await this.handleListPlugins(viewType, windowId);
+            
+            // Reload config and recreate agents to apply plugin changes
+            const config = await this.configService.loadConfiguration();
+            this.context.updateAllSessionsConfig(config);
         } catch (error) {
             vscode.window.showErrorMessage('禁用插件失败: ' + error);
         }
@@ -161,6 +173,10 @@ export class MessageHandler {
             await this.pluginService.uninstallPlugin(pluginId);
             vscode.window.showInformationMessage('插件卸载成功');
             await this.handleListPlugins(viewType, windowId);
+            
+            // Reload config and recreate agents to apply plugin changes
+            const config = await this.configService.loadConfiguration();
+            this.context.updateAllSessionsConfig(config);
         } catch (error) {
             vscode.window.showErrorMessage('卸载插件失败: ' + error);
         }
