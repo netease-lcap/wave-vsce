@@ -94,10 +94,25 @@ export class PluginService {
     }
 
     public async uninstallPlugin(pluginId: string) {
-        // MarketplaceService doesn't seem to have a direct uninstallPlugin in the snippet, 
-        // but we can implement it if needed or just disable it.
-        // For now, let's assume we just disable it if uninstall is not available.
-        throw new Error('Uninstall not implemented in SDK');
+        const workdir = this.getWorkdir();
+        
+        // Uninstall the plugin from the marketplace
+        await this.marketplaceService.uninstallPlugin(pluginId);
+        
+        // Clean up plugin configuration from all scopes
+        if (workdir) {
+            try {
+                const pluginManager = new PluginManager({ workdir });
+                const scopeManager = new PluginScopeManager({
+                    workdir,
+                    configurationService: this.sdkConfigService,
+                    pluginManager,
+                });
+                await scopeManager.removePluginFromAllScopes(pluginId);
+            } catch (error) {
+                console.warn(`Warning: Could not clean up all plugin configurations: ${error}`);
+            }
+        }
     }
 
     public async enablePlugin(pluginId: string, scope?: Scope) {
