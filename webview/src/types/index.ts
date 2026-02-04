@@ -261,6 +261,24 @@ export interface ConfigurationData {
   language?: string;
 }
 
+// Plugin related types
+export interface PluginInfo {
+  id: string;
+  name: string;
+  description?: string;
+  version?: string;
+  enabled?: boolean;
+  installed?: boolean;
+  marketplace?: string;
+}
+
+export interface MarketplaceInfo {
+  name: string;
+  url: string;
+}
+
+export type PluginScope = 'user' | 'project' | 'local';
+
 export interface SelectionInfo {
   filePath: string;
   fileName: string;

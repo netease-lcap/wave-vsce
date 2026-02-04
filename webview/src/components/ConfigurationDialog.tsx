@@ -7,17 +7,21 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
-import { ConfigurationDialogProps, ConfigurationData } from '../types';
+import { ConfigurationDialogProps, ConfigurationData, PluginInfo, MarketplaceInfo, PluginScope } from '../types';
 import '../styles/ConfigurationDialog.css';
 
-const ConfigurationDialog: React.FC<ConfigurationDialogProps> = ({
+const ConfigurationDialog: React.FC<ConfigurationDialogProps & { vscode: any }> = ({
   isVisible,
   configurationData,
   isLoading,
   error,
   onSave,
-  onCancel
+  onCancel,
+  vscode // Add vscode to props
 }) => {
+  const [activeTab, setActiveTab] = useState<'general' | 'plugins'>('general');
+  const [activePluginTab, setActivePluginTab] = useState<'explore' | 'installed' | 'marketplaces'>('explore');
+  
   const [formData, setFormData] = useState<ConfigurationData>({
     apiKey: '',
     headers: '',
@@ -26,6 +30,65 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps> = ({
     fastModel: '',
     language: ''
   });
+
+  // Plugin state
+  const [plugins, setPlugins] = useState<PluginInfo[]>([]);
+  const [marketplaces, setMarketplaces] = useState<MarketplaceInfo[]>([]);
+  const [newMarketplaceUrl, setNewMarketplaceUrl] = useState('');
+  const [installScope, setInstallScope] = useState<PluginScope>('user');
+
+  useEffect(() => {
+    if (isVisible && activeTab === 'plugins') {
+      if (activePluginTab === 'explore' || activePluginTab === 'installed') {
+        vscode?.postMessage({ command: 'listPlugins' });
+      } else if (activePluginTab === 'marketplaces') {
+        vscode?.postMessage({ command: 'listMarketplaces' });
+      }
+    }
+  }, [isVisible, activeTab, activePluginTab, vscode]);
+
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      const message = event.data;
+      switch (message.command) {
+        case 'listPluginsResponse':
+          setPlugins(message.plugins || []);
+          break;
+        case 'listMarketplacesResponse':
+          setMarketplaces(message.marketplaces || []);
+          break;
+      }
+    };
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, []);
+
+  const handleInstallPlugin = (pluginId: string) => {
+    vscode?.postMessage({ command: 'installPlugin', pluginId, scope: installScope });
+  };
+
+  const handleEnablePlugin = (pluginId: string) => {
+    vscode?.postMessage({ command: 'enablePlugin', pluginId, scope: 'user' }); // Default to user scope for toggle
+  };
+
+  const handleDisablePlugin = (pluginId: string) => {
+    vscode?.postMessage({ command: 'disablePlugin', pluginId, scope: 'user' });
+  };
+
+  const handleAddMarketplace = () => {
+    if (newMarketplaceUrl) {
+      vscode?.postMessage({ command: 'addMarketplace', input: newMarketplaceUrl });
+      setNewMarketplaceUrl('');
+    }
+  };
+
+  const handleRemoveMarketplace = (name: string) => {
+    vscode?.postMessage({ command: 'removeMarketplace', name });
+  };
+
+  const handleUpdateMarketplace = (name?: string) => {
+    vscode?.postMessage({ command: 'updateMarketplace', name });
+  };
 
   const isFormValid = true;
 
@@ -91,107 +154,251 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps> = ({
       >
         <div className="configuration-dialog-header">
           <h3>配置设置</h3>
+          <div className="configuration-tabs">
+            <button 
+              className={`tab-button ${activeTab === 'general' ? 'active' : ''}`}
+              onClick={() => setActiveTab('general')}
+            >
+              常规设置
+            </button>
+            <button 
+              className={`tab-button ${activeTab === 'plugins' ? 'active' : ''}`}
+              onClick={() => setActiveTab('plugins')}
+            >
+              插件
+            </button>
+          </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="configuration-form">
-        <div className="configuration-field">
-          <label htmlFor="apiKey">API Key:</label>
-          <input
-            id="apiKey"
-            type="password"
-            value={formData.apiKey || ''}
-            onChange={(e) => handleInputChange('apiKey', e.target.value)}
-            placeholder="输入 API Key (或设置 WAVE_API_KEY 环境变量)"
-            disabled={isLoading}
-          />
-        </div>
+        {activeTab === 'general' ? (
+          <form onSubmit={handleSubmit} className="configuration-form">
+            <div className="configuration-field">
+              <label htmlFor="apiKey">API Key:</label>
+              <input
+                id="apiKey"
+                type="password"
+                value={formData.apiKey || ''}
+                onChange={(e) => handleInputChange('apiKey', e.target.value)}
+                placeholder="输入 API Key (或设置 WAVE_API_KEY 环境变量)"
+                disabled={isLoading}
+              />
+            </div>
 
-        <div className="configuration-field">
-          <label htmlFor="headers">Headers (JSON):</label>
-          <input
-            id="headers"
-            type="text"
-            value={formData.headers || ''}
-            onChange={(e) => handleInputChange('headers', e.target.value)}
-            placeholder='{"Authorization": "Bearer ..."} (或设置 WAVE_CUSTOM_HEADERS)'
-            disabled={isLoading}
-          />
-        </div>
+            <div className="configuration-field">
+              <label htmlFor="headers">Headers (JSON):</label>
+              <input
+                id="headers"
+                type="text"
+                value={formData.headers || ''}
+                onChange={(e) => handleInputChange('headers', e.target.value)}
+                placeholder='{"Authorization": "Bearer ..."} (或设置 WAVE_CUSTOM_HEADERS)'
+                disabled={isLoading}
+              />
+            </div>
 
-        <div className="configuration-field">
-          <label htmlFor="baseURL">Base URL:</label>
-          <input
-            id="baseURL"
-            type="url"
-            value={formData.baseURL || ''}
-            onChange={(e) => handleInputChange('baseURL', e.target.value)}
-            placeholder="https://api.example.com/v1 (或设置 WAVE_BASE_URL)"
-            disabled={isLoading}
-          />
-        </div>
+            <div className="configuration-field">
+              <label htmlFor="baseURL">Base URL:</label>
+              <input
+                id="baseURL"
+                type="url"
+                value={formData.baseURL || ''}
+                onChange={(e) => handleInputChange('baseURL', e.target.value)}
+                placeholder="https://api.example.com/v1 (或设置 WAVE_BASE_URL)"
+                disabled={isLoading}
+              />
+            </div>
 
-        <div className="configuration-field">
-          <label htmlFor="agentModel">Agent Model:</label>
-          <input
-            id="agentModel"
-            type="text"
-            value={formData.agentModel || ''}
-            onChange={(e) => handleInputChange('agentModel', e.target.value)}
-            placeholder="请输入模型名称 (或设置 WAVE_MODEL)"
-            disabled={isLoading}
-          />
-        </div>
+            <div className="configuration-field">
+              <label htmlFor="agentModel">Agent Model:</label>
+              <input
+                id="agentModel"
+                type="text"
+                value={formData.agentModel || ''}
+                onChange={(e) => handleInputChange('agentModel', e.target.value)}
+                placeholder="请输入模型名称 (或设置 WAVE_MODEL)"
+                disabled={isLoading}
+              />
+            </div>
 
-        <div className="configuration-field">
-          <label htmlFor="fastModel">Fast Model:</label>
-          <input
-            id="fastModel"
-            type="text"
-            value={formData.fastModel || ''}
-            onChange={(e) => handleInputChange('fastModel', e.target.value)}
-            placeholder="请输入快速模型名称 (或设置 WAVE_FAST_MODEL)"
-            disabled={isLoading}
-          />
-        </div>
+            <div className="configuration-field">
+              <label htmlFor="fastModel">Fast Model:</label>
+              <input
+                id="fastModel"
+                type="text"
+                value={formData.fastModel || ''}
+                onChange={(e) => handleInputChange('fastModel', e.target.value)}
+                placeholder="请输入快速模型名称 (或设置 WAVE_FAST_MODEL)"
+                disabled={isLoading}
+              />
+            </div>
 
-        <div className="configuration-field">
-          <label htmlFor="language">语言 (Language):</label>
-          <select
-            id="language"
-            value={formData.language || 'Chinese'}
-            onChange={(e) => handleInputChange('language', e.target.value)}
-            disabled={isLoading}
-            className="configuration-select"
-          >
-            <option value="Chinese">中文</option>
-            <option value="English">英文</option>
-          </select>
-        </div>
+            <div className="configuration-field">
+              <label htmlFor="language">语言 (Language):</label>
+              <select
+                id="language"
+                value={formData.language || 'Chinese'}
+                onChange={(e) => handleInputChange('language', e.target.value)}
+                disabled={isLoading}
+                className="configuration-select"
+              >
+                <option value="Chinese">中文</option>
+                <option value="English">英文</option>
+              </select>
+            </div>
 
-        {error && (
-          <div className="configuration-error">
-            {error}
+            {error && (
+              <div className="configuration-error">
+                {error}
+              </div>
+            )}
+
+            <div className="configuration-actions">
+              <button
+                type="button"
+                onClick={onCancel}
+                disabled={isLoading || !isFormValid}
+                className="configuration-cancel-btn"
+              >
+                取消
+              </button>
+              <button
+                type="submit"
+                disabled={isLoading || !isFormValid}
+                className="configuration-save-btn"
+              >
+                {isLoading ? '保存中...' : '保存'}
+              </button>
+            </div>
+          </form>
+        ) : (
+          <div className="plugins-container">
+            <div className="plugin-tabs">
+              <button 
+                className={`plugin-tab ${activePluginTab === 'explore' ? 'active' : ''}`}
+                onClick={() => setActivePluginTab('explore')}
+              >
+                探索新插件
+              </button>
+              <button 
+                className={`plugin-tab ${activePluginTab === 'installed' ? 'active' : ''}`}
+                onClick={() => setActivePluginTab('installed')}
+              >
+                已安装插件
+              </button>
+              <button 
+                className={`plugin-tab ${activePluginTab === 'marketplaces' ? 'active' : ''}`}
+                onClick={() => setActivePluginTab('marketplaces')}
+              >
+                插件市场
+              </button>
+            </div>
+
+            <div className="plugin-content">
+              {activePluginTab === 'explore' && (
+                <div className="explore-plugins">
+                  <div className="scope-selector">
+                    <label>安装作用域:</label>
+                    <select 
+                      value={installScope} 
+                      onChange={(e) => setInstallScope(e.target.value as PluginScope)}
+                    >
+                      <option value="user">User</option>
+                      <option value="project">Project</option>
+                      <option value="local">Local</option>
+                    </select>
+                  </div>
+                  <div className="plugin-list">
+                    {plugins.filter(p => !p.installed).length > 0 ? (
+                      plugins.filter(p => !p.installed).map(plugin => (
+                        <div key={plugin.id} className="plugin-item">
+                          <div className="plugin-info">
+                            <div className="plugin-name">{plugin.name} <span className="plugin-version">{plugin.version}</span></div>
+                            <div className="plugin-desc">{plugin.description}</div>
+                            <div className="plugin-market">来自: {plugin.marketplace}</div>
+                          </div>
+                          <button className="install-btn" onClick={() => handleInstallPlugin(plugin.id)}>安装</button>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="empty-state">没有可探索的插件</div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {activePluginTab === 'installed' && (
+                <div className="installed-plugins">
+                  <div className="plugin-list">
+                    {plugins.filter(p => p.installed).length > 0 ? (
+                      plugins.filter(p => p.installed).map(plugin => (
+                        <div key={plugin.id} className="plugin-item">
+                          <div className="plugin-info">
+                            <div className="plugin-name">{plugin.name} <span className="plugin-version">{plugin.version}</span></div>
+                            <div className="plugin-desc">{plugin.description}</div>
+                          </div>
+                          <div className="plugin-actions">
+                            <label className="switch">
+                              <input 
+                                type="checkbox" 
+                                checked={plugin.enabled} 
+                                onChange={() => plugin.enabled ? handleDisablePlugin(plugin.id) : handleEnablePlugin(plugin.id)}
+                              />
+                              <span className="slider round"></span>
+                            </label>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="empty-state">没有已安装的插件</div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {activePluginTab === 'marketplaces' && (
+                <div className="marketplaces-manager">
+                  <div className="add-marketplace">
+                    <input 
+                      type="text" 
+                      placeholder="市场 URL (本地路径, owner/repo, 或 Git URL)"
+                      value={newMarketplaceUrl}
+                      onChange={(e) => setNewMarketplaceUrl(e.target.value)}
+                    />
+                    <button className="add-btn" onClick={handleAddMarketplace}>添加</button>
+                  </div>
+                  <div className="marketplace-list">
+                    {marketplaces.length > 0 ? (
+                      marketplaces.map(m => (
+                        <div key={m.name} className="marketplace-item">
+                          <div className="marketplace-info">
+                            <div className="marketplace-name">{m.name}</div>
+                            <div className="marketplace-url">{m.url}</div>
+                          </div>
+                          <div className="marketplace-actions">
+                            <button onClick={() => handleUpdateMarketplace(m.name)}>更新</button>
+                            <button onClick={() => handleRemoveMarketplace(m.name)}>移除</button>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="empty-state">没有已注册的市场</div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            <div className="configuration-actions">
+              <button
+                type="button"
+                onClick={onCancel}
+                className="configuration-cancel-btn"
+              >
+                关闭
+              </button>
+            </div>
           </div>
         )}
-
-        <div className="configuration-actions">
-          <button
-            type="button"
-            onClick={onCancel}
-            disabled={isLoading || !isFormValid}
-            className="configuration-cancel-btn"
-          >
-            取消
-          </button>
-          <button
-            type="submit"
-            disabled={isLoading || !isFormValid}
-            className="configuration-save-btn"
-          >
-            {isLoading ? '保存中...' : '保存'}
-          </button>
-        </div>
-      </form>
     </div>
   </div>
   );

@@ -1,0 +1,125 @@
+import * as vscode from 'vscode';
+import { 
+    MarketplaceService, 
+    ConfigurationService as SdkConfigurationService, 
+    PluginManager, 
+    PluginScopeManager, 
+    Scope 
+} from 'wave-agent-sdk';
+
+export class PluginService {
+    private marketplaceService: MarketplaceService;
+    private sdkConfigService: SdkConfigurationService;
+
+    constructor() {
+        this.marketplaceService = new MarketplaceService();
+        this.sdkConfigService = new SdkConfigurationService();
+    }
+
+    private getWorkdir(): string | undefined {
+        return vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+    }
+
+    public async listPlugins() {
+        const workdir = this.getWorkdir();
+        const installedPlugins = await this.marketplaceService.getInstalledPlugins();
+        const marketplaces = await this.marketplaceService.listMarketplaces();
+        const mergedEnabled = workdir ? this.sdkConfigService.getMergedEnabledPlugins(workdir) : {};
+
+        console.debug(`[PluginService] Found ${marketplaces.length} marketplaces:`, marketplaces.map(m => m.name));
+        const allPlugins: any[] = [];
+
+        for (const m of marketplaces) {
+            const mPath = this.marketplaceService.getMarketplacePath(m);
+            console.debug(`[PluginService] Loading marketplace "${m.name}" from path: ${mPath}`);
+            try {
+                const manifest = await this.marketplaceService.loadMarketplaceManifest(mPath);
+                console.debug(`[PluginService] Marketplace "${m.name}" manifest loaded, found ${manifest.plugins?.length || 0} plugins`);
+                manifest.plugins.forEach((p) => {
+                    const installed = installedPlugins.plugins.find(
+                        (ip) => ip.name === p.name && ip.marketplace === m.name
+                    );
+                    const pluginId = `${p.name}@${m.name}`;
+                    allPlugins.push({
+                        id: pluginId,
+                        name: p.name,
+                        description: p.description,
+                        marketplace: m.name,
+                        installed: !!installed,
+                        version: installed?.version,
+                        enabled: mergedEnabled[pluginId] !== false
+                    });
+                });
+            } catch (e) {
+                console.error(`Failed to load marketplace ${m.name}:`, e);
+            }
+        }
+        return allPlugins;
+    }
+
+    public async installPlugin(pluginId: string, scope?: Scope) {
+        const workdir = this.getWorkdir();
+        const installed = await this.marketplaceService.installPlugin(pluginId);
+        
+        if (scope && workdir) {
+            const pluginManager = new PluginManager({ workdir });
+            const scopeManager = new PluginScopeManager({
+                workdir,
+                configurationService: this.sdkConfigService,
+                pluginManager,
+            });
+            const fullPluginId = `${installed.name}@${installed.marketplace}`;
+            await scopeManager.enablePlugin(scope, fullPluginId);
+        }
+        return installed;
+    }
+
+    public async uninstallPlugin(pluginId: string) {
+        // MarketplaceService doesn't seem to have a direct uninstallPlugin in the snippet, 
+        // but we can implement it if needed or just disable it.
+        // For now, let's assume we just disable it if uninstall is not available.
+        throw new Error('Uninstall not implemented in SDK');
+    }
+
+    public async enablePlugin(pluginId: string, scope: Scope) {
+        const workdir = this.getWorkdir();
+        if (!workdir) throw new Error('No workspace folder open');
+        
+        const pluginManager = new PluginManager({ workdir });
+        const scopeManager = new PluginScopeManager({
+            workdir,
+            configurationService: this.sdkConfigService,
+            pluginManager,
+        });
+        await scopeManager.enablePlugin(scope, pluginId);
+    }
+
+    public async disablePlugin(pluginId: string, scope: Scope) {
+        const workdir = this.getWorkdir();
+        if (!workdir) throw new Error('No workspace folder open');
+        
+        const pluginManager = new PluginManager({ workdir });
+        const scopeManager = new PluginScopeManager({
+            workdir,
+            configurationService: this.sdkConfigService,
+            pluginManager,
+        });
+        await scopeManager.disablePlugin(scope, pluginId);
+    }
+
+    public async listMarketplaces() {
+        return await this.marketplaceService.listMarketplaces();
+    }
+
+    public async addMarketplace(input: string) {
+        return await this.marketplaceService.addMarketplace(input);
+    }
+
+    public async removeMarketplace(name: string) {
+        return await this.marketplaceService.removeMarketplace(name);
+    }
+
+    public async updateMarketplace(name?: string) {
+        return await this.marketplaceService.updateMarketplace(name);
+    }
+}

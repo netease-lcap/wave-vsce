@@ -14,6 +14,7 @@ import { ConfigurationService } from './services/configurationService';
 import { FileService } from './services/fileService';
 import { SessionService } from './services/sessionService';
 import { SelectionService, SelectionInfo } from './services/selectionService';
+import { PluginService } from './services/pluginService';
 import { WebviewManager } from './session/webviewManager';
 import { MessageHandler } from './session/messageHandler';
 
@@ -29,6 +30,7 @@ export class ChatProvider implements vscode.WebviewViewProvider {
     private fileService: FileService;
     private sessionService: SessionService;
     private selectionService: SelectionService;
+    private pluginService: PluginService;
     private webviewManager: WebviewManager;
     private messageHandler: MessageHandler;
 
@@ -38,6 +40,7 @@ export class ChatProvider implements vscode.WebviewViewProvider {
         this.fileService = new FileService();
         this.sessionService = new SessionService();
         this.selectionService = new SelectionService(context);
+        this.pluginService = new PluginService();
 
         this.webviewManager = new WebviewManager(context, {
             onMessage: async (message, viewType, windowId) => {
@@ -62,6 +65,7 @@ export class ChatProvider implements vscode.WebviewViewProvider {
             this.configService,
             this.fileService,
             this.sessionService,
+            this.pluginService,
             {
                 getChatSession: (viewType, windowId) => this.getChatSession(viewType, windowId),
                 postMessage: (message, viewType, windowId) => this.webviewManager.postMessage(message, viewType, windowId),

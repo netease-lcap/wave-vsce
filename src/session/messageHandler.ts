@@ -5,6 +5,7 @@ import { SelectionInfo } from '../services/selectionService';
 import { ConfigurationService } from '../services/configurationService';
 import { FileService } from '../services/fileService';
 import { SessionService } from '../services/sessionService';
+import { PluginService } from '../services/pluginService';
 import { SessionMetadata } from 'wave-agent-sdk';
 
 export interface MessageHandlerContext {
@@ -20,17 +21,20 @@ export class MessageHandler {
     private configService: ConfigurationService;
     private fileService: FileService;
     private sessionService: SessionService;
+    private pluginService: PluginService;
     private context: MessageHandlerContext;
 
     constructor(
         configService: ConfigurationService,
         fileService: FileService,
         sessionService: SessionService,
+        pluginService: PluginService,
         context: MessageHandlerContext
     ) {
         this.configService = configService;
         this.fileService = fileService;
         this.sessionService = sessionService;
+        this.pluginService = pluginService;
         this.context = context;
     }
 
@@ -85,6 +89,105 @@ export class MessageHandler {
             case 'setPermissionMode':
                 await this.handleSetPermissionMode(message.mode, viewType, windowId);
                 break;
+            case 'listPlugins':
+                await this.handleListPlugins(viewType, windowId);
+                break;
+            case 'installPlugin':
+                await this.handleInstallPlugin(message.pluginId, message.scope, viewType, windowId);
+                break;
+            case 'enablePlugin':
+                await this.handleEnablePlugin(message.pluginId, message.scope, viewType, windowId);
+                break;
+            case 'disablePlugin':
+                await this.handleDisablePlugin(message.pluginId, message.scope, viewType, windowId);
+                break;
+            case 'listMarketplaces':
+                await this.handleListMarketplaces(viewType, windowId);
+                break;
+            case 'addMarketplace':
+                await this.handleAddMarketplace(message.input, viewType, windowId);
+                break;
+            case 'removeMarketplace':
+                await this.handleRemoveMarketplace(message.name, viewType, windowId);
+                break;
+            case 'updateMarketplace':
+                await this.handleUpdateMarketplace(message.name, viewType, windowId);
+                break;
+        }
+    }
+
+    private async handleListPlugins(viewType?: 'sidebar' | 'tab' | 'window', windowId?: string) {
+        try {
+            const plugins = await this.pluginService.listPlugins();
+            this.context.postMessage({ command: 'listPluginsResponse', plugins }, viewType, windowId);
+        } catch (error) {
+            vscode.window.showErrorMessage('获取插件列表失败: ' + error);
+        }
+    }
+
+    private async handleInstallPlugin(pluginId: string, scope: any, viewType?: 'sidebar' | 'tab' | 'window', windowId?: string) {
+        try {
+            await this.pluginService.installPlugin(pluginId, scope);
+            vscode.window.showInformationMessage(`插件 ${pluginId} 安装成功`);
+            await this.handleListPlugins(viewType, windowId);
+        } catch (error) {
+            vscode.window.showErrorMessage('安装插件失败: ' + error);
+        }
+    }
+
+    private async handleEnablePlugin(pluginId: string, scope: any, viewType?: 'sidebar' | 'tab' | 'window', windowId?: string) {
+        try {
+            await this.pluginService.enablePlugin(pluginId, scope);
+            await this.handleListPlugins(viewType, windowId);
+        } catch (error) {
+            vscode.window.showErrorMessage('启用插件失败: ' + error);
+        }
+    }
+
+    private async handleDisablePlugin(pluginId: string, scope: any, viewType?: 'sidebar' | 'tab' | 'window', windowId?: string) {
+        try {
+            await this.pluginService.disablePlugin(pluginId, scope);
+            await this.handleListPlugins(viewType, windowId);
+        } catch (error) {
+            vscode.window.showErrorMessage('禁用插件失败: ' + error);
+        }
+    }
+
+    private async handleListMarketplaces(viewType?: 'sidebar' | 'tab' | 'window', windowId?: string) {
+        try {
+            const marketplaces = await this.pluginService.listMarketplaces();
+            this.context.postMessage({ command: 'listMarketplacesResponse', marketplaces }, viewType, windowId);
+        } catch (error) {
+            vscode.window.showErrorMessage('获取市场列表失败: ' + error);
+        }
+    }
+
+    private async handleAddMarketplace(input: string, viewType?: 'sidebar' | 'tab' | 'window', windowId?: string) {
+        try {
+            await this.pluginService.addMarketplace(input);
+            vscode.window.showInformationMessage('市场添加成功');
+            await this.handleListMarketplaces(viewType, windowId);
+        } catch (error) {
+            vscode.window.showErrorMessage('添加市场失败: ' + error);
+        }
+    }
+
+    private async handleRemoveMarketplace(name: string, viewType?: 'sidebar' | 'tab' | 'window', windowId?: string) {
+        try {
+            await this.pluginService.removeMarketplace(name);
+            await this.handleListMarketplaces(viewType, windowId);
+        } catch (error) {
+            vscode.window.showErrorMessage('移除市场失败: ' + error);
+        }
+    }
+
+    private async handleUpdateMarketplace(name?: string, viewType?: 'sidebar' | 'tab' | 'window', windowId?: string) {
+        try {
+            await this.pluginService.updateMarketplace(name);
+            vscode.window.showInformationMessage('市场更新成功');
+            await this.handleListMarketplaces(viewType, windowId);
+        } catch (error) {
+            vscode.window.showErrorMessage('更新市场失败: ' + error);
         }
     }
 

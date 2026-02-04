@@ -450,6 +450,7 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
         error={state.configurationError}
         onSave={handleConfigurationSave}
         onCancel={handleConfigurationCancel}
+        vscode={vscode}
       />
     </div>
   );

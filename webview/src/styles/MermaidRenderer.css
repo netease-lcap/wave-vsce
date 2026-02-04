@@ -15,7 +15,7 @@
   position: relative;
 }
 
-.tab-button {
+.mermaid-tabs .tab-button {
   background: transparent;
   border: none;
   padding: 8px 16px;
@@ -28,12 +28,12 @@
   position: relative;
 }
 
-.tab-button:hover {
+.mermaid-tabs .tab-button:hover {
   background: var(--vscode-tab-hoverBackground);
   color: var(--vscode-tab-activeForeground);
 }
 
-.tab-button.active {
+.mermaid-tabs .tab-button.active {
   color: var(--vscode-tab-activeForeground);
   border-bottom-color: var(--vscode-tab-activeBorder, var(--vscode-focusBorder));
   background: var(--vscode-tab-activeBackground);
