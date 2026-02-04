@@ -215,6 +215,27 @@
     gap: 4px;
 }
 
+.plugin-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.uninstall-btn {
+    background-color: var(--vscode-button-secondaryBackground);
+    color: var(--vscode-button-secondaryForeground);
+    border: 1px solid var(--vscode-button-border, transparent);
+    padding: 4px 8px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 11px;
+    transition: background-color 0.15s ease;
+}
+
+.uninstall-btn:hover {
+    background-color: var(--vscode-button-secondaryHoverBackground);
+}
+
 /* Toggle Switch */
 .switch {
     position: relative;

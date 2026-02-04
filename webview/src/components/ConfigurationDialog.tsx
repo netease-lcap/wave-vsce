@@ -76,6 +76,10 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps & { vscode: any }> 
     vscode?.postMessage({ command: 'disablePlugin', pluginId }); // Let SDK determine appropriate scope
   };
 
+  const handleUninstallPlugin = (pluginId: string) => {
+    vscode?.postMessage({ command: 'uninstallPlugin', pluginId });
+  };
+
   const handleAddMarketplace = () => {
     if (newMarketplaceUrl) {
       vscode?.postMessage({ command: 'addMarketplace', input: newMarketplaceUrl });
@@ -389,6 +393,13 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps & { vscode: any }> 
                               />
                               <span className="slider round"></span>
                             </label>
+                            <button 
+                              className="uninstall-btn"
+                              onClick={() => handleUninstallPlugin(plugin.id)}
+                              title="卸载插件"
+                            >
+                              卸载
+                            </button>
                           </div>
                         </div>
                       ))

@@ -101,6 +101,9 @@ export class MessageHandler {
             case 'disablePlugin':
                 await this.handleDisablePlugin(message.pluginId, message.scope, viewType, windowId);
                 break;
+            case 'uninstallPlugin':
+                await this.handleUninstallPlugin(message.pluginId, viewType, windowId);
+                break;
             case 'listMarketplaces':
                 await this.handleListMarketplaces(viewType, windowId);
                 break;
@@ -150,6 +153,16 @@ export class MessageHandler {
             await this.handleListPlugins(viewType, windowId);
         } catch (error) {
             vscode.window.showErrorMessage('禁用插件失败: ' + error);
+        }
+    }
+
+    private async handleUninstallPlugin(pluginId: string, viewType?: 'sidebar' | 'tab' | 'window', windowId?: string) {
+        try {
+            await this.pluginService.uninstallPlugin(pluginId);
+            vscode.window.showInformationMessage('插件卸载成功');
+            await this.handleListPlugins(viewType, windowId);
+        } catch (error) {
+            vscode.window.showErrorMessage('卸载插件失败: ' + error);
         }
     }
 
