@@ -33,6 +33,7 @@ This file provides guidance to Wave Code when working with code in this reposito
 - **`webview/src/components/ChatApp.tsx`**: 使用 `useReducer` 模式管理聊天状态的主要组件。
 - **`webview/src/components/ConfigurationDialog.tsx`**: 用于管理 AI 设置（API 密钥、模型、语言等）的 UI。
 - **通信 (Communication)**: 使用 `vscode.postMessage` 和 `window.addEventListener('message', ...)` 与后端通信。
+- **VS Code API 限制**: `acquireVsCodeApi()` 在整个 Webview 生命周期内只能被调用一次。必须在根组件（如 `index.tsx`）调用并作为 Prop 传递给子组件，严禁在子组件中重复获取，否则会导致 Webview 崩溃。
 
 ### 关键集成：`wave-agent-sdk`
 该扩展严重依赖 `wave-agent-sdk` 来实现 AI 能力。智能体使用项目特定的工具（Bash、文件操作、LSP）进行初始化，并处理复杂的推理和工具执行逻辑。
