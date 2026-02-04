@@ -81,7 +81,7 @@ export class PluginService {
         throw new Error('Uninstall not implemented in SDK');
     }
 
-    public async enablePlugin(pluginId: string, scope: Scope) {
+    public async enablePlugin(pluginId: string, scope?: Scope) {
         const workdir = this.getWorkdir();
         if (!workdir) throw new Error('No workspace folder open');
         
@@ -91,10 +91,13 @@ export class PluginService {
             configurationService: this.sdkConfigService,
             pluginManager,
         });
-        await scopeManager.enablePlugin(scope, pluginId);
+        
+        // If scope is not provided, find the scope where the plugin is installed
+        const resolvedScope = scope || scopeManager.findPluginScope(pluginId) || 'user';
+        await scopeManager.enablePlugin(resolvedScope, pluginId);
     }
 
-    public async disablePlugin(pluginId: string, scope: Scope) {
+    public async disablePlugin(pluginId: string, scope?: Scope) {
         const workdir = this.getWorkdir();
         if (!workdir) throw new Error('No workspace folder open');
         
@@ -104,7 +107,10 @@ export class PluginService {
             configurationService: this.sdkConfigService,
             pluginManager,
         });
-        await scopeManager.disablePlugin(scope, pluginId);
+        
+        // If scope is not provided, find the scope where the plugin is installed
+        const resolvedScope = scope || scopeManager.findPluginScope(pluginId) || 'user';
+        await scopeManager.disablePlugin(resolvedScope, pluginId);
     }
 
     public async listMarketplaces() {

@@ -68,11 +68,11 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps & { vscode: any }> 
   };
 
   const handleEnablePlugin = (pluginId: string) => {
-    vscode?.postMessage({ command: 'enablePlugin', pluginId, scope: 'user' }); // Default to user scope for toggle
+    vscode?.postMessage({ command: 'enablePlugin', pluginId }); // Let SDK determine appropriate scope
   };
 
   const handleDisablePlugin = (pluginId: string) => {
-    vscode?.postMessage({ command: 'disablePlugin', pluginId, scope: 'user' });
+    vscode?.postMessage({ command: 'disablePlugin', pluginId }); // Let SDK determine appropriate scope
   };
 
   const handleAddMarketplace = () => {
