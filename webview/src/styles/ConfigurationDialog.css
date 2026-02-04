@@ -140,7 +140,6 @@
     background-color: var(--vscode-sideBar-background);
     border: 1px solid var(--vscode-panel-border);
     border-radius: 4px;
-    gap: 12px;
 }
 
 .plugin-item.clickable {
@@ -150,37 +149,6 @@
 
 .plugin-item.clickable:hover {
     background-color: var(--vscode-list-hoverBackground);
-}
-
-/* Plugin Icon */
-.plugin-icon {
-    flex-shrink: 0;
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-}
-
-.plugin-icon img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-}
-
-.plugin-icon-emoji {
-    font-size: 24px;
-    line-height: 1;
-}
-
-.plugin-icon-large {
-    width: 64px;
-    height: 64px;
-}
-
-.plugin-icon-large .plugin-icon-emoji {
-    font-size: 48px;
 }
 
 .plugin-chevron {
@@ -479,8 +447,7 @@ input:checked + .slider:before {
 .plugin-detail-header {
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    align-items: center;
+    gap: 4px;
 }
 
 .plugin-detail-header .plugin-name {
