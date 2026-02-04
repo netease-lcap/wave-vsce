@@ -26,6 +26,17 @@ export class PluginService {
         const marketplaces = await this.marketplaceService.listMarketplaces();
         const mergedEnabled = workdir ? this.sdkConfigService.getMergedEnabledPlugins(workdir) : {};
 
+        // Create scope manager for detecting plugin scopes
+        let scopeManager: PluginScopeManager | undefined;
+        if (workdir) {
+            const pluginManager = new PluginManager({ workdir });
+            scopeManager = new PluginScopeManager({
+                workdir,
+                configurationService: this.sdkConfigService,
+                pluginManager,
+            });
+        }
+
         console.debug(`[PluginService] Found ${marketplaces.length} marketplaces:`, marketplaces.map(m => m.name));
         const allPlugins: any[] = [];
 
@@ -40,6 +51,13 @@ export class PluginService {
                         (ip) => ip.name === p.name && ip.marketplace === m.name
                     );
                     const pluginId = `${p.name}@${m.name}`;
+                    
+                    // Detect scope for installed plugins
+                    let scope: Scope | undefined;
+                    if (installed && scopeManager) {
+                        scope = scopeManager.findPluginScope(pluginId) || undefined;
+                    }
+                    
                     allPlugins.push({
                         id: pluginId,
                         name: p.name,
@@ -47,7 +65,8 @@ export class PluginService {
                         marketplace: m.name,
                         installed: !!installed,
                         version: installed?.version,
-                        enabled: mergedEnabled[pluginId] !== false
+                        enabled: mergedEnabled[pluginId] !== false,
+                        scope: scope
                     });
                 });
             } catch (e) {

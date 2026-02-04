@@ -270,6 +270,7 @@ export interface PluginInfo {
   enabled?: boolean;
   installed?: boolean;
   marketplace?: string;
+  scope?: PluginScope;
 }
 
 export interface MarketplaceInfo {

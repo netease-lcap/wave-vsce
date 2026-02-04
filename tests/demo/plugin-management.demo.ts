@@ -67,7 +67,8 @@ test.describe('Plugin Management Screenshots', () => {
                         marketplace: 'official',
                         installed: true,
                         enabled: true,
-                        version: '1.5.0'
+                        version: '1.5.0',
+                        scope: 'user'
                     },
                     {
                         id: 'markdown-enhancer@community',
@@ -76,7 +77,8 @@ test.describe('Plugin Management Screenshots', () => {
                         marketplace: 'community',
                         installed: true,
                         enabled: false,
-                        version: '1.1.2'
+                        version: '1.1.2',
+                        scope: 'project'
                     }
                 ]
             }, '*');

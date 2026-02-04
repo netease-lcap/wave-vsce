@@ -333,7 +333,11 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps & { vscode: any }> 
                       plugins.filter(p => p.installed).map(plugin => (
                         <div key={plugin.id} className="plugin-item">
                           <div className="plugin-info">
-                            <div className="plugin-name">{plugin.name} <span className="plugin-version">{plugin.version}</span></div>
+                            <div className="plugin-name">
+                              {plugin.name} 
+                              <span className="plugin-version">{plugin.version}</span>
+                              {plugin.scope && <span className="plugin-scope">[{plugin.scope}]</span>}
+                            </div>
                             <div className="plugin-desc">{plugin.description}</div>
                           </div>
                           <div className="plugin-actions">
