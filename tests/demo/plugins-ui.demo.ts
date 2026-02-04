@@ -27,27 +27,54 @@ test.describe('Plugin Configuration UI Demo', () => {
         await expect(webviewPage.getByText('已安装插件', { exact: true })).toBeVisible();
         await expect(webviewPage.getByText('插件市场', { exact: true })).toBeVisible();
 
-        // 3. Simulate receiving plugins list
+        // 3. Simulate receiving plugins list with real plugin data
         await webviewPage.evaluate(() => {
             window.postMessage({
                 command: 'listPluginsResponse',
                 plugins: [
                     {
-                        id: 'test-plugin@market1',
-                        name: 'Test Plugin',
-                        description: 'A sample plugin for testing',
-                        marketplace: 'market1',
+                        id: 'commit-commands@wave-plugins-official',
+                        name: 'commit-commands',
+                        description: 'Commands for git commit workflows including commit, push, and PR creation',
+                        marketplace: 'wave-plugins-official',
                         installed: false,
                         version: '1.0.0'
                     },
                     {
-                        id: 'installed-plugin@market1',
-                        name: 'Installed Plugin',
-                        description: 'Already installed plugin',
-                        marketplace: 'market1',
+                        id: 'document-skills@wave-plugins-official',
+                        name: 'document-skills',
+                        description: 'Collection of document processing suite including Excel, Word, PowerPoint, and PDF capabilities',
+                        marketplace: 'wave-plugins-official',
+                        installed: false,
+                        version: '1.0.0'
+                    },
+                    {
+                        id: 'typescript-lsp@wave-plugins-official',
+                        name: 'typescript-lsp',
+                        description: 'TypeScript/JavaScript language server for enhanced code intelligence',
+                        marketplace: 'wave-plugins-official',
                         installed: true,
                         enabled: true,
-                        version: '2.1.0'
+                        version: '1.0.0',
+                        scope: 'user'
+                    },
+                    {
+                        id: 'chrome-headless@wave-plugins-official',
+                        name: 'chrome-headless',
+                        description: 'Chrome DevTools Protocol MCP server for headless browser automation',
+                        marketplace: 'wave-plugins-official',
+                        installed: false,
+                        version: '1.0.0'
+                    },
+                    {
+                        id: 'sdd@wave-plugins-official',
+                        name: 'sdd',
+                        description: '规格驱动开发工作流，用于创建和管理技术规格文档',
+                        marketplace: 'wave-plugins-official',
+                        installed: true,
+                        enabled: false,
+                        version: '1.0.0',
+                        scope: 'project'
                     }
                 ]
             }, '*');
@@ -58,23 +85,23 @@ test.describe('Plugin Configuration UI Demo', () => {
 
         // 4. Switch to "已安装插件" tab
         await webviewPage.getByText('已安装插件', { exact: true }).click();
-        await expect(webviewPage.locator('.plugin-name').filter({ hasText: 'Installed Plugin' })).toBeVisible();
+        await expect(webviewPage.locator('.plugin-name').filter({ hasText: 'typescript-lsp' })).toBeVisible();
         await webviewPage.screenshot({ path: 'screenshots/plugins-installed-tab.png' });
 
         // 5. Switch to "插件市场" tab
         await webviewPage.getByText('插件市场', { exact: true }).click();
         
-        // Simulate receiving marketplaces list
+        // Simulate receiving marketplaces list with real data
         await webviewPage.evaluate(() => {
             window.postMessage({
                 command: 'listMarketplacesResponse',
                 marketplaces: [
-                    { name: 'market1', url: 'https://github.com/owner/repo' }
+                    { name: 'wave-plugins-official', url: 'https://github.com/liuyiqi/wave-plugins-official' }
                 ]
             }, '*');
         });
         
-        await expect(webviewPage.getByText('market1')).toBeVisible();
+        await expect(webviewPage.locator('.marketplace-name').filter({ hasText: 'wave-plugins-official' })).toBeVisible();
         await webviewPage.screenshot({ path: 'screenshots/plugins-marketplaces-tab.png' });
     });
 });

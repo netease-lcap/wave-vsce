@@ -1,4 +1,6 @@
 import * as vscode from 'vscode';
+import * as path from 'path';
+import * as fs from 'fs';
 import { 
     MarketplaceService, 
     ConfigurationService as SdkConfigurationService, 
@@ -14,6 +16,33 @@ export class PluginService {
     constructor() {
         this.marketplaceService = new MarketplaceService();
         this.sdkConfigService = new SdkConfigurationService();
+    }
+
+    /**
+     * Get icon for a plugin. Returns base64 data URL or undefined if no icon exists.
+     */
+    private getPluginIcon(pluginName: string, marketplacePath: string): string | undefined {
+        // Try to read icon file from plugin directory
+        const pluginPath = path.join(marketplacePath, 'plugins', pluginName, '.wave-plugin');
+        const iconExtensions = ['icon.svg', 'icon.png', 'icon.jpg', 'icon.gif'];
+        
+        for (const iconFile of iconExtensions) {
+            const iconPath = path.join(pluginPath, iconFile);
+            if (fs.existsSync(iconPath)) {
+                try {
+                    const iconData = fs.readFileSync(iconPath);
+                    const mimeType = iconFile.endsWith('.svg') ? 'image/svg+xml' : 
+                                    iconFile.endsWith('.png') ? 'image/png' : 
+                                    iconFile.endsWith('.jpg') ? 'image/jpeg' : 'image/gif';
+                    return `data:${mimeType};base64,${iconData.toString('base64')}`;
+                } catch (error) {
+                    console.warn(`Failed to read icon for ${pluginName}:`, error);
+                }
+            }
+        }
+        
+        // No icon found, return undefined
+        return undefined;
     }
 
     private getWorkdir(): string | undefined {
@@ -58,6 +87,9 @@ export class PluginService {
                         scope = scopeManager.findPluginScope(pluginId) || undefined;
                     }
                     
+                    // Get plugin icon
+                    const icon = this.getPluginIcon(p.name, mPath);
+                    
                     allPlugins.push({
                         id: pluginId,
                         name: p.name,
@@ -66,7 +98,8 @@ export class PluginService {
                         installed: !!installed,
                         version: installed?.version,
                         enabled: mergedEnabled[pluginId] !== false,
-                        scope: scope
+                        scope: scope,
+                        icon: icon
                     });
                 });
             } catch (e) {

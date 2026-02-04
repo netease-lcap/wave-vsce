@@ -271,6 +271,8 @@ export interface PluginInfo {
   installed?: boolean;
   marketplace?: string;
   scope?: PluginScope;
+  /** Icon URL (data URL, http URL, or file path) or emoji */
+  icon?: string;
 }
 
 export interface MarketplaceInfo {

@@ -308,6 +308,15 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps & { vscode: any }> 
                         ← 返回列表
                       </button>
                       <div className="plugin-detail-header">
+                        {selectedPlugin.icon && (
+                          <div className="plugin-icon plugin-icon-large">
+                            {selectedPlugin.icon.startsWith('data:') ? (
+                              <img src={selectedPlugin.icon} alt={selectedPlugin.name} />
+                            ) : (
+                              <span className="plugin-icon-emoji">{selectedPlugin.icon}</span>
+                            )}
+                          </div>
+                        )}
                         <div className="plugin-name">{selectedPlugin.name}</div>
                         {selectedPlugin.version && (
                           <div className="plugin-version">版本 {selectedPlugin.version}</div>
@@ -354,6 +363,15 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps & { vscode: any }> 
                             className="plugin-item clickable"
                             onClick={() => setSelectedPlugin(plugin)}
                           >
+                            {plugin.icon && (
+                              <div className="plugin-icon">
+                                {plugin.icon.startsWith('data:') ? (
+                                  <img src={plugin.icon} alt={plugin.name} />
+                                ) : (
+                                  <span className="plugin-icon-emoji">{plugin.icon}</span>
+                                )}
+                              </div>
+                            )}
                             <div className="plugin-info">
                               <div className="plugin-name">{plugin.name} <span className="plugin-version">{plugin.version}</span></div>
                               <div className="plugin-desc">{plugin.description}</div>
@@ -376,6 +394,15 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps & { vscode: any }> 
                     {plugins.filter(p => p.installed).length > 0 ? (
                       plugins.filter(p => p.installed).map(plugin => (
                         <div key={plugin.id} className="plugin-item">
+                          {plugin.icon && (
+                            <div className="plugin-icon">
+                              {plugin.icon.startsWith('data:') ? (
+                                <img src={plugin.icon} alt={plugin.name} />
+                              ) : (
+                                <span className="plugin-icon-emoji">{plugin.icon}</span>
+                              )}
+                            </div>
+                          )}
                           <div className="plugin-info">
                             <div className="plugin-name">
                               {plugin.name} 
