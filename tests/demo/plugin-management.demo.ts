@@ -86,12 +86,29 @@ test.describe('Plugin Management Screenshots', () => {
 
         await webviewPage.waitForSelector('.plugin-item');
         
-        // 确保作用域选择器可见
-        await expect(webviewPage.getByText('安装作用域:')).toBeVisible();
-        await expect(webviewPage.locator('select').filter({ hasText: 'User' })).toBeVisible();
+        // 确保可以看到可安装的插件列表
+        await expect(webviewPage.getByText('GitHub Integration')).toBeVisible();
+        await expect(webviewPage.getByText('Docker Helper')).toBeVisible();
         
-        // 截图：探索新插件标签页，显示作用域选择器和可安装插件列表
+        // 截图：探索新插件列表页
+        await webviewPage.screenshot({ path: 'screenshots/spec-plugin-explore-list.png' });
+        
+        // 点击一个插件查看详情
+        await webviewPage.getByText('GitHub Integration').click();
+        
+        // 等待详情页显示
+        await expect(webviewPage.getByText('返回列表')).toBeVisible();
+        await expect(webviewPage.getByText('选择安装作用域')).toBeVisible();
+        await expect(webviewPage.getByText('为你安装 (user)')).toBeVisible();
+        await expect(webviewPage.getByText('为此仓库的所有协作者安装 (project)')).toBeVisible();
+        await expect(webviewPage.getByText('仅为你在此仓库中安装 (local)')).toBeVisible();
+        
+        // 截图：插件详情页，显示安装作用域选择
         await webviewPage.screenshot({ path: 'screenshots/spec-plugin-explore.png' });
+        
+        // 返回列表
+        await webviewPage.getByText('返回列表').click();
+        await expect(webviewPage.getByText('GitHub Integration')).toBeVisible();
 
         // 4. Installed plugins tab - 展示已安装插件及启用/禁用开关
         await webviewPage.getByText('已安装插件', { exact: true }).click();
