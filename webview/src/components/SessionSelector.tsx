@@ -1,5 +1,6 @@
 import React from 'react';
-import type { SessionSelectorProps, ExtendedSessionMetadata } from '../types';
+import type { SessionMetadata } from 'wave-agent-sdk';
+import type { SessionSelectorProps } from '../types';
 import '../styles/SessionSelector.css';
 
 export const SessionSelector: React.FC<SessionSelectorProps> = ({
@@ -17,10 +18,10 @@ export const SessionSelector: React.FC<SessionSelectorProps> = ({
     }
   };
 
-  const formatSessionLabel = (session: ExtendedSessionMetadata): string => {
-    // Use first message content if available, limited to 30 characters
-    if (session.firstMessageContent && session.firstMessageContent.trim()) {
-      const content = session.firstMessageContent.trim();
+  const formatSessionLabel = (session: SessionMetadata): string => {
+    // Use firstMessage content if available, limited to 30 characters
+    if (session.firstMessage && session.firstMessage.trim()) {
+      const content = session.firstMessage.trim();
       return content.length > 30 ? content.substring(0, 30) + '...' : content;
     }
     

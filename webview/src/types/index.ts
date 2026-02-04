@@ -9,13 +9,7 @@
 import type { Message, MessageBlock, TextBlock, ErrorBlock, ToolBlock, SubagentBlock, ImageBlock,MemoryBlock, CompressBlock, PermissionMode, AskUserQuestion, AskUserQuestionInput, AskUserQuestionOption } from 'wave-agent-sdk/dist/types/index.js';
 import type { SessionMetadata, SessionData } from 'wave-agent-sdk/dist/services/session.js';
 
-// Export the agent-sdk types for use in components
-export type { Message, MessageBlock, TextBlock, ErrorBlock, ToolBlock, SubagentBlock, ImageBlock,MemoryBlock, CompressBlock, SessionData, PermissionMode, AskUserQuestion, AskUserQuestionInput, AskUserQuestionOption };
-
-// Extended session metadata that includes first message content
-export interface ExtendedSessionMetadata extends SessionMetadata {
-  firstMessageContent?: string;
-}
+export type { Message, MessageBlock, TextBlock, ErrorBlock, ToolBlock, SubagentBlock, ImageBlock,MemoryBlock, CompressBlock, SessionData, SessionMetadata, PermissionMode, AskUserQuestion, AskUserQuestionInput, AskUserQuestionOption };
 
 // Slash command types
 export interface SlashCommand {
@@ -186,8 +180,8 @@ export interface ChatHeaderProps {
   onClearChat: () => void;
   onAbortMessage: () => void;
   isStreaming: boolean;
-  sessions: ExtendedSessionMetadata[];
-  currentSession?: ExtendedSessionMetadata;
+  sessions: SessionMetadata[];
+  currentSession?: SessionMetadata;
   onSessionSelect: (sessionId: string) => void;
   sessionsLoading: boolean;
   sessionsError?: string;
@@ -195,8 +189,8 @@ export interface ChatHeaderProps {
 
 // Session selector component props
 export interface SessionSelectorProps {
-  sessions: ExtendedSessionMetadata[];
-  currentSession?: ExtendedSessionMetadata;
+  sessions: SessionMetadata[];
+  currentSession?: SessionMetadata;
   onSessionSelect: (sessionId: string) => void;
   loading: boolean;
   error?: string;
@@ -209,8 +203,8 @@ export interface ChatState {
   isStreaming: boolean;
   inputDisabled: boolean;
   shouldClearInput: boolean;
-  sessions: ExtendedSessionMetadata[];
-  currentSession?: ExtendedSessionMetadata;
+  sessions: SessionMetadata[];
+  currentSession?: SessionMetadata;
   sessionsLoading: boolean;
   sessionsError?: string;
   pendingConfirmations: ConfirmationRequest[];
@@ -303,8 +297,8 @@ export type ChatAction =
   | { type: 'END_STREAMING' }
   | { type: 'SET_INPUT_DISABLED'; payload: boolean }
   | { type: 'INPUT_CLEARED' }
-  | { type: 'SET_SESSIONS'; payload: ExtendedSessionMetadata[] }
-  | { type: 'SET_CURRENT_SESSION'; payload: ExtendedSessionMetadata | undefined }
+  | { type: 'SET_SESSIONS'; payload: SessionMetadata[] }
+  | { type: 'SET_CURRENT_SESSION'; payload: SessionMetadata | undefined }
   | { type: 'SET_SESSIONS_LOADING'; payload: boolean }
   | { type: 'SET_SESSIONS_ERROR'; payload: string | undefined }
   | { type: 'SHOW_CONFIRMATION'; payload: ConfirmationRequest }
@@ -320,8 +314,8 @@ export type ChatAction =
   | { type: 'SET_INITIAL_STATE'; payload: {
       messages: Message[];
       isStreaming: boolean;
-      sessions: ExtendedSessionMetadata[];
-      currentSession?: ExtendedSessionMetadata;
+      sessions: SessionMetadata[];
+      currentSession?: SessionMetadata;
       configurationData: ConfigurationData;
       pendingConfirmations: ConfirmationRequest[];
       selection?: SelectionInfo;

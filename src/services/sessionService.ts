@@ -1,41 +1,16 @@
 import * as vscode from 'vscode';
-import { listSessions, getFirstMessageContent, SessionMetadata } from 'wave-agent-sdk';
-
-export interface ExtendedSessionMetadata extends SessionMetadata {
-    firstMessageContent?: string | null;
-}
+import { listSessions, SessionMetadata } from 'wave-agent-sdk';
 
 export class SessionService {
-    public async getSessionsList(): Promise<ExtendedSessionMetadata[]> {
+    public async getSessionsList(): Promise<SessionMetadata[]> {
         try {
             const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
             const workdir = workspaceFolder?.uri.fsPath || process.cwd();
 
             const allSessions = await listSessions(workdir);
             
-            // Slice to get only first 5 sessions
-            const sessions = allSessions.slice(0, 5);
-            
-            // Add first message content to each session
-            const sessionsWithContent = await Promise.all(
-                sessions.map(async (session) => {
-                    try {
-                        const firstMessageContent = await getFirstMessageContent(session.id, workdir);
-                        return {
-                            ...session,
-                            firstMessageContent: firstMessageContent || ''
-                        };
-                    } catch (error) {
-                        console.warn(`Failed to get first message content for session ${session.id}:`, error);
-                        return {
-                            ...session,
-                            firstMessageContent: ''
-                        };
-                    }
-                })
-            );
-
-            return sessionsWithContent;
+            // Slice to get only first 10 sessions
+            return allSessions.slice(0, 10);
         } catch (error) {
             console.error(`获取会话列表失败:`, error);
             throw error;

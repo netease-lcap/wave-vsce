@@ -347,32 +347,29 @@ test.describe('Product Specification Screenshots', () => {
         ]);
         await webviewPage.screenshot({ path: 'screenshots/spec-selection.png' });
 
-        // 14. Session Selector - 使用 SDK 的 SessionMetadata 类型并添加 firstMessageContent
+        // 14. Session Selector - 使用 SDK 的 SessionMetadata 类型
         const now = Date.now();
-        const sessions: (SessionMetadata & { firstMessageContent?: string })[] = [
+        const sessions: SessionMetadata[] = [
             { 
                 id: 'session-1',
                 sessionType: 'main',
                 workdir: '/project',
                 lastActiveAt: new Date(now - 1000 * 60 * 30), // 30分钟前
-                latestTotalTokens: 1500,
-                firstMessageContent: '项目重构讨论'
+                latestTotalTokens: 1500
             },
             { 
                 id: 'session-2',
                 sessionType: 'main', 
                 workdir: '/project',
                 lastActiveAt: new Date(now - 1000 * 60 * 60 * 2), // 2小时前
-                latestTotalTokens: 2200,
-                firstMessageContent: 'API 设计优化'
+                latestTotalTokens: 2200
             },
             { 
                 id: 'session-3',
                 sessionType: 'main',
                 workdir: '/project', 
                 lastActiveAt: new Date(now - 1000 * 60 * 60 * 24), // 1天前
-                latestTotalTokens: 800,
-                firstMessageContent: '数据库迁移方案'
+                latestTotalTokens: 800
             }
         ];
         
