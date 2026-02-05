@@ -81,6 +81,25 @@ test.describe('Plugin Configuration UI Demo', () => {
 
         // 4. Switch to "已安装插件" tab
         await webviewPage.getByText('已安装插件', { exact: true }).click();
+        
+        // Simulate receiving installed plugins list
+        await webviewPage.evaluate(() => {
+            window.postMessage({
+                command: 'listPluginsResponse',
+                plugins: [
+                    {
+                        id: 'installed-plugin@wave-plugins-official',
+                        name: 'Installed Plugin',
+                        description: 'An already installed plugin',
+                        marketplace: 'wave-plugins-official',
+                        installed: true,
+                        scope: 'user',
+                        version: '1.0.0'
+                    }
+                ]
+            }, '*');
+        });
+
         await expect(webviewPage.locator('.plugin-name').filter({ hasText: 'Installed Plugin' })).toBeVisible();
         await webviewPage.screenshot({ path: 'screenshots/plugins-installed-tab.png' });
 
@@ -92,12 +111,12 @@ test.describe('Plugin Configuration UI Demo', () => {
             window.postMessage({
                 command: 'listMarketplacesResponse',
                 marketplaces: [
-                                        { name: 'wave-plugins-official', url: 'https://github.com/wave-team/wave-plugins-official' }
+                    { name: 'wave-plugins-official', url: 'https://github.com/wave-team/wave-plugins-official' }
                 ]
             }, '*');
         });
         
-        await expect(webviewPage.getByText('market1')).toBeVisible();
+        await expect(webviewPage.getByText('wave-plugins-official', { exact: true })).toBeVisible();
         await webviewPage.screenshot({ path: 'screenshots/plugins-marketplaces-tab.png' });
     });
 });
