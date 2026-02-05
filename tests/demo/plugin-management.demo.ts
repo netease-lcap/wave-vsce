@@ -110,16 +110,17 @@ test.describe('Plugin Management Screenshots', () => {
         await webviewPage.getByText('返回列表').click();
         await expect(webviewPage.getByText('GitHub Integration')).toBeVisible();
 
-        // 4. Installed plugins tab - 展示已安装插件及启用/禁用开关和卸载按钮
+        // 4. Installed plugins tab - 展示已激活插件及更新和卸载按钮
         await webviewPage.getByText('已安装插件', { exact: true }).click();
         
         // 等待已安装插件渲染
         await webviewPage.waitForSelector('.plugin-item:has-text("Code Reviewer")');
         
-        // 确认卸载按钮存在
+        // 确认更新和卸载按钮存在
+        await expect(webviewPage.locator('.update-btn').first()).toBeVisible();
         await expect(webviewPage.locator('.uninstall-btn').first()).toBeVisible();
         
-        // 截图：已安装插件标签页，显示启用/禁用开关和卸载按钮
+        // 截图：已激活插件标签页，显示更新和卸载按钮
         await webviewPage.screenshot({ path: 'screenshots/spec-plugin-installed.png' });
 
         // 5. Marketplaces tab - 展示插件市场管理

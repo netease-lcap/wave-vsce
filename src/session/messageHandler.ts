@@ -104,6 +104,9 @@ export class MessageHandler {
             case 'uninstallPlugin':
                 await this.handleUninstallPlugin(message.pluginId, viewType, windowId);
                 break;
+            case 'updatePlugin':
+                await this.handleUpdatePlugin(message.pluginId, viewType, windowId);
+                break;
             case 'listMarketplaces':
                 await this.handleListMarketplaces(viewType, windowId);
                 break;
@@ -179,6 +182,20 @@ export class MessageHandler {
             this.context.updateAllSessionsConfig(config);
         } catch (error) {
             vscode.window.showErrorMessage('卸载插件失败: ' + error);
+        }
+    }
+
+    private async handleUpdatePlugin(pluginId: string, viewType?: 'sidebar' | 'tab' | 'window', windowId?: string) {
+        try {
+            await this.pluginService.updatePlugin(pluginId);
+            vscode.window.showInformationMessage(`插件 ${pluginId} 更新成功`);
+            await this.handleListPlugins(viewType, windowId);
+            
+            // Reload config and recreate agents to apply plugin changes
+            const config = await this.configService.loadConfiguration();
+            this.context.updateAllSessionsConfig(config);
+        } catch (error) {
+            vscode.window.showErrorMessage('更新插件失败: ' + error);
         }
     }
 

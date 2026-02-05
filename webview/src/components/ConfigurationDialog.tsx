@@ -68,16 +68,12 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps & { vscode: any }> 
     setSelectedPlugin(null); // Return to list after installation
   };
 
-  const handleEnablePlugin = (pluginId: string) => {
-    vscode?.postMessage({ command: 'enablePlugin', pluginId }); // Let SDK determine appropriate scope
-  };
-
-  const handleDisablePlugin = (pluginId: string) => {
-    vscode?.postMessage({ command: 'disablePlugin', pluginId }); // Let SDK determine appropriate scope
-  };
-
   const handleUninstallPlugin = (pluginId: string) => {
     vscode?.postMessage({ command: 'uninstallPlugin', pluginId });
+  };
+
+  const handleUpdatePlugin = (pluginId: string) => {
+    vscode?.postMessage({ command: 'updatePlugin', pluginId });
   };
 
   const handleAddMarketplace = () => {
@@ -347,15 +343,18 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps & { vscode: any }> 
                   ) : (
                     // Plugin list view
                     <div className="plugin-list">
-                      {plugins.filter(p => !p.installed).length > 0 ? (
-                        plugins.filter(p => !p.installed).map(plugin => (
+                      {plugins.filter(p => !p.installed || (p.installed && !p.scope)).length > 0 ? (
+                        plugins.filter(p => !p.installed || (p.installed && !p.scope)).map(plugin => (
                           <div 
                             key={plugin.id} 
                             className="plugin-item clickable"
                             onClick={() => setSelectedPlugin(plugin)}
                           >
                             <div className="plugin-info">
-                              <div className="plugin-name">{plugin.name} <span className="plugin-version">{plugin.version}</span></div>
+                              <div className="plugin-name">
+                                {plugin.name} <span className="plugin-version">{plugin.version}</span>
+                                {plugin.installed && <span className="plugin-status-tag">已安装</span>}
+                              </div>
                               <div className="plugin-desc">{plugin.description}</div>
                               <div className="plugin-market">来自: {plugin.marketplace}</div>
                             </div>
@@ -373,8 +372,8 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps & { vscode: any }> 
               {activePluginTab === 'installed' && (
                 <div className="installed-plugins">
                   <div className="plugin-list">
-                    {plugins.filter(p => p.installed).length > 0 ? (
-                      plugins.filter(p => p.installed).map(plugin => (
+                    {plugins.filter(p => p.installed && p.scope).length > 0 ? (
+                      plugins.filter(p => p.installed && p.scope).map(plugin => (
                         <div key={plugin.id} className="plugin-item">
                           <div className="plugin-info">
                             <div className="plugin-name">
@@ -385,14 +384,13 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps & { vscode: any }> 
                             <div className="plugin-desc">{plugin.description}</div>
                           </div>
                           <div className="plugin-actions">
-                            <label className="switch">
-                              <input 
-                                type="checkbox" 
-                                checked={plugin.enabled} 
-                                onChange={() => plugin.enabled ? handleDisablePlugin(plugin.id) : handleEnablePlugin(plugin.id)}
-                              />
-                              <span className="slider round"></span>
-                            </label>
+                            <button 
+                              className="update-btn"
+                              onClick={() => handleUpdatePlugin(plugin.id)}
+                              title="更新插件"
+                            >
+                              更新
+                            </button>
                             <button 
                               className="uninstall-btn"
                               onClick={() => handleUninstallPlugin(plugin.id)}
@@ -404,7 +402,7 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps & { vscode: any }> 
                         </div>
                       ))
                     ) : (
-                      <div className="empty-state">没有已安装的插件</div>
+                      <div className="empty-state">没有已激活的插件</div>
                     )}
                   </div>
                 </div>

@@ -137,6 +137,12 @@
           <li><a href="#配置设置">4.2 配置设置</a></li>
           <li><a href="#语言设置">4.3 语言设置</a></li>
           <li><a href="#插件管理">4.4 插件管理</a></li>
+        <ul>
+          <li><a href="#探索新插件">4.4.1 探索新插件</a></li>
+          <li><a href="#已激活插件">4.4.2 已激活插件</a></li>
+          <li><a href="#插件市场">4.4.3 插件市场</a></li>
+        </ul>
+      </li>
         </ul>
       </li>
       <li><a href="#产品特色总结">产品特色总结</a></li>
@@ -299,31 +305,31 @@
 <figure>
 <img src="./screenshots/language-config-ui.png" alt="" /><figcaption>语言设置</figcaption>
 </figure>
-<h3 id="插件管理">4.4 插件管理</h3>
-<p>Wave 支持通过插件系统扩展功能，用户可以在配置界面中管理插件的安装、启用和禁用。</p>
-<p><strong>主要特性：</strong></p>
-<ul>
-<li><strong>插件探索</strong>：浏览和搜索可用的插件，支持从不同的插件市场安装</li>
-<li><strong>作用域选择</strong>：安装插件时可选择作用域（User、Project、Local），灵活控制插件的可用范围</li>
-<li><strong>已安装插件管理</strong>：查看已安装的插件列表，通过开关快速启用或禁用插件</li>
-<li><strong>自动作用域检测</strong>：启用/禁用插件时自动识别插件所在的作用域，无需手动指定</li>
-<li><strong>插件市场管理</strong>：添加、更新和移除插件市场源（支持 GitHub 仓库、本地路径等）</li>
-</ul>
-<h4>探索新插件</h4>
-<p>在"探索新插件"标签页中，用户可以浏览所有可用的插件，选择安装作用域后点击"安装"按钮即可安装插件。</p>
-<figure>
-<img src="./screenshots/spec-plugin-explore.png" alt="" /><figcaption>探索新插件</figcaption>
-</figure>
-<h4>已安装插件</h4>
-<p>在"已安装插件"标签页中，用户可以查看所有已安装的插件，并通过开关控制插件的启用状态。每个插件会显示其安装的作用域（User、Project 或 Local），方便用户了解插件的作用范围。启用或禁用插件时，系统会自动检测插件安装的作用域并在相应作用域中进行操作。</p>
-<figure>
-<img src="./screenshots/spec-plugin-installed.png" alt="" /><figcaption>已安装插件管理</figcaption>
-</figure>
-<h4>插件市场</h4>
-<p>在"插件市场"标签页中，用户可以添加自定义的插件市场源，支持 GitHub 仓库（owner/repo 格式）、Git URL 或本地文件路径。添加后可以从该市场源安装插件，也可以更新或移除市场源。</p>
-<figure>
-<img src="./screenshots/spec-plugin-marketplaces.png" alt="" /><figcaption>插件市场管理</figcaption>
-</figure>
+    <h3 id="插件管理">4.4 插件管理</h3>
+    <p>Wave 支持通过插件系统扩展功能，用户可以在配置界面中管理插件的安装、更新和卸载。</p>
+    <p><strong>主要特性：</strong></p>
+    <ul>
+    <li><strong>插件探索</strong>：浏览和搜索可用的插件，支持从不同的插件市场安装。即使插件已安装，如果尚未在当前项目或全局激活，也会显示在探索列表中。</li>
+    <li><strong>作用域选择</strong>：安装插件时可选择作用域（User、Project、Local），灵活控制插件的可用范围。</li>
+    <li><strong>已激活插件管理</strong>：查看当前已激活的插件列表，支持一键更新或卸载插件。</li>
+    <li><strong>插件更新</strong>：支持对已安装的插件进行更新，确保使用最新版本的功能。</li>
+    <li><strong>插件市场管理</strong>：添加、更新和移除插件市场源（支持 GitHub 仓库、本地路径等）。</li>
+    </ul>
+    <h4 id="探索新插件">4.4.1 探索新插件</h4>
+    <p>在"探索新插件"标签页中，用户可以浏览所有可用的插件。对于尚未在当前环境激活的插件，用户可以选择安装作用域后点击"安装"按钮。已安装但未在当前作用域激活的插件也会在此列出，并带有“已安装”标识。</p>
+    <figure>
+    <img src="./screenshots/spec-plugin-explore.png" alt="" /><figcaption>探索新插件</figcaption>
+    </figure>
+    <h4 id="已激活插件">4.4.2 已激活插件</h4>
+    <p>在"已激活插件"标签页中，用户可以查看当前作用域下所有已激活的插件。用户可以对这些插件进行“更新”或“卸载”操作。每个插件会显示其激活的作用域（User、Project 或 Local）。</p>
+    <figure>
+    <img src="./screenshots/spec-plugin-installed.png" alt="" /><figcaption>已激活插件管理</figcaption>
+    </figure>
+    <h4 id="插件市场">4.4.3 插件市场</h4>
+    <p>在"插件市场"标签页中，用户可以添加自定义的插件市场源，支持 GitHub 仓库（owner/repo 格式）、Git URL 或本地文件路径.添加后可以从该市场源安装插件，也可以更新或移除市场源。</p>
+    <figure>
+    <img src="./screenshots/spec-plugin-marketplaces.png" alt="" /><figcaption>插件市场管理</figcaption>
+    </figure>
 <hr />
 <h2 id="产品特色总结">产品特色总结</h2>
 <p>Wave 代码智聊通过 27 个精心设计的功能模块，为开发者提供了完整的AI辅助编程体验：</p>

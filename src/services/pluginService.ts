@@ -147,6 +147,11 @@ export class PluginService {
         await scopeManager.disablePlugin(resolvedScope, pluginId);
     }
 
+    public async updatePlugin(pluginId: string) {
+        // Re-installing the plugin performs an update
+        return await this.marketplaceService.installPlugin(pluginId);
+    }
+
     public async listMarketplaces() {
         return await this.marketplaceService.listMarketplaces();
     }

@@ -222,7 +222,7 @@
     gap: 8px;
 }
 
-.uninstall-btn {
+.update-btn, .uninstall-btn {
     background-color: var(--vscode-button-secondaryBackground);
     color: var(--vscode-button-secondaryForeground);
     border: 1px solid var(--vscode-button-border, transparent);
@@ -233,8 +233,19 @@
     transition: background-color 0.15s ease;
 }
 
-.uninstall-btn:hover {
+.update-btn:hover, .uninstall-btn:hover {
     background-color: var(--vscode-button-secondaryHoverBackground);
+}
+
+.plugin-status-tag {
+    font-weight: normal;
+    font-size: 10px;
+    color: var(--vscode-descriptionForeground);
+    background-color: var(--vscode-badge-background);
+    padding: 1px 4px;
+    border-radius: 2px;
+    margin-left: 6px;
+    vertical-align: middle;
 }
 
 /* Toggle Switch */
