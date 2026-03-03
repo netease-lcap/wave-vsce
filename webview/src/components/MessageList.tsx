@@ -11,7 +11,7 @@ const welcomeMessage = {
   }]
 };
 
-export const MessageList: React.FC<MessageListProps> = ({ messages, streamingMessageIndex, subagentMessages, vscode }) => {
+export const MessageList: React.FC<MessageListProps> = ({ messages, streamingMessageIndex, vscode }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -53,7 +53,7 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, streamingMes
     return () => {
       resizeObserver.disconnect();
     };
-  }, [messages, streamingMessageIndex, subagentMessages]);
+  }, [messages, streamingMessageIndex]);
 
   return (
     <div 
@@ -66,7 +66,6 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, streamingMes
       <Message
         message={welcomeMessage}
         isStreaming={false}
-        subagentMessages={subagentMessages}
         vscode={vscode}
       />
       
@@ -79,7 +78,6 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, streamingMes
             key={`${message.role}-${index}`}
             message={message}
             isStreaming={isStreaming}
-            subagentMessages={subagentMessages}
             vscode={vscode}
           />
         );

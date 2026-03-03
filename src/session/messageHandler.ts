@@ -441,15 +441,10 @@ export class MessageHandler {
             toolInput: pending.toolInput,
             suggestedPrefix: pending.suggestedPrefix
         }));
-        const subagentMessages: Record<string, any[]> = {};
-        session.subagentMessages.forEach((msgs, id) => {
-            subagentMessages[id] = msgs;
-        });
 
         this.context.postMessage({
             command: 'setInitialState',
             messages: session.messages,
-            subagentMessages,
             inputContent: session.inputContent,
             isStreaming: session.isStreaming,
             sessions: sessions,

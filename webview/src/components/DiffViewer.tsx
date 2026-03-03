@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { diffLines, diffWords } from 'diff';
 import { transformToolBlockToChanges, transformParametersToChanges } from '../utils/diffTransform';
-import { WRITE_TOOL_NAME, EDIT_TOOL_NAME, MULTI_EDIT_TOOL_NAME } from 'wave-agent-sdk/dist/constants/tools.js';
+import { WRITE_TOOL_NAME, EDIT_TOOL_NAME } from 'wave-agent-sdk/dist/constants/tools.js';
 import type { ToolBlock } from 'wave-agent-sdk/dist/types/messaging.js';
 import '../styles/DiffViewer.css';
 
@@ -36,7 +36,7 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({ toolBlock, toolName, par
     changes.length > 0 &&
     (toolBlock ? ["end"].includes(toolBlock.stage) : true) &&
     (toolBlock?.name || toolName) &&
-    [WRITE_TOOL_NAME, EDIT_TOOL_NAME, MULTI_EDIT_TOOL_NAME].includes(toolBlock?.name || toolName || "");
+    [WRITE_TOOL_NAME, EDIT_TOOL_NAME].includes(toolBlock?.name || toolName || "");
 
   // Render word-level diff for line-by-line comparison
   const renderWordLevelDiff = (

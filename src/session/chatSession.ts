@@ -7,7 +7,6 @@ import { VscodeLspAdapter } from '../services/lspAdapter';
 export interface ChatSessionCallbacks {
     onMessagesChange: (messages: Message[]) => void;
     onSessionIdChange: (sessionId: string) => void;
-    onSubagentMessagesChange: (subagentId: string, messages: Message[]) => void;
     onStreamingChange: (isStreaming: boolean) => void;
     onPermissionModeChange: (mode: PermissionMode) => void;
     onToolPermissionRequest: (context: ToolPermissionContext) => Promise<PermissionDecision>;
@@ -20,7 +19,6 @@ export class ChatSession {
     public sessionId: string | undefined;
     public isStreaming: boolean = false;
     public isInitializing: boolean = false;
-    public subagentMessages: Map<string, Message[]> = new Map();
     public inputContent: string = '';
     public pendingConfirmations: Map<string, { 
         resolve: (decision: PermissionDecision) => void; 
@@ -69,9 +67,6 @@ export class ChatSession {
                     this.sessionId = sessionId;
                     this.callbacks.onSessionIdChange(sessionId);
                 },
-                onSubagentMessagesChange: (subagentId: string, messages: Message[]) => {
-                    this.callbacks.onSubagentMessagesChange(subagentId, messages);
-                },
                 onPermissionModeChange: (mode: PermissionMode) => {
                     this.callbacks.onPermissionModeChange(mode);
                 }
@@ -90,7 +85,7 @@ export class ChatSession {
                 apiKey: config.apiKey || undefined,
                 defaultHeaders: this.parseHeaders(config.headers),
                 baseURL: config.baseURL || undefined,
-                agentModel: config.agentModel,
+                model: config.agentModel,
                 fastModel: config.fastModel,
                 language: config.language,
                 lspManager: new VscodeLspAdapter(),
@@ -152,7 +147,6 @@ export class ChatSession {
     public async clearChat() {
         if (this.agent) {
             this.forceNextUpdateImmediate = true;
-            this.subagentMessages.clear();
             this.inputContent = '';
             await this.agent.sendMessage('/clear');
         }
@@ -161,7 +155,6 @@ export class ChatSession {
     public async restoreSession(sessionId: string) {
         if (this.agent) {
             this.forceNextUpdateImmediate = true;
-            this.subagentMessages.clear();
             this.inputContent = '';
             await this.agent.restoreSession(sessionId);
         }
@@ -256,7 +249,6 @@ export class ChatSession {
         }
         
         this.messages = [];
-        this.subagentMessages.clear();
         this.inputContent = '';
         this.sessionId = undefined;
         this.pendingConfirmations.clear();

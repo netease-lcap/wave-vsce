@@ -4,17 +4,13 @@ import DOMPurify from 'dompurify';
 import { 
   BASH_TOOL_NAME, 
   LSP_TOOL_NAME, 
-  TODO_WRITE_TOOL_NAME, 
   WRITE_TOOL_NAME, 
   EDIT_TOOL_NAME, 
-  MULTI_EDIT_TOOL_NAME, 
   ASK_USER_QUESTION_TOOL_NAME, 
   EXIT_PLAN_MODE_TOOL_NAME 
 } from 'wave-agent-sdk/dist/constants/tools.js';
-import type { MessageProps, TextBlock, ErrorBlock, ToolBlock, SubagentBlock, ImageBlock, CompressBlock, MemoryBlock } from '../types';
+import type { MessageProps, TextBlock, ErrorBlock, ToolBlock, ImageBlock, CompressBlock } from '../types';
 import { DiffViewer } from './DiffViewer';
-import { TodoList } from './TodoList';
-import { SubagentDisplay } from './SubagentDisplay';
 import { MermaidRenderer } from './MermaidRenderer';
 import '../styles/Message.css';
 
@@ -100,7 +96,7 @@ const parseMarkdownWithMermaid = (content: string): ParsedMarkdownContent => {
 
 
 export const Message: React.FC<MessageProps> = (props) => {
-  const { message, isStreaming = false, subagentMessages } = props;
+  const { message, isStreaming = false } = props;
   const getMessageClassName = () => {
     const classes = ['message'];
     
@@ -234,19 +230,8 @@ export const Message: React.FC<MessageProps> = (props) => {
       );
     }
     
-    // For TodoWrite tools, add the todo list below the header
-    if (toolBlock.name === TODO_WRITE_TOOL_NAME) {
-      return (
-        <div key={index} className="tool-container">
-          {toolHeader}
-          <TodoList toolBlock={toolBlock} />
-          {errorContent}
-        </div>
-      );
-    }
-    
     // For file editing tools, show diff below the header only when stage is 'end'
-    if (toolBlock.name && [WRITE_TOOL_NAME, EDIT_TOOL_NAME, MULTI_EDIT_TOOL_NAME].includes(toolBlock.name)) {
+    if (toolBlock.name && [WRITE_TOOL_NAME, EDIT_TOOL_NAME].includes(toolBlock.name)) {
       return (
         <div key={index} className="tool-container">
           {toolHeader}
@@ -413,18 +398,6 @@ export const Message: React.FC<MessageProps> = (props) => {
     );
   };
 
-  const renderSubagentBlock = (subagentBlock: SubagentBlock, index: number) => {
-    return (
-      <div key={`subagent-${index}`}>
-        <SubagentDisplay 
-          subagentBlock={subagentBlock} 
-          subagentMessages={props.subagentMessages} 
-          vscode={props.vscode}
-        />
-      </div>
-    );
-  };
-
   const renderReasoningBlock = (reasoningBlock: any, index: number) => {
     return (
       <div key={`reasoning-${index}`} className="reasoning-block">
@@ -492,8 +465,6 @@ export const Message: React.FC<MessageProps> = (props) => {
         return renderToolBlock(block as ToolBlock, index);
       case 'image':
         return renderImageBlock(block as ImageBlock, index);
-      case 'subagent':
-        return renderSubagentBlock(block as SubagentBlock, index);
       case 'reasoning':
         return renderReasoningBlock(block, index);
       default:

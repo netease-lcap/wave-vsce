@@ -104,6 +104,6 @@
     "dompurify": "^3.3.0",
     "marked": "^9.1.6",
     "mermaid": "^11.12.2",
-    "wave-agent-sdk": "file:wave-agent-sdk-0.4.0.tgz"
+    "wave-agent-sdk": "file:wave-agent-sdk-0.8.0.tgz"
   }
 }

@@ -4,8 +4,8 @@
  */
 
 import type { ToolBlock } from 'wave-agent-sdk/dist/types/messaging.js';
-import type { WriteToolParameters, EditToolParameters, MultiEditToolParameters } from 'wave-agent-sdk/dist/types/tools.js';
-import { WRITE_TOOL_NAME, EDIT_TOOL_NAME, MULTI_EDIT_TOOL_NAME } from 'wave-agent-sdk/dist/constants/tools.js';
+import type { WriteToolParameters, EditToolParameters } from 'wave-agent-sdk/dist/types/tools.js';
+import { WRITE_TOOL_NAME, EDIT_TOOL_NAME } from 'wave-agent-sdk/dist/constants/tools.js';
 
 export interface Change {
   oldContent: string;
@@ -65,28 +65,6 @@ export function transformEditParameters(parameters: EditToolParameters): Change[
 }
 
 /**
- * Transform MultiEdit tool parameters to changes
- */
-export function transformMultiEditParameters(parameters: MultiEditToolParameters): Change[] {
-  // Validate required parameters
-  if (!parameters || !Array.isArray(parameters.edits)) {
-    return [];
-  }
-  
-  // Filter out invalid edits
-  const validEdits = parameters.edits.filter(edit => 
-    edit && 
-    typeof edit.old_string === 'string' && 
-    typeof edit.new_string === 'string'
-  );
-  
-  return validEdits.map((edit) => ({
-    oldContent: edit.old_string,
-    newContent: edit.new_string,
-  }));
-}
-
-/**
  * Transform tool block parameters into standardized Change[] array for diff display
  * Forces type judgment based on tool name using type assertions
  */
@@ -98,9 +76,6 @@ export function transformParametersToChanges(toolName: string, parameters: any):
       
       case EDIT_TOOL_NAME:
         return transformEditParameters(parameters as EditToolParameters);
-      
-      case MULTI_EDIT_TOOL_NAME:
-        return transformMultiEditParameters(parameters as MultiEditToolParameters);
       
       default:
         return [];

@@ -4,9 +4,7 @@ import {
   BASH_TOOL_NAME, 
   EXIT_PLAN_MODE_TOOL_NAME, 
   EDIT_TOOL_NAME, 
-  MULTI_EDIT_TOOL_NAME, 
-  WRITE_TOOL_NAME, 
-  DELETE_FILE_TOOL_NAME 
+  WRITE_TOOL_NAME 
 } from 'wave-agent-sdk/dist/constants/tools.js';
 import type { ConfirmationDialogProps, AskUserQuestionInput, AskUserQuestionOption } from '../types';
 import '../styles/ConfirmationDialog.css';
@@ -120,7 +118,7 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
   }, [handleReject, isComposing]);
 
   const handleConfirm = useCallback(() => {
-    if (confirmation.toolName === EXIT_PLAN_MODE_TOOL_NAME || confirmation.toolName === BASH_TOOL_NAME || [EDIT_TOOL_NAME, MULTI_EDIT_TOOL_NAME, WRITE_TOOL_NAME, DELETE_FILE_TOOL_NAME].includes(confirmation.toolName)) {
+    if (confirmation.toolName === EXIT_PLAN_MODE_TOOL_NAME || confirmation.toolName === BASH_TOOL_NAME || [EDIT_TOOL_NAME, WRITE_TOOL_NAME].includes(confirmation.toolName)) {
       if (showFeedbackInput) {
         onConfirm(confirmation.confirmationId, {
           behavior: 'deny',
@@ -272,7 +270,6 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
                 <div className="option-content">
                   <div className="option-label">
                     {opt.label}
-                    {opt.isRecommended && <span className="recommended-tag">(推荐)</span>}
                   </div>
                   {opt.description && <div className="option-description">{opt.description}</div>}
                 </div>
@@ -404,7 +401,7 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
         return (answer && answer !== '__other__') || (answer === '__other__' && other && other.trim());
       });
     }
-    if ((confirmation.toolName === EXIT_PLAN_MODE_TOOL_NAME || confirmation.toolName === BASH_TOOL_NAME || [EDIT_TOOL_NAME, MULTI_EDIT_TOOL_NAME, WRITE_TOOL_NAME, DELETE_FILE_TOOL_NAME].includes(confirmation.toolName)) && showFeedbackInput) {
+    if ((confirmation.toolName === EXIT_PLAN_MODE_TOOL_NAME || confirmation.toolName === BASH_TOOL_NAME || [EDIT_TOOL_NAME, WRITE_TOOL_NAME].includes(confirmation.toolName)) && showFeedbackInput) {
       return !feedback.trim();
     }
     return false;
@@ -440,7 +437,7 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
         {renderPlanContent()}
         {renderQuestions()}
 
-        {[WRITE_TOOL_NAME, EDIT_TOOL_NAME, MULTI_EDIT_TOOL_NAME].includes(confirmation.toolName) && (
+        {[WRITE_TOOL_NAME, EDIT_TOOL_NAME].includes(confirmation.toolName) && (
           <div className="confirmation-diff-viewer">
             <DiffViewer 
               toolName={confirmation.toolName} 
@@ -461,7 +458,7 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
                   disabled={isConfirmDisabled()}
                 >
                   <span className="btn-text">
-                    {(confirmation.toolName === EXIT_PLAN_MODE_TOOL_NAME || confirmation.toolName === BASH_TOOL_NAME || [EDIT_TOOL_NAME, MULTI_EDIT_TOOL_NAME, WRITE_TOOL_NAME, DELETE_FILE_TOOL_NAME].includes(confirmation.toolName))
+                    {(confirmation.toolName === EXIT_PLAN_MODE_TOOL_NAME || confirmation.toolName === BASH_TOOL_NAME || [EDIT_TOOL_NAME, WRITE_TOOL_NAME].includes(confirmation.toolName))
                       ? '批准并继续' 
                       : '是'}
                   </span>
@@ -487,7 +484,7 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
                 )}
 
 
-                {(confirmation.toolName === EXIT_PLAN_MODE_TOOL_NAME || confirmation.toolName === BASH_TOOL_NAME || [EDIT_TOOL_NAME, MULTI_EDIT_TOOL_NAME, WRITE_TOOL_NAME, DELETE_FILE_TOOL_NAME].includes(confirmation.toolName)) && (
+                {(confirmation.toolName === EXIT_PLAN_MODE_TOOL_NAME || confirmation.toolName === BASH_TOOL_NAME || [EDIT_TOOL_NAME, WRITE_TOOL_NAME].includes(confirmation.toolName)) && (
                   <button
                     className="confirmation-btn confirmation-btn-feedback"
                     onClick={() => setShowFeedbackInput(true)}

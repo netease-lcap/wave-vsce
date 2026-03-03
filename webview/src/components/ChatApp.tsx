@@ -28,8 +28,6 @@ const initialState: ChatState = {
   configurationData: undefined,
   configurationLoading: false,
   configurationError: undefined,
-  // Subagent state
-  subagentMessages: new Map(),
   // Permission mode state
   permissionMode: 'default',
   // Attached images state
@@ -129,12 +127,6 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
         configurationLoading: false
       };
     case 'SET_INITIAL_STATE':
-      const subagentMessagesMap = new Map<string, Message[]>();
-      if (action.payload.subagentMessages) {
-        Object.entries(action.payload.subagentMessages).forEach(([id, msgs]) => {
-          subagentMessagesMap.set(id, msgs);
-        });
-      }
       return {
         ...state,
         messages: action.payload.messages,
@@ -143,20 +135,12 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
         currentSession: action.payload.currentSession || state.currentSession,
         configurationData: action.payload.configurationData || state.configurationData,
         pendingConfirmations: action.payload.pendingConfirmations || [],
-        subagentMessages: subagentMessagesMap,
         inputContent: action.payload.inputContent,
         selection: action.payload.selection,
         permissionMode: action.payload.permissionMode || state.permissionMode,
         attachedImages: action.payload.attachedImages || [],
         sessionsLoading: false,
         configurationLoading: false
-      };
-    case 'UPDATE_SUBAGENT_MESSAGES':
-      const newSubagentMessages = new Map(state.subagentMessages);
-      newSubagentMessages.set(action.payload.subagentId, action.payload.messages);
-      return {
-        ...state,
-        subagentMessages: newSubagentMessages
       };
     case 'UPDATE_SELECTION':
       return {
@@ -197,15 +181,6 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
           break;
         case 'updatePermissionMode':
           dispatch({ type: 'SET_PERMISSION_MODE', payload: message.mode });
-          break;
-        case 'updateSubagentMessages':
-          dispatch({
-            type: 'UPDATE_SUBAGENT_MESSAGES',
-            payload: {
-              subagentId: message.subagentId,
-              messages: message.messages
-            }
-          });
           break;
         // Test-only handlers 
         case 'startStreaming':
@@ -257,7 +232,6 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
               configurationData: message.configurationData,
               pendingConfirmations: message.pendingConfirmations || (message.pendingConfirmation ? [message.pendingConfirmation] : []),
               selection: message.selection,
-              subagentMessages: message.subagentMessages,
               inputContent: message.inputContent,
               permissionMode: message.permissionMode,
               attachedImages: message.attachedImages
@@ -405,7 +379,6 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
       <MessageList 
         messages={state.messages} 
         streamingMessageIndex={streamingMessageIndex}
-        subagentMessages={state.subagentMessages}
         vscode={vscode}
       />
       

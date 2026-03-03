@@ -2,9 +2,7 @@ import * as vscode from 'vscode';
 import type { SessionMetadata, ToolPermissionContext, PermissionDecision } from 'wave-agent-sdk';
 import { 
     EDIT_TOOL_NAME, 
-    MULTI_EDIT_TOOL_NAME, 
     WRITE_TOOL_NAME, 
-    DELETE_FILE_TOOL_NAME, 
     BASH_TOOL_NAME, 
     EXIT_PLAN_MODE_TOOL_NAME, 
     ASK_USER_QUESTION_TOOL_NAME 
@@ -118,11 +116,6 @@ export class ChatProvider implements vscode.WebviewViewProvider {
                 this.handleSessionIdChange(sessionId, viewType, windowId).catch(err => 
                     console.error(`Error handling session ID change for ${viewType}:`, err)
                 );
-            },
-            onSubagentMessagesChange: (subagentId, messages) => {
-                const session = this.getChatSession(viewType, windowId);
-                session.subagentMessages.set(subagentId, messages);
-                this.webviewManager.postMessage({ command: 'updateSubagentMessages', subagentId, messages }, viewType, windowId);
             },
             onStreamingChange: (isStreaming) => {
                 this.webviewManager.postMessage({ command: isStreaming ? 'startStreaming' : 'endStreaming' }, viewType, windowId);
@@ -323,7 +316,7 @@ export class ChatProvider implements vscode.WebviewViewProvider {
             const confirmationId = `confirmation_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
             let confirmationType: string;
-            if ([EDIT_TOOL_NAME, MULTI_EDIT_TOOL_NAME, WRITE_TOOL_NAME, DELETE_FILE_TOOL_NAME].includes(context.toolName)) {
+            if ([EDIT_TOOL_NAME, WRITE_TOOL_NAME].includes(context.toolName)) {
                 confirmationType = '代码修改待确认';
             } else if (context.toolName === BASH_TOOL_NAME) {
                 confirmationType = '命令执行待确认';

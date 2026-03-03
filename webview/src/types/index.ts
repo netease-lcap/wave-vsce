@@ -6,10 +6,10 @@
  */
 
 // Import message structures and session types from wave-agent-sdk
-import type { Message, MessageBlock, TextBlock, ErrorBlock, ToolBlock, SubagentBlock, ImageBlock,MemoryBlock, CompressBlock, PermissionMode, AskUserQuestion, AskUserQuestionInput, AskUserQuestionOption } from 'wave-agent-sdk/dist/types/index.js';
+import type { Message, MessageBlock, TextBlock, ErrorBlock, ToolBlock, ImageBlock, CompressBlock, PermissionMode, AskUserQuestion, AskUserQuestionInput, AskUserQuestionOption } from 'wave-agent-sdk/dist/types/index.js';
 import type { SessionMetadata, SessionData } from 'wave-agent-sdk/dist/services/session.js';
 
-export type { Message, MessageBlock, TextBlock, ErrorBlock, ToolBlock, SubagentBlock, ImageBlock,MemoryBlock, CompressBlock, SessionData, SessionMetadata, PermissionMode, AskUserQuestion, AskUserQuestionInput, AskUserQuestionOption };
+export type { Message, MessageBlock, TextBlock, ErrorBlock, ToolBlock, ImageBlock, CompressBlock, SessionData, SessionMetadata, PermissionMode, AskUserQuestion, AskUserQuestionInput, AskUserQuestionOption };
 
 // Slash command types
 export interface SlashCommand {
@@ -106,14 +106,12 @@ export interface ChatAppProps {
 export interface MessageListProps {
   messages: Message[];
   streamingMessageIndex?: number;
-  subagentMessages?: Map<string, Message[]>;
   vscode: any;
 }
 
 export interface MessageProps {
   message: Message;
   isStreaming?: boolean;
-  subagentMessages?: Map<string, Message[]>;
   vscode: any;
 }
 
@@ -213,16 +211,14 @@ export interface ChatState {
   configurationData?: ConfigurationData;
   configurationLoading: boolean;
   configurationError?: string;
-  // Subagent state
-  subagentMessages: Map<string, Message[]>;
-  // Input state
-  inputContent?: string;
-  // Selection state
-  selection?: SelectionInfo;
   // Permission mode state
   permissionMode?: PermissionMode;
   // Attached images state
   attachedImages?: AttachedImage[];
+  // Input state
+  inputContent?: string;
+  // Selection state
+  selection?: SelectionInfo;
 }
 
 export interface ConfirmationRequest {
@@ -327,7 +323,6 @@ export type ChatAction =
   | { type: 'SET_CONFIGURATION_LOADING'; payload: boolean }
   | { type: 'SET_CONFIGURATION_ERROR'; payload: string | undefined }
   | { type: 'SET_CONFIGURATION_DATA'; payload: ConfigurationData }
-  | { type: 'UPDATE_SUBAGENT_MESSAGES'; payload: { subagentId: string; messages: Message[] } }
   | { type: 'UPDATE_SELECTION'; payload: SelectionInfo | undefined }
   | { type: 'SET_PERMISSION_MODE'; payload: PermissionMode }
   | { type: 'SET_INITIAL_STATE'; payload: {
@@ -338,7 +333,6 @@ export type ChatAction =
       configurationData: ConfigurationData;
       pendingConfirmations: ConfirmationRequest[];
       selection?: SelectionInfo;
-      subagentMessages?: Record<string, Message[]>;
       inputContent?: string;
       permissionMode?: PermissionMode;
       attachedImages?: AttachedImage[];
