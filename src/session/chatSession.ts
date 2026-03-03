@@ -1,11 +1,12 @@
 import * as vscode from 'vscode';
-import { Agent, Message, PermissionDecision, ToolPermissionContext, AgentCallbacks, PermissionMode } from 'wave-agent-sdk';
+import { Agent, Message, PermissionDecision, ToolPermissionContext, AgentCallbacks, PermissionMode, Task } from 'wave-agent-sdk';
 import { SelectionInfo } from '../services/selectionService';
 import { ConfigurationData } from '../services/configurationService';
 import { VscodeLspAdapter } from '../services/lspAdapter';
 
 export interface ChatSessionCallbacks {
     onMessagesChange: (messages: Message[]) => void;
+    onTasksChange: (tasks: Task[]) => void;
     onSessionIdChange: (sessionId: string) => void;
     onStreamingChange: (isStreaming: boolean) => void;
     onPermissionModeChange: (mode: PermissionMode) => void;
@@ -16,6 +17,7 @@ export interface ChatSessionCallbacks {
 export class ChatSession {
     public agent: Agent | undefined;
     public messages: Message[] = [];
+    public tasks: Task[] = [];
     public sessionId: string | undefined;
     public isStreaming: boolean = false;
     public isInitializing: boolean = false;
@@ -62,6 +64,10 @@ export class ChatSession {
             const agentCallbacks: AgentCallbacks = {
                 onMessagesChange: (messages: Message[]) => {
                     this.throttledUpdateChatMessages(messages);
+                },
+                onTasksChange: (tasks: Task[]) => {
+                    this.tasks = tasks;
+                    this.callbacks.onTasksChange(tasks);
                 },
                 onSessionIdChange: (sessionId: string) => {
                     this.sessionId = sessionId;
@@ -249,6 +255,7 @@ export class ChatSession {
         }
         
         this.messages = [];
+        this.tasks = [];
         this.inputContent = '';
         this.sessionId = undefined;
         this.pendingConfirmations.clear();

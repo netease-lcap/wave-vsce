@@ -6,10 +6,10 @@
  */
 
 // Import message structures and session types from wave-agent-sdk
-import type { Message, MessageBlock, TextBlock, ErrorBlock, ToolBlock, ImageBlock, CompressBlock, PermissionMode, AskUserQuestion, AskUserQuestionInput, AskUserQuestionOption } from 'wave-agent-sdk/dist/types/index.js';
+import type { Message, MessageBlock, TextBlock, ErrorBlock, ToolBlock, ImageBlock, CompressBlock, PermissionMode, AskUserQuestion, AskUserQuestionInput, AskUserQuestionOption, Task, TaskStatus } from 'wave-agent-sdk/dist/types/index.js';
 import type { SessionMetadata, SessionData } from 'wave-agent-sdk/dist/services/session.js';
 
-export type { Message, MessageBlock, TextBlock, ErrorBlock, ToolBlock, ImageBlock, CompressBlock, SessionData, SessionMetadata, PermissionMode, AskUserQuestion, AskUserQuestionInput, AskUserQuestionOption };
+export type { Message, MessageBlock, TextBlock, ErrorBlock, ToolBlock, ImageBlock, CompressBlock, SessionData, SessionMetadata, PermissionMode, AskUserQuestion, AskUserQuestionInput, AskUserQuestionOption, Task, TaskStatus };
 
 // Slash command types
 export interface SlashCommand {
@@ -183,6 +183,9 @@ export interface ChatHeaderProps {
   onSessionSelect: (sessionId: string) => void;
   sessionsLoading: boolean;
   sessionsError?: string;
+  tasks: Task[];
+  isTaskListVisible: boolean;
+  onToggleTaskList: () => void;
 }
 
 // Session selector component props
@@ -198,6 +201,8 @@ export interface SessionSelectorProps {
 // Chat state management
 export interface ChatState {
   messages: Message[];
+  tasks: Task[];
+  isTaskListVisible: boolean;
   isStreaming: boolean;
   inputDisabled: boolean;
   shouldClearInput: boolean;
@@ -308,6 +313,8 @@ export interface ConfigurationDialogProps {
 
 export type ChatAction =
   | { type: 'SET_MESSAGES'; payload: Message[] }
+  | { type: 'SET_TASKS'; payload: Task[] }
+  | { type: 'TOGGLE_TASK_LIST' }
   | { type: 'START_STREAMING' }
   | { type: 'END_STREAMING' }
   | { type: 'SET_INPUT_DISABLED'; payload: boolean }
@@ -327,6 +334,7 @@ export type ChatAction =
   | { type: 'SET_PERMISSION_MODE'; payload: PermissionMode }
   | { type: 'SET_INITIAL_STATE'; payload: {
       messages: Message[];
+      tasks?: Task[];
       isStreaming: boolean;
       sessions: SessionMetadata[];
       currentSession?: SessionMetadata;

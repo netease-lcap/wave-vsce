@@ -11,8 +11,13 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
   currentSession,
   onSessionSelect,
   sessionsLoading,
-  sessionsError
+  sessionsError,
+  tasks,
+  isTaskListVisible,
+  onToggleTaskList
 }) => {
+  const activeTasksCount = tasks.filter(t => t.status === 'pending' || t.status === 'in_progress').length;
+
   return (
     <div className="chat-header" data-testid="chat-header">
       <div className="header-left">
@@ -26,6 +31,19 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
         />
       </div>
       <div className="header-buttons">
+        {tasks.length > 0 && (
+          <button
+            className={`header-button ${isTaskListVisible ? 'active' : ''}`}
+            onClick={onToggleTaskList}
+            title="任务列表 (Ctrl+T)"
+            data-testid="toggle-task-list-btn"
+          >
+            <span className="codicon codicon-checklist"></span>
+            {activeTasksCount > 0 && (
+              <span className="button-badge">{activeTasksCount}</span>
+            )}
+          </button>
+        )}
         <button
           className="header-button"
           onClick={onClearChat}

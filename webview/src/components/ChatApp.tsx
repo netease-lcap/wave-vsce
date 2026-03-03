@@ -2,6 +2,7 @@ import React, { useEffect, useReducer, useCallback, useRef, useImperativeHandle 
 import { MessageList } from './MessageList';
 import { MessageInput } from './MessageInput';
 import { ChatHeader } from './ChatHeader';
+import { TaskList } from './TaskList';
 import { ConfirmationDialog } from './ConfirmationDialog';
 import ConfigurationDialog from './ConfigurationDialog';
 import type {
@@ -9,12 +10,15 @@ import type {
   ChatState,
   ChatAction,
   WebviewMessage,
-  Message
+  Message,
+  Task
 } from '../types';
 import '../styles/ChatApp.css';
 
 const initialState: ChatState = {
   messages: [],
+  tasks: [],
+  isTaskListVisible: false,
   isStreaming: false,
   inputDisabled: false,
   shouldClearInput: false,
@@ -40,6 +44,18 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
       return {
         ...state,
         messages: action.payload
+      };
+    case 'SET_TASKS':
+      return {
+        ...state,
+        tasks: action.payload,
+        // Auto-show task list when tasks are first created
+        isTaskListVisible: state.tasks.length === 0 && action.payload.length > 0 ? true : state.isTaskListVisible
+      };
+    case 'TOGGLE_TASK_LIST':
+      return {
+        ...state,
+        isTaskListVisible: !state.isTaskListVisible
       };
     case 'START_STREAMING':
       return {
@@ -130,6 +146,8 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
       return {
         ...state,
         messages: action.payload.messages,
+        tasks: action.payload.tasks || [],
+        isTaskListVisible: (action.payload.tasks && action.payload.tasks.length > 0) ? true : state.isTaskListVisible,
         isStreaming: action.payload.isStreaming !== undefined ? action.payload.isStreaming : state.isStreaming,
         sessions: action.payload.sessions || state.sessions || [],
         currentSession: action.payload.currentSession || state.currentSession,
@@ -175,6 +193,9 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
       switch (message.command) {
         case 'updateMessages':
           dispatch({ type: 'SET_MESSAGES', payload: message.messages });
+          break;
+        case 'updateTasks':
+          dispatch({ type: 'SET_TASKS', payload: message.tasks });
           break;
         case 'updateSelection':
           dispatch({ type: 'UPDATE_SELECTION', payload: message.selection });
@@ -226,6 +247,7 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
             type: 'SET_INITIAL_STATE',
             payload: {
               messages: message.messages,
+              tasks: message.tasks,
               isStreaming: message.isStreaming,
               sessions: message.sessions,
               currentSession: message.session,
@@ -318,6 +340,22 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
     dispatch({ type: 'HIDE_CONFIGURATION' });
   }, []);
 
+  const handleToggleTaskList = useCallback(() => {
+    dispatch({ type: 'TOGGLE_TASK_LIST' });
+  }, []);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 't') {
+        e.preventDefault();
+        handleToggleTaskList();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleToggleTaskList]);
+
   // Simple streaming message detection
   const streamingMessageIndex = state.isStreaming && state.messages.length > 0 
     ? state.messages.length - 1 
@@ -374,12 +412,21 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
         onSessionSelect={handleSessionSelect}
         sessionsLoading={state.sessionsLoading}
         sessionsError={state.sessionsError}
+        tasks={state.tasks}
+        isTaskListVisible={state.isTaskListVisible}
+        onToggleTaskList={handleToggleTaskList}
       />
       
       <MessageList 
         messages={state.messages} 
         streamingMessageIndex={streamingMessageIndex}
         vscode={vscode}
+      />
+
+      <TaskList
+        tasks={state.tasks}
+        isVisible={state.isTaskListVisible}
+        onClose={handleToggleTaskList}
       />
       
       {state.pendingConfirmations.length === 0 && (

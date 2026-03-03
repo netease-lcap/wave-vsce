@@ -112,6 +112,9 @@ export class ChatProvider implements vscode.WebviewViewProvider {
             onMessagesChange: (messages) => {
                 this.webviewManager.postMessage({ command: 'updateMessages', messages }, viewType, windowId);
             },
+            onTasksChange: (tasks) => {
+                this.webviewManager.postMessage({ command: 'updateTasks', tasks }, viewType, windowId);
+            },
             onSessionIdChange: (sessionId) => {
                 this.handleSessionIdChange(sessionId, viewType, windowId).catch(err => 
                     console.error(`Error handling session ID change for ${viewType}:`, err)

@@ -445,6 +445,7 @@ export class MessageHandler {
         this.context.postMessage({
             command: 'setInitialState',
             messages: session.messages,
+            tasks: session.tasks,
             inputContent: session.inputContent,
             isStreaming: session.isStreaming,
             sessions: sessions,
