@@ -4,7 +4,6 @@ import { UIStateVerifier } from '../utils/uiStateVerifier.js';
 import { MockDataGenerator } from '../fixtures/mockData.js';
 import { 
     EDIT_TOOL_NAME, 
-    TODO_WRITE_TOOL_NAME, 
     BASH_TOOL_NAME,
     ASK_USER_QUESTION_TOOL_NAME,
     EXIT_PLAN_MODE_TOOL_NAME,
@@ -13,9 +12,6 @@ import {
     LS_TOOL_NAME,
     READ_TOOL_NAME,
     WRITE_TOOL_NAME,
-    DELETE_FILE_TOOL_NAME,
-    MULTI_EDIT_TOOL_NAME,
-    type SubagentBlock,
     type Message,
     type SessionMetadata
 } from 'wave-agent-sdk';
@@ -147,74 +143,34 @@ test.describe('Product Specification Screenshots', () => {
         await webviewPage.waitForSelector('.tool-container');
         await webviewPage.screenshot({ path: 'screenshots/spec-diff-viewer.png' });
 
-        // 7. Todo List - 使用正确的 TodoWrite 工具格式
-        const todoMessage: Message = {
-            role: 'assistant',
-            blocks: [
-                {
-                    type: 'tool',
-                    name: TODO_WRITE_TOOL_NAME,
-                    stage: 'end',
-                    compactParams: '1/4 tasks',
-                    parameters: JSON.stringify({
-                        todos: [
-                            { id: '1', content: '分析项目需求', status: 'completed' },
-                            { id: '2', content: '编写核心功能代码', status: 'in_progress' },
-                            { id: '3', content: '运行单元测试', status: 'pending' },
-                            { id: '4', content: '部署到生产环境', status: 'pending' }
-                        ]
-                    }),
-                    result: 'Todo list updated'
-                }
+        // 7. Task List
+        await injector.simulateExtensionMessage('updateTasks', {
+            tasks: [
+                { id: '1', subject: '搜索相关文件', description: '查找项目中与任务列表相关的组件和样式文件', status: 'completed', blocks: [], blockedBy: [], metadata: {} },
+                { id: '2', subject: '实现任务列表组件', description: '编写 React 组件和 CSS 样式', status: 'in_progress', activeForm: '编写 CSS', blocks: ['3'], blockedBy: [], metadata: {} },
+                { id: '3', subject: '运行测试', description: '确保新功能正常工作且不影响现有功能', status: 'pending', blocks: [], blockedBy: ['2'], metadata: {} }
             ]
-        };
-        await injector.updateMessages([todoMessage]);
-        await webviewPage.waitForSelector('.todo-list');
-        await webviewPage.screenshot({ path: 'screenshots/spec-todo-list.png' });
+        });
+        await webviewPage.waitForSelector('.task-list-container');
+        await webviewPage.screenshot({ path: 'screenshots/spec-task-list.png' });
 
-        // 8. Subagent Display - 使用正确的 SubagentBlock 格式
+        // 8. Subagent Display (Task Explore)
         const subagentMessage: Message = {
             role: 'assistant',
             blocks: [
                 {
-                    type: 'subagent',
-                    subagentId: 'explore-123',
-                    subagentName: 'Explore', 
-                    status: 'active',
-                    sessionId: 'session-456',
-                    configuration: {
-                        name: 'Explore',
-                        description: '正在搜索代码库中的 API 定义...',
-                        systemPrompt: 'You are an exploration agent...',
-                        filePath: '/builtin/explore.md',
-                        scope: 'builtin',
-                        priority: 1
-                    }
-                } as SubagentBlock
+                    type: 'tool',
+                    name: 'Task',
+                    stage: 'running',
+                    compactParams: 'Explore: 查找所有 API 定义',
+                    parameters: JSON.stringify({ subagent_type: 'Explore', description: '查找所有 API 定义', prompt: '...' }),
+                    shortResult: '...Read, Write (2 tools | 1,234 tokens)'
+                }
             ]
         };
         await injector.updateMessages([subagentMessage]);
         
-        // 添加子代理的消息
-        await injector.simulateExtensionMessage('updateSubagentMessages', {
-            subagentId: 'explore-123',
-            messages: [
-                MockDataGenerator.createAssistantMessageWithTool(
-                    '',
-                    'Glob',
-                    JSON.stringify({ pattern: '**/*api*.ts' }),
-                    'Found 3 API files:\n- src/api/user.ts\n- src/api/auth.ts\n- src/api/posts.ts'
-                ),
-                MockDataGenerator.createAssistantMessageWithTool(
-                    '',
-                    'Read',
-                    JSON.stringify({ file_path: 'src/api/user.ts' }),
-                    'export class UserAPI {\n  async getUser(id: string) {\n    return await fetch(`/api/users/${id}`);\n  }\n}'
-                )
-            ]
-        });
-        
-        await webviewPage.waitForSelector('.subagent-display');
+        await webviewPage.waitForSelector('.tool-container');
         await webviewPage.screenshot({ path: 'screenshots/spec-subagent.png' });
 
         // 9. Bash Tool - 使用 MockDataGenerator
@@ -564,21 +520,12 @@ test.describe('Product Specification Screenshots', () => {
                     },
                     {
                         type: 'tool',
-                        name: DELETE_FILE_TOOL_NAME,
+                        name: EDIT_TOOL_NAME,
                         stage: 'end',
-                        compactParams: 'old-config.json',
-                        parameters: JSON.stringify({ target_file: 'old-config.json' }),
-                        result: 'Successfully deleted file: old-config.json',
-                        shortResult: 'File deleted'
-                    },
-                    {
-                        type: 'tool',
-                        name: MULTI_EDIT_TOOL_NAME,
-                        stage: 'end',
-                        compactParams: 'src/app.tsx (2 edits)',
-                        parameters: JSON.stringify({ file_path: 'src/app.tsx', edits: [{ old_string: 'A', new_string: 'B' }, { old_string: 'C', new_string: 'D' }] }),
-                        result: 'Applied 2 edits',
-                        shortResult: 'Applied 2 edits'
+                        compactParams: 'src/app.tsx',
+                        parameters: JSON.stringify({ file_path: 'src/app.tsx', old_string: 'A', new_string: 'B' }),
+                        result: 'Text replaced successfully',
+                        shortResult: 'Text replaced successfully'
                     }
                 ]
             }
