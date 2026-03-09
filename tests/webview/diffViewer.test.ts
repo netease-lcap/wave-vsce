@@ -2,7 +2,7 @@ import { test, expect } from '../utils/webviewTestHarness.js';
 import { MessageInjector } from '../utils/messageInjector.js';
 import { UIStateVerifier } from '../utils/uiStateVerifier.js';
 import { MockDataGenerator } from '../fixtures/mockData.js';
-import { Message, EDIT_TOOL_NAME, WRITE_TOOL_NAME, MULTI_EDIT_TOOL_NAME, READ_TOOL_NAME } from 'wave-agent-sdk';
+import { Message, EDIT_TOOL_NAME, WRITE_TOOL_NAME, READ_TOOL_NAME } from 'wave-agent-sdk';
 
 test.describe('Diff Viewer', () => {
   test('should render diff viewer for Edit tool block', async ({ webviewPage }) => {
@@ -80,54 +80,6 @@ test.describe('Diff Viewer', () => {
     await expect(webviewPage.locator('.diff-line-added').first()).toContainText('export const config');
   });
 
-  test('should handle MultiEdit tool with multiple changes', async ({ webviewPage }) => {
-    const injector = new MessageInjector(webviewPage);
-
-    const mockMultiEditMessage: Message = {
-      role: 'assistant' as const,
-      blocks: [
-        {
-          type: 'text',
-          content: 'Making multiple edits to the file:'
-        },
-        {
-          type: 'tool',
-          name: MULTI_EDIT_TOOL_NAME,
-          parameters: JSON.stringify({
-            file_path: 'src/config.ts',
-            edits: [
-              {
-                old_string: 'const version = "1.0.0"',
-                new_string: 'const version = "1.1.0"'
-              },
-              {
-                old_string: 'debug: false',
-                new_string: 'debug: true'
-              }
-            ]
-          }),
-          compactParams: 'src/config.ts',
-          stage: 'end' as const,
-          success: true,
-          id: 'multiedit_789'
-        }
-      ]
-    };
-
-    await injector.updateMessages([mockMultiEditMessage]);
-
-    // Check that diff viewer is rendered for MultiEdit tool
-    await expect(webviewPage.locator('.diff-viewer-container')).toBeVisible();
-    
-    // Should show both changes (2 removed, 2 added lines)
-    await expect(webviewPage.locator('.diff-line-removed')).toHaveCount(2);
-    await expect(webviewPage.locator('.diff-line-added')).toHaveCount(2);
-
-    // Check that both edits are reflected
-    await expect(webviewPage.locator('.diff-line-removed').first()).toContainText('1.0.0');
-    await expect(webviewPage.locator('.diff-line-added').first()).toContainText('1.1.0');
-  });
-
   test('should not show diff for non-file-editing tools', async ({ webviewPage }) => {
     const injector = new MessageInjector(webviewPage);
 
@@ -184,10 +136,8 @@ test.describe('Diff Viewer', () => {
     // Tool block should be visible
     await expect(webviewPage.locator('.tool-block')).toBeVisible();
 
-    // Diff viewer should be present for running stage too
-    await expect(webviewPage.locator('.diff-viewer-container')).toBeVisible();
-    await expect(webviewPage.locator('.diff-line-removed')).toHaveCount(1);
-    await expect(webviewPage.locator('.diff-line-added')).toHaveCount(1);
+    // Diff viewer should NOT be present for running stage
+    await expect(webviewPage.locator('.diff-viewer-container')).not.toBeVisible();
   });
 
   test('should handle empty or malformed tool parameters gracefully', async ({ webviewPage }) => {

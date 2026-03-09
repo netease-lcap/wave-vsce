@@ -3,8 +3,7 @@ import {
     READ_TOOL_NAME, 
     WRITE_TOOL_NAME, 
     BASH_TOOL_NAME, 
-    EDIT_TOOL_NAME, 
-    MULTI_EDIT_TOOL_NAME 
+    EDIT_TOOL_NAME 
 } from 'wave-agent-sdk';
 
 /**
@@ -114,7 +113,7 @@ export class MockDataGenerator {
      */
     static createAssistantMessageWithFileEdit(
         textContent: string,
-        toolName: typeof EDIT_TOOL_NAME | typeof WRITE_TOOL_NAME | typeof MULTI_EDIT_TOOL_NAME,
+        toolName: typeof EDIT_TOOL_NAME | typeof WRITE_TOOL_NAME,
         filePath: string,
         editParams: any,
         stage: 'running' | 'end' = 'end'

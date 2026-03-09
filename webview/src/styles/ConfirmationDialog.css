@@ -217,7 +217,9 @@
   margin-top: 4px;
   box-sizing: border-box;
   font-family: inherit;
-  height: 26px;
+  min-height: 26px;
+  height: auto;
+  resize: vertical;
 }
 
 .question-progress {

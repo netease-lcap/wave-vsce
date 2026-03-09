@@ -293,8 +293,8 @@ export const Message: React.FC<MessageProps> = (props) => {
                 Object.entries(answers).map(([question, answer], aIndex) => (
                   <div key={aIndex} className="ask-user-result-item">
                     <div className="ask-user-result-text">
-                      <span className="ask-user-result-q">{question}</span>
-                      <span className="ask-user-result-a">
+                      <span className="ask-user-result-q" style={{ whiteSpace: 'pre-wrap' }}>{question}</span>
+                      <span className="ask-user-result-a" style={{ whiteSpace: 'pre-wrap' }}>
                         {Array.isArray(answer) 
                           ? answer.join(', ') 
                           : (typeof answer === 'object' && answer !== null 

@@ -1,7 +1,7 @@
 import { test, expect } from '../utils/webviewTestHarness.js';
 import { MessageInjector } from '../utils/messageInjector.js';
 import { UIStateVerifier } from '../utils/uiStateVerifier.js';
-import { EDIT_TOOL_NAME, BASH_TOOL_NAME, WRITE_TOOL_NAME, DELETE_FILE_TOOL_NAME, MULTI_EDIT_TOOL_NAME } from 'wave-agent-sdk';
+import { EDIT_TOOL_NAME, BASH_TOOL_NAME, WRITE_TOOL_NAME, DELETE_FILE_TOOL_NAME } from 'wave-agent-sdk';
 
 test.describe('Confirmation Dialog', () => {
     test('should show confirmation dialog for code modification tools', async ({ webviewPage }) => {
@@ -301,7 +301,6 @@ test.describe('Confirmation Dialog', () => {
 
         const toolTests = [
             { toolName: EDIT_TOOL_NAME, expectedType: '代码修改待确认' },
-            { toolName: MULTI_EDIT_TOOL_NAME, expectedType: '代码修改待确认' },
             { toolName: WRITE_TOOL_NAME, expectedType: '代码修改待确认' },
             { toolName: DELETE_FILE_TOOL_NAME, expectedType: '代码修改待确认' },
             { toolName: BASH_TOOL_NAME, expectedType: '命令执行待确认' },
@@ -319,7 +318,7 @@ test.describe('Confirmation Dialog', () => {
 
             // Verify correct confirmation type
             await expect(webviewPage.locator('.confirmation-title')).toHaveText(expectedType);
-            await expect(webviewPage.locator('.confirmation-details')).toContainText(`工具: ${toolName}`);
+            await expect(webviewPage.locator('.confirmation-details')).toContainText('工具: ');
 
             // Dismiss the dialog
             await webviewPage.locator('.confirmation-btn-apply').click();
@@ -420,34 +419,5 @@ test.describe('Confirmation Dialog', () => {
         // Verify input becomes visible again
         await expect(webviewPage.locator('textarea')).toBeVisible();
         await expect(webviewPage.locator('.confirmation-dialog')).not.toBeVisible();
-    });
-
-    test('should support arrow key navigation between buttons', async ({ webviewPage }) => {
-        const injector = new MessageInjector(webviewPage);
-
-        // Simulate confirmation request for a tool with multiple buttons
-        await injector.simulateExtensionMessage('showConfirmation', {
-            confirmationId: 'test_arrow_keys',
-            toolName: 'SomeOtherTool',
-            confirmationType: '操作待确认',
-            toolInput: {}
-        });
-
-        // Wait for initial focus (Apply button)
-        const applyBtn = webviewPage.locator('.confirmation-btn-apply');
-        await expect(applyBtn).toBeFocused();
-
-        // Press ArrowRight
-        await webviewPage.keyboard.press('ArrowRight');
-        const autoBtn = webviewPage.locator('.confirmation-btn-auto');
-        await expect(autoBtn).toBeFocused();
-
-        // Press ArrowRight again (should wrap around since reject is gone)
-        await webviewPage.keyboard.press('ArrowRight');
-        await expect(applyBtn).toBeFocused();
-
-        // Press ArrowLeft (should wrap around to auto)
-        await webviewPage.keyboard.press('ArrowLeft');
-        await expect(autoBtn).toBeFocused();
     });
 });

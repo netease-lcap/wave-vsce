@@ -322,8 +322,7 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
               </div>
               <div className="option-content">
                 <div className="option-label">其他:</div>
-                <input
-                  type="text"
+                <textarea
                   className="other-text-input"
                   placeholder="输入自定义回答..."
                   value={otherInputs[q.question] || ''}
