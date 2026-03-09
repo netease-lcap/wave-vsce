@@ -28,7 +28,7 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps & { vscode: any }> 
     baseURL: '',
     agentModel: '',
     fastModel: '',
-    language: ''
+    language: 'Chinese'
   });
 
   // Plugin state
@@ -237,7 +237,7 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps & { vscode: any }> 
               <label htmlFor="language">语言 (Language):</label>
               <select
                 id="language"
-                value={formData.language || 'Chinese'}
+                value={formData.language}
                 onChange={(e) => handleInputChange('language', e.target.value)}
                 disabled={isLoading}
                 className="configuration-select"

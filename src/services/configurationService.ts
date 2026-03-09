@@ -19,7 +19,7 @@ export class ConfigurationService {
             baseURL: this.context.globalState.get<string>('baseURL') || '',
             agentModel: this.context.globalState.get<string>('agentModel') || '',
             fastModel: this.context.globalState.get<string>('fastModel') || '',
-            language: this.context.globalState.get<string>('language') || ''
+            language: this.context.globalState.get<string>('language') || 'Chinese'
         };
     }
 
