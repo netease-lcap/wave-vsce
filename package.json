@@ -17,7 +17,7 @@
     "webview/dist/",
     "LOGO.png",
     "logo.svg",
-    "bin/",
+    "vendor/",
     "LICENSE"
   ],
   "categories": [

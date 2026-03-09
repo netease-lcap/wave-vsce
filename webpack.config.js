@@ -17,10 +17,7 @@ const extensionConfig = {
     vscode: 'commonjs vscode'
   },
   resolve: {
-    extensions: ['.ts', '.js'],
-    alias: {
-      '@vscode/ripgrep': path.resolve(__dirname, 'src/ripgrep.ts')
-    }
+    extensions: ['.ts', '.js']
   },
   cache: {
     type: 'filesystem',

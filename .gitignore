@@ -13,8 +13,7 @@ webview/dist/
 *.zip
 
 # Binaries
-bin/*
-!bin/.gitkeep
+vendor/
 
 designs/
 
