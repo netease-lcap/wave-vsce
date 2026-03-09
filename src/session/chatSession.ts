@@ -154,7 +154,8 @@ export class ChatSession {
         if (this.agent) {
             this.forceNextUpdateImmediate = true;
             this.inputContent = '';
-            await this.agent.sendMessage('/clear');
+            this.agent.clearMessages();
+            this.throttledUpdateChatMessages([]);
         }
     }
 
