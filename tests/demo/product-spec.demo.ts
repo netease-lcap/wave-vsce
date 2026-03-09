@@ -12,6 +12,7 @@ import {
     LS_TOOL_NAME,
     READ_TOOL_NAME,
     WRITE_TOOL_NAME,
+    AGENT_TOOL_NAME,
     type Message,
     type SessionMetadata
 } from 'wave-agent-sdk';
@@ -160,7 +161,7 @@ test.describe('Product Specification Screenshots', () => {
             blocks: [
                 {
                     type: 'tool',
-                    name: 'Task',
+                    name: AGENT_TOOL_NAME,
                     stage: 'running',
                     compactParams: 'Explore: 查找所有 API 定义',
                     parameters: JSON.stringify({ subagent_type: 'Explore', description: '查找所有 API 定义', prompt: '...' }),
@@ -454,7 +455,7 @@ test.describe('Product Specification Screenshots', () => {
                 blocks: [
                     {
                         type: 'tool',
-                        name: 'Task',
+                        name: AGENT_TOOL_NAME,
                         stage: 'end',
                         compactParams: 'Explore: 查找所有 API 定义',
                         parameters: JSON.stringify({ subagent_type: 'Explore', description: '查找所有 API 定义', prompt: '...' }),

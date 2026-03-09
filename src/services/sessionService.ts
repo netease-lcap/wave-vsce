@@ -9,8 +9,10 @@ export class SessionService {
 
             const allSessions = await listSessions(workdir);
             
-            // Slice to get only first 10 sessions
-            return allSessions.slice(0, 10);
+            // Filter to get only main sessions and slice to get only first 10 sessions
+            return allSessions
+                .filter(session => session.sessionType === 'main')
+                .slice(0, 10);
         } catch (error) {
             console.error(`获取会话列表失败:`, error);
             throw error;

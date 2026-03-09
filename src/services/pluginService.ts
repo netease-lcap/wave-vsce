@@ -16,8 +16,8 @@ export class PluginService {
     }
 
     public async listPlugins() {
-        this.pluginCore = new PluginCore(this.getWorkdir());
-        const { plugins, mergedEnabled } = await this.pluginCore.listPlugins();
+        const { plugins } = await this.pluginCore.listPlugins();
+        const mergedEnabled = this.pluginCore.getMergedEnabledPlugins();
 
         return plugins.map((p) => {
             const pluginId = `${p.name}@${p.marketplace}`;
@@ -35,27 +35,22 @@ export class PluginService {
     }
 
     public async installPlugin(pluginId: string, scope?: Scope) {
-        this.pluginCore = new PluginCore(this.getWorkdir());
         return await this.pluginCore.installPlugin(pluginId, scope);
     }
 
     public async uninstallPlugin(pluginId: string) {
-        this.pluginCore = new PluginCore(this.getWorkdir());
         await this.pluginCore.uninstallPlugin(pluginId);
     }
 
     public async enablePlugin(pluginId: string, scope?: Scope) {
-        this.pluginCore = new PluginCore(this.getWorkdir());
         await this.pluginCore.enablePlugin(pluginId, scope);
     }
 
     public async disablePlugin(pluginId: string, scope?: Scope) {
-        this.pluginCore = new PluginCore(this.getWorkdir());
         await this.pluginCore.disablePlugin(pluginId, scope);
     }
 
     public async updatePlugin(pluginId: string) {
-        this.pluginCore = new PluginCore(this.getWorkdir());
         return await this.pluginCore.updatePlugin(pluginId);
     }
 

@@ -98,7 +98,7 @@ export class ChatSession {
                 canUseTool: async (context: ToolPermissionContext): Promise<PermissionDecision> => {
                     return await this.callbacks.onToolPermissionRequest(context);
                 }
-            } as any);
+            });
             
             console.log(`${this.viewType} 智能体初始化成功`);
             
