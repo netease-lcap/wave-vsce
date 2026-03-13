@@ -21,11 +21,6 @@ install_dependencies:
   script:
     - npm ci
     - npx playwright install chromium
-  artifacts:
-    paths:
-      - node_modules/
-      - $PLAYWRIGHT_BROWSERS_PATH
-    expire_in: 1 day
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
 
