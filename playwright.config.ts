@@ -52,8 +52,4 @@ export default defineConfig({
 
   /* Webserver configuration for serving test files if needed */
   // Note: For webview testing, we load files directly rather than serving them
-  // ESM support for wave-agent-sdk
-  define: {
-    'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
-  },
 });
