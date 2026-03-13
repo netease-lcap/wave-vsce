@@ -1,56 +1,30 @@
-image: mcr.microsoft.com/playwright:v1.49.0-jammy
+image: mcr.microsoft.com/playwright:v1.58.2-noble
 
 variables:
   PLAYWRIGHT_BROWSERS_PATH: $CI_PROJECT_DIR/pw-browsers
 
-cache:
-  key:
-    files:
-      - package-lock.json
-  paths:
-    - node_modules/
-    - $PLAYWRIGHT_BROWSERS_PATH
-
 stages:
-  - install
-  - build
-  - test
+  - check
 
-install_dependencies:
-  stage: install
-  script:
-    - npm ci
-    - npx playwright install chromium
+check:
+  stage: check
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-
-build_and_typecheck:
-  stage: build
+  cache:
+    key:
+      files:
+        - package-lock.json
+    paths:
+      - node_modules/
+      - $PLAYWRIGHT_BROWSERS_PATH
   script:
-    - npm run clean
+    - npm install
     - npm run compile
     - npx tsc --noEmit
     - npx tsc -p webview/tsconfig.json --noEmit
-  artifacts:
-    paths:
-      - dist/
-      - webview/dist/
-    expire_in: 1 day
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-
-run_tests:
-  stage: test
-  cache: {}
-  dependencies:
-    - install_dependencies
-    - build_and_typecheck
-  script:
     - npm run test:playwright
   artifacts:
     when: on_failure
     paths:
       - playwright-report/
     expire_in: 1 week
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
