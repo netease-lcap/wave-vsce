@@ -1,4 +1,4 @@
-image: mcr.microsoft.com/playwright:v1.40.0-jammy
+image: mcr.microsoft.com/playwright:v1.49.0-jammy
 
 variables:
   PLAYWRIGHT_BROWSERS_PATH: $CI_PROJECT_DIR/pw-browsers

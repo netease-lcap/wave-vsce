@@ -10,7 +10,8 @@
     "url": "ssh://git@g.hz.netease.com:22222/vusion/wave-vsce.git"
   },
   "engines": {
-    "vscode": "^1.107.0"
+    "vscode": "^1.107.0",
+    "node": ">=22.0.0"
   },
   "files": [
     "dist/",
@@ -83,7 +84,7 @@
     "deploy:spec": "bash scripts/deploy-spec.sh"
   },
   "devDependencies": {
-    "@playwright/test": "^1.40.0",
+    "@playwright/test": "^1.49.0",
     "@types/diff": "^7.0.2",
     "@types/node": "^25.0.1",
     "@types/react": "^18.0.0",
