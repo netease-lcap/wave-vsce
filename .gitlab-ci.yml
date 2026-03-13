@@ -41,10 +41,14 @@ build_and_typecheck:
 
 run_tests:
   stage: test
+  cache: {}
+  dependencies:
+    - install_dependencies
+    - build_and_typecheck
   script:
     - npm run test:playwright
   artifacts:
-    when: always
+    when: on_failure
     paths:
       - playwright-report/
     expire_in: 1 week
