@@ -28,8 +28,6 @@ install_dependencies:
     expire_in: 1 day
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-  tags:
-    - ide-runner
 
 build_and_typecheck:
   stage: build
@@ -45,8 +43,6 @@ build_and_typecheck:
     expire_in: 1 day
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-  tags:
-    - ide-runner
 
 run_tests:
   stage: test
@@ -59,5 +55,3 @@ run_tests:
     expire_in: 1 week
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-  tags:
-    - ide-runner
