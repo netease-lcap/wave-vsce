@@ -78,8 +78,8 @@
     "watch:frontend": "npm run compile:frontend -- --watch",
     "webpack:prod": "webpack --mode production --devtool false",
     "package": "node scripts/package.js",
-    "test": "npm run test:playwright",
-    "test:playwright": "playwright test --project=chromium",
+    "pretest": "npm run compile",
+    "test": "playwright test --project=chromium",
     "test:demo": "playwright test --project=demo",
     "deploy:spec": "bash scripts/deploy-spec.sh"
   },

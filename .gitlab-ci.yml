@@ -19,10 +19,7 @@ check:
       - $PLAYWRIGHT_BROWSERS_PATH
   script:
     - npm install
-    - npm run compile
-    - npx tsc --noEmit
-    - npx tsc -p webview/tsconfig.json --noEmit
-    - npm run test:playwright
+    - npm run test
   artifacts:
     when: on_failure
     paths:
