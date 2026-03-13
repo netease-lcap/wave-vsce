@@ -129,6 +129,7 @@
           <li><a href="#skill-system">3.14 Skill 技能系统</a></li>
           <li><a href="#mcp-integration">3.15 MCP 协议集成</a></li>
           <li><a href="#ai-reasoning">3.16 AI 思考过程</a></li>
+          <li><a href="#wave-wiki">3.17 WaveWiki 文档管理</a></li>
         </ul>
       </li>
       <li><a href="#session-config-management">4. 会话与配置管理</a>
@@ -286,6 +287,12 @@
 <p>对于支持推理的模型（如 DeepSeek R1, OpenAI o1），Wave 可以展示 AI 的思考过程，让用户了解 AI 是如何得出结论的。</p>
 <figure>
 <img src="./screenshots/spec-reasoning.png" alt="" /><figcaption>AI 思考过程</figcaption>
+</figure>
+<h3 id="wave-wiki">3.17 WaveWiki 文档管理</h3>
+<p>WaveWiki 是一个集成的文档管理功能，允许用户通过 AI 自动生成和管理项目文档。它支持多级目录树、Markdown 预览以及 Mermaid 图表渲染。</p>
+<p><strong>主要特性：</strong> - <strong>自动生成</strong>：通过 <code>/deep-docs:generate</code> 指令快速生成完整的项目文档 - <strong>多级目录</strong>：自动扫描 <code>docs</code> 目录并以树状结构展示 - <strong>实时刷新</strong>：当 AI 修改或创建文档时，目录树会自动更新 - <strong>灵活展示</strong>：支持在编辑器标签页 (Tab) 或独立窗口 (Window) 中打开，提供更宽阔的阅读空间 - <strong>图表支持</strong>：完美支持 Mermaid 流程图、时序图等图表的渲染</p>
+<figure>
+<img src="./screenshots/wiki-tree-loaded.png" alt="" /><figcaption>WaveWiki 界面</figcaption>
 </figure>
 <hr />
 <h2 id="session-config-management">4. 会话与配置管理</h2>

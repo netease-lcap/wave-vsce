@@ -657,5 +657,9 @@ test.describe('Product Specification Screenshots', () => {
             ]
         });
         await webviewPage.locator('.messages-container').screenshot({ path: 'screenshots/spec-reasoning.png' });
+
+        // 28. WaveWiki
+        // Note: WikiApp is a separate app, but we can simulate its state if needed.
+        // For product-spec, we'll just ensure the screenshots exist from wiki-ui.demo.ts.
     });
 });

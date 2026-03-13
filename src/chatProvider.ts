@@ -184,6 +184,13 @@ export class ChatProvider implements vscode.WebviewViewProvider {
         }
     }
 
+    public async sendMessageToAgent(text: string) {
+        if (!this.sidebarSession.agent) {
+            await this.initializeAgent('sidebar');
+        }
+        await this.sidebarSession.sendMessage(text);
+    }
+
     /**
      * Focus the appropriate chat view and send focus message to webview
      */
