@@ -28,7 +28,6 @@ install_dependencies:
     expire_in: 1 day
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
 build_and_typecheck:
   stage: build
@@ -44,7 +43,6 @@ build_and_typecheck:
     expire_in: 1 day
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
 run_tests:
   stage: test
@@ -57,4 +55,3 @@ run_tests:
     expire_in: 1 week
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
