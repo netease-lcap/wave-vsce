@@ -1,7 +1,7 @@
 import { test, expect } from '../utils/webviewTestHarness.js';
 import { MessageInjector } from '../utils/messageInjector.js';
 import { UIStateVerifier } from '../utils/uiStateVerifier.js';
-import { EDIT_TOOL_NAME, BASH_TOOL_NAME, WRITE_TOOL_NAME, DELETE_FILE_TOOL_NAME } from 'wave-agent-sdk';
+import { EDIT_TOOL_NAME, BASH_TOOL_NAME, WRITE_TOOL_NAME } from 'wave-agent-sdk';
 
 test.describe('Confirmation Dialog', () => {
     test('should show confirmation dialog for code modification tools', async ({ webviewPage }) => {
@@ -302,7 +302,6 @@ test.describe('Confirmation Dialog', () => {
         const toolTests = [
             { toolName: EDIT_TOOL_NAME, expectedType: '代码修改待确认' },
             { toolName: WRITE_TOOL_NAME, expectedType: '代码修改待确认' },
-            { toolName: DELETE_FILE_TOOL_NAME, expectedType: '代码修改待确认' },
             { toolName: BASH_TOOL_NAME, expectedType: '命令执行待确认' },
             { toolName: 'SomeOtherTool', expectedType: '操作待确认' }
         ];
