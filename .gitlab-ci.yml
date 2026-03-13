@@ -19,6 +19,7 @@ check:
       - $PLAYWRIGHT_BROWSERS_PATH
   script:
     - npm install
+    - npx playwright install chromium --with-deps
     - npm run test
   artifacts:
     when: on_failure
