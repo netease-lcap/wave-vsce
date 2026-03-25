@@ -77,6 +77,7 @@ test.describe('Clear Chat Functionality', () => {
         // Start streaming
         await injector.startStreaming();
         await injector.updateMessages([{
+            id: "msg_streaming_clear",
             role: "assistant",
             blocks: [{ type: "text", content: "This is being streamed..." }]
         }]);

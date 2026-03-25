@@ -1,5 +1,11 @@
 import type { Page } from '@playwright/test';
 
+declare global {
+  interface Window {
+    simulateExtensionMessage: (message: any) => void;
+  }
+}
+
 /**
  * Helper functions to reduce test execution time by replacing fixed waits with condition-based waits
  */

@@ -1,7 +1,7 @@
 import { test, expect } from '../utils/webviewTestHarness.js';
 import { MessageInjector } from '../utils/messageInjector.js';
 import { UIStateVerifier } from '../utils/uiStateVerifier.js';
-import { EDIT_TOOL_NAME, BASH_TOOL_NAME, WRITE_TOOL_NAME } from 'wave-agent-sdk';
+import { EDIT_TOOL_NAME, BASH_TOOL_NAME, WRITE_TOOL_NAME, Message } from 'wave-agent-sdk';
 
 test.describe('Confirmation Dialog', () => {
     test('should show confirmation dialog for code modification tools', async ({ webviewPage }) => {
@@ -247,12 +247,14 @@ test.describe('Confirmation Dialog', () => {
         const injector = new MessageInjector(webviewPage);
 
         // Add some messages first to create content above
-        const testMessages = [
+        const testMessages: Message[] = [
             {
+                id: 'msg_conf_pos_1',
                 role: 'user' as const,
                 blocks: [{ type: 'text', content: 'Test message 1' }]
             },
             {
+                id: 'msg_conf_pos_2',
                 role: 'assistant' as const,
                 blocks: [{ type: 'text', content: 'Test response 1' }]
             }
@@ -329,8 +331,9 @@ test.describe('Confirmation Dialog', () => {
         const injector = new MessageInjector(webviewPage);
 
         // Add multiple messages to fill up space
-        const manyMessages = Array.from({ length: 5 }, (_, i) => ({
-            role: (i % 2 === 0 ? 'user' : 'assistant') as const,
+        const manyMessages: Message[] = Array.from({ length: 5 }, (_, i) => ({
+            id: `msg_many_${i}`,
+            role: i % 2 === 0 ? 'user' : 'assistant',
             blocks: [{ type: 'text', content: `Test message ${i + 1} with some longer content to take up space` }]
         }));
 

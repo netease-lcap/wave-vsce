@@ -1,6 +1,7 @@
 import { test, expect } from '../utils/webviewTestHarness.js';
 import { MessageInjector } from '../utils/messageInjector.js';
 import { UIStateVerifier } from '../utils/uiStateVerifier.js';
+import { Message } from 'wave-agent-sdk';
 
 test.describe('Selection Feature', () => {
     test('should display selection tag and toggle it', async ({ webviewPage }) => {
@@ -94,8 +95,9 @@ test.describe('Selection Feature', () => {
         await expect(selectionTag).toContainText('file.ts#21-30');
 
         // 8. Simulate message in history with selection
-        const messages = [
+        const messages: Message[] = [
             {
+                id: 'msg_sel_1',
                 role: 'user',
                 blocks: [
                     { 

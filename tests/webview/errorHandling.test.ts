@@ -2,6 +2,7 @@ import { test, expect } from '../utils/webviewTestHarness.js';
 import { MessageInjector } from '../utils/messageInjector.js';
 import { UIStateVerifier } from '../utils/uiStateVerifier.js';
 import { MockDataGenerator } from '../fixtures/mockData.js';
+import { Message } from 'wave-agent-sdk';
 
 test.describe('Error Message Display', () => {
     test('should display error messages', async ({ webviewPage }) => {
@@ -11,6 +12,7 @@ test.describe('Error Message Display', () => {
         // Simulate an error
         const errorMessage = 'Connection failed: Unable to reach the server';
         await injector.updateMessages([{
+            id: 'msg_err_1',
             role: 'assistant',
             blocks: [{ type: 'error', content: errorMessage }]
         }]);
@@ -38,6 +40,7 @@ test.describe('Error Message Display', () => {
 
         // Now show an error
         await injector.updateMessages([...messages, {
+            id: 'msg_err_2',
             role: 'assistant',
             blocks: [{ type: 'error', content: 'An error occurred while processing your request' }]
         }]);
@@ -75,7 +78,8 @@ test.describe('Error Message Display', () => {
         ];
 
         // Create error messages and send them all at once
-        const errorMessages = errors.map(error => ({
+        const errorMessages: Message[] = errors.map((error, index) => ({
+            id: `msg_err_multi_${index}`,
             role: 'assistant' as const,
             blocks: [{ type: 'error' as const, content: error }]
         }));
@@ -97,6 +101,7 @@ test.describe('Error Message Display', () => {
 
         // Show error
         await injector.updateMessages([{
+            id: 'msg_err_recovery',
             role: 'assistant',
             blocks: [{ type: 'error', content: 'Something went wrong' }]
         }]);
@@ -133,12 +138,14 @@ test.describe('Error Message Display', () => {
 
         // Add some streaming content
         await injector.updateMessages([{
+            id: "msg_streaming_err",
             role: "assistant",
             blocks: [{ type: "text", content: "I was working on your request when..." }]
         }]);
 
         // Show error during streaming
         await injector.updateMessages([{
+            id: "msg_streaming_err_final",
             role: 'assistant',
             blocks: [{ type: 'error', content: 'Connection lost during streaming' }]
         }]);

@@ -142,6 +142,7 @@ test.describe('Product Specification Screenshots', () => {
 
         // 6. Diff Viewer - 使用 MockDataGenerator 的 Edit 工具
         const diffMessage: Message = {
+            id: 'msg_demo_diff',
             role: 'assistant',
             blocks: [
                 {
@@ -175,6 +176,7 @@ test.describe('Product Specification Screenshots', () => {
 
         // 8. Subagent Display (Task Explore)
         const subagentMessage: Message = {
+            id: 'msg_demo_subagent',
             role: 'assistant',
             blocks: [
                 {
@@ -194,6 +196,7 @@ test.describe('Product Specification Screenshots', () => {
 
         // 9. Bash Tool - 使用 MockDataGenerator
         const bashMessage: Message = {
+            id: 'msg_demo_bash',
             role: 'assistant',
             blocks: [
                 {
@@ -212,6 +215,7 @@ test.describe('Product Specification Screenshots', () => {
 
         // 10. Ask User Question - 显示确认对话框
         const askUserMessage: Message = {
+            id: 'msg_demo_ask',
             role: 'assistant',
             blocks: [
                 {
@@ -415,6 +419,7 @@ test.describe('Product Specification Screenshots', () => {
         // 13b. Message List with Inline Tags
         await injector.updateMessages([
             {
+                id: 'msg_demo_inline_tags',
                 role: 'user',
                 blocks: [
                     {
@@ -548,6 +553,7 @@ test.describe('Product Specification Screenshots', () => {
         // 19. Exploration Tools
         const explorationMessages: Message[] = [
             {
+                id: 'msg_demo_exploration',
                 role: 'assistant',
                 blocks: [
                     {
@@ -596,6 +602,7 @@ test.describe('Product Specification Screenshots', () => {
         // 21. File Operation Tools
         const fileOpMessages: Message[] = [
             {
+                id: 'msg_demo_file_ops',
                 role: 'assistant',
                 blocks: [
                     {
@@ -626,6 +633,7 @@ test.describe('Product Specification Screenshots', () => {
         // 22. Vision
         const visionMessages = [
             {
+                id: 'msg_demo_vision_user',
                 role: 'user',
                 blocks: [
                     { type: 'text', content: '这张图片里有什么？' },
@@ -652,6 +660,7 @@ test.describe('Product Specification Screenshots', () => {
         await injector.simulateExtensionMessage('setInitialState', {
             messages: [
                 {
+                    id: 'msg_demo_lsp',
                     role: 'assistant',
                     blocks: [
                         {
@@ -696,6 +705,7 @@ test.describe('Product Specification Screenshots', () => {
         await injector.simulateExtensionMessage('setInitialState', {
             messages: [
                 {
+                    id: 'msg_demo_skill',
                     role: 'assistant',
                     blocks: [
                         {
@@ -730,6 +740,7 @@ test.describe('Product Specification Screenshots', () => {
         await injector.simulateExtensionMessage('setInitialState', {
             messages: [
                 {
+                    id: 'msg_demo_reasoning',
                     role: 'assistant',
                     blocks: [
                         {

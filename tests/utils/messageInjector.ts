@@ -1,6 +1,17 @@
 import { Page } from '@playwright/test';
 import type { Message, SessionMetadata } from 'wave-agent-sdk';
 
+declare global {
+    interface Window {
+        simulateExtensionMessage: (message: any) => void;
+        getTestMessages: () => any[];
+        clearTestMessages: () => void;
+        vscode: {
+            postMessage: (message: any) => void;
+        };
+    }
+}
+
 /**
  * Utilities for injecting messages and simulating extension communication
  */
@@ -44,7 +55,8 @@ export class MessageInjector {
      */
     async abortMessage(partialContent: string) {
         // Create a message with an error block to represent aborted content
-        const abortedMessage = {
+        const abortedMessage: Message = {
+            id: `msg_abort_${Date.now()}`,
             role: 'assistant' as const,
             blocks: [
                 {

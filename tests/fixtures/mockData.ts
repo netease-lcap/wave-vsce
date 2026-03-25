@@ -22,6 +22,7 @@ export class MockDataGenerator {
         };
 
         return {
+            id: `msg_${Math.random().toString(36).substring(2, 9)}`,
             role: "user",
             blocks: [textBlock]
         };
@@ -37,6 +38,7 @@ export class MockDataGenerator {
         };
 
         return {
+            id: `msg_${Math.random().toString(36).substring(2, 9)}`,
             role: "assistant", 
             blocks: [textBlock]
         };
@@ -72,6 +74,7 @@ export class MockDataGenerator {
         blocks.push(toolBlock);
 
         return {
+            id: `msg_${Math.random().toString(36).substring(2, 9)}`,
             role: "assistant",
             blocks: blocks
         };
@@ -87,6 +90,7 @@ export class MockDataGenerator {
         };
 
         return {
+            id: `msg_${Math.random().toString(36).substring(2, 9)}`,
             role: "assistant",
             blocks: [errorBlock]
         };
@@ -102,6 +106,7 @@ export class MockDataGenerator {
         };
 
         return {
+            id: `msg_${Math.random().toString(36).substring(2, 9)}`,
             role: "assistant",
             blocks: [textBlock]
         };
@@ -143,6 +148,7 @@ export class MockDataGenerator {
         blocks.push(toolBlock);
 
         return {
+            id: `msg_${Math.random().toString(36).substring(2, 9)}`,
             role: "assistant",
             blocks: blocks
         };
@@ -202,6 +208,7 @@ export class MockDataGenerator {
         blocks.push(toolBlock);
 
         return {
+            id: `msg_${Math.random().toString(36).substring(2, 9)}`,
             role: "assistant",
             blocks: blocks
         };

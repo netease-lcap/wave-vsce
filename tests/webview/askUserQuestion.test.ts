@@ -1,13 +1,14 @@
 import { test, expect } from '../utils/webviewTestHarness.js';
 import { MessageInjector } from '../utils/messageInjector.js';
-import { ASK_USER_QUESTION_TOOL_NAME } from 'wave-agent-sdk';
+import { ASK_USER_QUESTION_TOOL_NAME, Message } from 'wave-agent-sdk';
 
 test.describe('AskUserQuestion Newline Support', () => {
   test('should support newlines in question and answer', async ({ webviewPage }) => {
     const injector = new MessageInjector(webviewPage);
 
     // Mock a message with AskUserQuestion tool
-    const mockMessage = {
+    const mockMessage: Message = {
+      id: 'msg_ask_1',
       role: 'assistant' as const,
       blocks: [
         {
@@ -43,7 +44,8 @@ test.describe('AskUserQuestion Newline Support', () => {
     const injector = new MessageInjector(webviewPage);
 
     const longText = 'This is a very long text that should wrap automatically because of pre-wrap setting. '.repeat(10);
-    const mockMessage = {
+    const mockMessage: Message = {
+      id: 'msg_ask_2',
       role: 'assistant' as const,
       blocks: [
         {

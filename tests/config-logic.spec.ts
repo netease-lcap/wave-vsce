@@ -13,6 +13,7 @@ test.describe('Configuration Logic', () => {
         // Mock empty VS Code configuration
         const config = {
             apiKey: '',
+            headers: '',
             baseURL: '',
             authMethod: 'apiKey'
         };
@@ -39,6 +40,7 @@ test.describe('Configuration Logic', () => {
         // Mock empty VS Code configuration
         const config = {
             apiKey: '',
+            headers: '',
             baseURL: '',
             authMethod: 'apiKey'
         };

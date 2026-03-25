@@ -22,6 +22,7 @@ test.describe('Streaming Messages', () => {
             accumulated += chunk;
             // Send progressive updates via updateMessages (simulating real agent-sdk behavior)
             await injector.updateMessages([{
+                id: "msg_streaming_basic",
                 role: "assistant",
                 blocks: [{ type: "text", content: accumulated }]
             }]);
@@ -53,6 +54,7 @@ test.describe('Streaming Messages', () => {
         for (let i = 0; i < scenario.chunks.length; i++) {
             accumulated += scenario.chunks[i];
             await injector.updateMessages([{
+                id: "msg_streaming_long",
                 role: "assistant",
                 blocks: [{ type: "text", content: accumulated }]
             }]);
@@ -83,6 +85,7 @@ test.describe('Streaming Messages', () => {
 
         // Send empty update
         await injector.updateMessages([{
+            id: "msg_streaming_empty",
             role: "assistant",
             blocks: [{ type: "text", content: '' }]
         }]);
@@ -91,6 +94,7 @@ test.describe('Streaming Messages', () => {
 
         // Send actual content
         await injector.updateMessages([{
+            id: "msg_streaming_empty",
             role: "assistant",
             blocks: [{ type: "text", content: 'Hello world' }]
         }]);
@@ -98,6 +102,7 @@ test.describe('Streaming Messages', () => {
 
         // Send empty again
         await injector.updateMessages([{
+            id: "msg_streaming_empty",
             role: "assistant",
             blocks: [{ type: "text", content: '' }]
         }]);
@@ -114,6 +119,7 @@ test.describe('Streaming Messages', () => {
 
         // Add a completed message first
         await injector.updateMessages([{
+            id: "msg_completed_1",
             role: "assistant",
             blocks: [{ type: "text", content: "This is a completed message" }]
         }]);
@@ -130,9 +136,11 @@ test.describe('Streaming Messages', () => {
 
         // Update streaming content by sending new message set
         await injector.updateMessages([{
+            id: "msg_completed_1",
             role: "assistant",
             blocks: [{ type: "text", content: "This is a completed message" }]
         }, {
+            id: "msg_streaming_1",
             role: "assistant",
             blocks: [{ type: "text", content: "This is streaming content" }]
         }]);

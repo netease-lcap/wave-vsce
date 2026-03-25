@@ -33,6 +33,7 @@ test.describe('Streaming Button States', () => {
 
         // End streaming by updating with final messages
         await injector.updateMessages([{
+            id: "msg_streaming_end_1",
             role: "assistant",
             blocks: [{ type: "text", content: "Streaming completed" }]
         }]);
@@ -52,6 +53,7 @@ test.describe('Streaming Button States', () => {
 
         // Add some messages first
         await injector.updateMessages([{
+            id: "msg_streaming_prevent_1",
             role: "assistant", 
             blocks: [{ type: "text", content: "This is a test message" }]
         }]);
@@ -61,9 +63,11 @@ test.describe('Streaming Button States', () => {
         await injector.startStreaming();
         
         await injector.updateMessages([{
+            id: "msg_streaming_prevent_1",
             role: "assistant", 
             blocks: [{ type: "text", content: "This is a test message" }]
         }, {
+            id: "msg_streaming_prevent_2",
             role: "assistant",
             blocks: [{ type: "text", content: "I'm currently streaming..." }]
         }]);
@@ -94,6 +98,7 @@ test.describe('Streaming Button States', () => {
         // Start streaming
         await injector.startStreaming();
         await injector.updateMessages([{
+            id: "msg_streaming_abort_1",
             role: "assistant",
             blocks: [{ type: "text", content: "This will be aborted..." }]
         }]);

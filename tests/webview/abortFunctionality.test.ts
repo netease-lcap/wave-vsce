@@ -32,6 +32,7 @@ test.describe('Abort Functionality', () => {
 
         // Simulate streaming completion by updating with final messages
         await injector.updateMessages([{
+            id: "msg_1",
             role: "assistant",
             blocks: [{ type: "text", content: "Completed message" }]
         }]);
@@ -56,6 +57,7 @@ test.describe('Abort Functionality', () => {
 
         // Add some streaming content
         await injector.updateMessages([{
+            id: "msg_streaming_1",
             role: "assistant",
             blocks: [{ type: "text", content: "This is partial content that will be aborted..." }]
         }]);
@@ -80,6 +82,7 @@ test.describe('Abort Functionality', () => {
         // Add some content
         const partialContent = 'This message was interrupted';
         await injector.updateMessages([{
+            id: "msg_partial_1",
             role: "assistant",
             blocks: [{ type: "text", content: partialContent }]
         }]);
@@ -109,6 +112,7 @@ test.describe('Abort Functionality', () => {
         // Start and abort streaming
         await injector.startStreaming();
         await injector.updateMessages([{
+            id: "msg_partial_2",
             role: "assistant",
             blocks: [{ type: "text", content: "Partial content" }]
         }]);
@@ -148,6 +152,7 @@ test.describe('Abort Functionality', () => {
         for (let i = 0; i < (scenario.abortAtChunk || 3); i++) {
             accumulated += scenario.chunks[i];
             await injector.updateMessages([{
+                id: "msg_streaming_scenario",
                 role: "assistant",
                 blocks: [{ type: "text", content: accumulated }]
             }]);

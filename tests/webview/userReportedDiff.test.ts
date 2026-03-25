@@ -8,6 +8,7 @@ test.describe('Diff Viewer User Reported Case', () => {
 
     // The specific case reported by the user
     const mockEditMessage: Message = {
+      id: 'msg_user_reported_1',
       role: 'assistant' as const,
       blocks: [
         {

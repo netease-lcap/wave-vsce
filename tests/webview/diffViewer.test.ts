@@ -11,6 +11,7 @@ test.describe('Diff Viewer', () => {
 
     // Create a mock message with an Edit tool that should show a diff
     const mockEditMessage: Message = {
+      id: 'msg_diff_1',
       role: 'assistant' as const,
       blocks: [
         {
@@ -50,6 +51,7 @@ test.describe('Diff Viewer', () => {
     const injector = new MessageInjector(webviewPage);
 
     const mockWriteMessage: Message = {
+      id: 'msg_diff_2',
       role: 'assistant' as const,
       blocks: [
         {
@@ -84,6 +86,7 @@ test.describe('Diff Viewer', () => {
     const injector = new MessageInjector(webviewPage);
 
     const mockReadMessage: Message = {
+      id: 'msg_diff_3',
       role: 'assistant' as const,
       blocks: [
         {
@@ -114,6 +117,7 @@ test.describe('Diff Viewer', () => {
     const injector = new MessageInjector(webviewPage);
 
     const mockRunningEditMessage: Message = {
+      id: 'msg_diff_4',
       role: 'assistant' as const,
       blocks: [
         {
@@ -144,6 +148,7 @@ test.describe('Diff Viewer', () => {
     const injector = new MessageInjector(webviewPage);
 
     const mockMalformedMessage: Message = {
+      id: 'msg_diff_5',
       role: 'assistant' as const,
       blocks: [
         {
@@ -171,6 +176,7 @@ test.describe('Diff Viewer', () => {
     const injector = new MessageInjector(webviewPage);
 
     const mockMessage: Message = {
+      id: 'msg_diff_6',
       role: 'assistant' as const,
       blocks: [
         {
@@ -210,6 +216,7 @@ test.describe('Diff Viewer', () => {
     const injector = new MessageInjector(webviewPage);
 
     const mockSingleLineEdit: Message = {
+      id: 'msg_diff_7',
       role: 'assistant' as const,
       blocks: [
         {
@@ -255,6 +262,7 @@ test.describe('Diff Viewer', () => {
     ).join('\n') + '\nconst newVariable = "new";\nconsole.log("remaining code");';
 
     const mockLargeEditMessage: Message = {
+      id: 'msg_diff_8',
       role: 'assistant' as const,
       blocks: [
         {
