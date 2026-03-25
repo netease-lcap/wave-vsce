@@ -424,8 +424,6 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
         setIsLoadingSlashCommands(false);
         console.error('指令错误:', data.error);
       } else if (data.command === 'uploadSuccess') {
-        console.log('文件上传成功:', data.uploadedFiles);
-        
         // Insert uploaded file paths into the input after the @ symbol
         if (data.uploadedFiles && data.uploadedFiles.length > 0) {
           insertUploadedFilePaths(data.uploadedFiles);
@@ -442,7 +440,6 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
 
   // Handle image preview
   const handleImagePreview = useCallback((url: string, name: string) => {
-    console.log('handleImagePreview triggered:', { url: url.substring(0, 50) + '...', name });
     // Create a temporary modal for image preview
     const modal = document.createElement('div');
     modal.className = 'image-preview-modal';
@@ -494,7 +491,6 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
     
     // Render the React component into the span
     const isImage = !file.isDirectory && /\.(png|jpg|jpeg|gif|webp|svg)$/i.test(file.name);
-    console.log('handleFileSelect rendering ContextTag:', { name: file.name, isImage });
     const root = ReactDOM.createRoot(tagSpan);
     root.render(
       <ContextTag 
@@ -503,7 +499,6 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
         icon={file.icon} 
         isImage={isImage}
         onClick={isImage ? () => {
-          console.log('Previewing file image:', file.relativePath);
           vscode.postMessage({
             command: 'previewImage',
             path: file.path
@@ -874,7 +869,6 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
         tagSpan.setAttribute('data-is-image', 'true');
         tagSpan.setAttribute('data-image-url', dataUrl);
         
-        console.log('handleImagePaste rendering ContextTag:', { name: displayName });
         const root = ReactDOM.createRoot(tagSpan);
         root.render(
           <ContextTag 
@@ -931,6 +925,32 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
       const fileList = new DataTransfer();
       files.forEach(file => fileList.items.add(file));
       handleImagePaste(fileList.files);
+    } else {
+      // Handle text paste to avoid rich text styles
+      const text = event.clipboardData?.getData('text/plain');
+      if (text) {
+        event.preventDefault();
+        
+        // Fallback to manual insertion as execCommand('insertText') is unreliable in some environments
+        const selection = window.getSelection();
+        if (selection && selection.rangeCount > 0) {
+          const range = selection.getRangeAt(0);
+          range.deleteContents();
+          
+          const textNode = document.createTextNode(text);
+          range.insertNode(textNode);
+          
+          // Move cursor to the end of inserted text
+          range.setStartAfter(textNode);
+          range.setEndAfter(textNode);
+          selection.removeAllRanges();
+          selection.addRange(range);
+          
+          // Trigger input event manually to update React state
+          const inputEvent = new Event('input', { bubbles: true });
+          textareaRef.current?.dispatchEvent(inputEvent);
+        }
+      }
     }
   }, [handleImagePaste]);
 

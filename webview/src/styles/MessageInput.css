@@ -33,6 +33,7 @@
     max-height: 200px;
     overflow-y: auto;
     word-break: break-word;
+    white-space: pre-wrap;
 }
 
 .content-editable-input:empty:before {

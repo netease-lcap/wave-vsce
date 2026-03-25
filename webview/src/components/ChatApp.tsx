@@ -242,7 +242,6 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
           });
           break;
         case 'setInitialState':
-          console.log('Received setInitialState:', message);
           dispatch({
             type: 'SET_INITIAL_STATE',
             payload: {
