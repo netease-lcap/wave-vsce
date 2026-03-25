@@ -19,7 +19,7 @@ export const ContextTag: React.FC<ContextTagProps> = ({ name, path, icon, isImag
       title={path}
       data-path={path}
     >
-      {icon && <i className={`codicon ${icon}`}></i>}
+      <span className="tag-at">@</span>
       <span className="tag-name">{name}</span>
     </span>
   );
