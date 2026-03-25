@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef, useImperativeHandle, forwardRef, KeyboardEvent } from 'react';
 import { convertToMarkdown } from '../utils/messageUtils';
 import { ContextTag } from './ContextTag';
-import ReactDOM from 'react-dom';
+import ReactDOM from 'react-dom/client';
 import type { MessageInputProps, FileItem, SlashCommand, AttachedImage, PermissionMode } from '../types';
 import { FileSuggestionDropdown } from './FileSuggestionDropdown';
 import { SlashCommandsPopup } from './SlashCommandsPopup';
@@ -436,13 +436,13 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
     tagSpan.setAttribute('data-is-image', String(!file.isDirectory && /\.(png|jpg|jpeg|gif|webp|svg)$/i.test(file.name)));
     
     // Render the React component into the span
-    ReactDOM.render(
+    const root = ReactDOM.createRoot(tagSpan);
+    root.render(
       <ContextTag 
         name={file.name} 
         path={file.relativePath} 
         icon={file.icon} 
-      />, 
-      tagSpan
+      />
     );
 
     // Insert the tag and a space
@@ -778,14 +778,14 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
         tagSpan.setAttribute('data-is-image', 'true');
         tagSpan.setAttribute('data-image-url', dataUrl);
         
-        ReactDOM.render(
+        const root = ReactDOM.createRoot(tagSpan);
+        root.render(
           <ContextTag 
             name={file.name || 'pasted-image.png'} 
             path={`pasted-image-${Date.now()}.png`} 
             icon="codicon-file-media"
             isImage={true}
-          />, 
-          tagSpan
+          />
         );
         
         range.deleteContents();
