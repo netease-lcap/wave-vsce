@@ -5,8 +5,8 @@
     padding: 2px 8px;
     border-radius: 4px;
     font-size: 13px;
-    background-color: var(--vscode-button-secondaryBackground);
-    color: var(--vscode-button-secondaryForeground);
+    background-color: var(--vscode-badge-background);
+    color: var(--vscode-badge-foreground);
     margin: 0 2px;
     user-select: none;
     vertical-align: middle;
@@ -15,6 +15,7 @@
     text-overflow: ellipsis;
     white-space: nowrap;
     font-weight: 500;
+    border: 1px solid transparent;
 }
 
 .context-tag .tag-at {
@@ -25,12 +26,20 @@
 
 .context-tag.clickable {
     cursor: pointer;
-    transition: background-color 0.2s ease;
+    transition: all 0.2s ease;
+    border-color: var(--vscode-button-border, transparent);
 }
 
 .context-tag.clickable:hover {
-    background-color: var(--vscode-button-secondaryHoverBackground);
-    text-decoration: underline;
+    background-color: var(--vscode-button-hoverBackground);
+    color: var(--vscode-button-foreground);
+    text-decoration: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.context-tag.clickable:active {
+    transform: translateY(1px);
+    box-shadow: none;
 }
 
 .context-tag .tag-name {
