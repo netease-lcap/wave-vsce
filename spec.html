@@ -100,14 +100,14 @@
         <ul>
           <li><a href="#welcome-interface">1.1 欢迎界面</a></li>
           <li><a href="#basic-chat">1.2 基础对话</a></li>
-          <li><a href="#code-selection-reference">1.3 内联上下文标签与引用</a></li>
         </ul>
       </li>
       <li><a href="#intelligent-input-context">2. 智能输入与上下文</a>
         <ul>
-          <li><a href="#slash-commands">2.1 指令系统 (Slash Commands)</a></li>
-          <li><a href="#file-suggestions">2.2 文件建议与预览 (@ 提及)</a></li>
-          <li><a href="#permission-modes">2.3 权限模式管理</a></li>
+          <li><a href="#code-selection-reference">2.1 代码选择与引用</a></li>
+          <li><a href="#slash-commands">2.2 指令系统 (Slash Commands)</a></li>
+          <li><a href="#file-suggestions">2.3 文件建议与预览 (@ 提及)</a></li>
+          <li><a href="#permission-modes">2.4 权限模式管理</a></li>
         </ul>
       </li>
       <li><a href="#enhanced-agent-capabilities">3. 增强型 Agent 能力</a>
@@ -163,28 +163,34 @@
 <figure>
 <img src="./screenshots/spec-basic-chat.png" alt="" /><figcaption>基础对话</figcaption>
 </figure>
-<h3 id="code-selection-reference">1.3 内联上下文标签与引用</h3>
-<p>当用户在编辑器中选中代码或通过 @ 提及文件时，Wave 会在对话中生成内联标签。这些标签与文本穿插显示，提供精准的上下文支持。</p>
-<figure>
-<img src="./screenshots/spec-inline-mentions.png" alt="" /><figcaption>内联上下文标签</figcaption>
-</figure>
 <hr />
     <h2 id="intelligent-input-context">2. 智能输入与上下文</h2>
     <p>Wave 提供了一个强大的富文本输入框，支持内联标签、指令补全和图片附件，让用户能够高效地构建复杂的上下文。</p>
-    <h3 id="slash-commands">2.1 指令系统 (Slash Commands)</h3>
+    <h3 id="code-selection-reference">2.1 代码选择与引用</h3>
+    <p>当用户在编辑器中选中代码时，Wave 会在输入框上方自动生成一个选择标签。点击该标签可以快速将其作为上下文附加到对话中。</p>
+    <figure>
+    <img src="./screenshots/spec-selection-tag.png" alt="" /><figcaption>代码选择标签</figcaption>
+    </figure>
+    <h3 id="slash-commands">2.2 指令系统 (Slash Commands)</h3>
     <p>通过输入 <code>/</code>，用户可以快速调用预设的指令，如 <code>/explain</code>、<code>/fix</code> 等，提高操作效率。</p>
     <figure>
     <img src="./screenshots/spec-slash-commands.png" alt="" /><figcaption>指令系统</figcaption>
     </figure>
-    <h3 id="file-suggestions">2.2 文件建议与预览 (@ 提及)</h3>
+    <h3 id="file-suggestions">2.3 文件建议与预览 (@ 提及)</h3>
     <p>通过输入 <code>@</code>，用户可以轻松地将项目中的文件添加到对话上下文中。标签会内联显示在输入框和消息中。对于图片类型的文件，支持点击标签直接在编辑器中预览。</p>
     <figure>
     <img src="./screenshots/spec-file-suggestions.png" alt="" /><figcaption>文件建议下拉列表</figcaption>
     </figure>
     <figure>
-    <img src="./screenshots/spec-inline-mentions.png" alt="" /><figcaption>内联标签与图片预览</figcaption>
+    <img src="./screenshots/spec-inline-mentions.png" alt="" /><figcaption>输入框中的内联标签</figcaption>
     </figure>
-    <h3 id="permission-modes">2.3 权限模式管理</h3>
+    <figure>
+    <img src="./screenshots/spec-image-preview.png" alt="" /><figcaption>图片全屏预览模态框</figcaption>
+    </figure>
+    <figure>
+    <img src="./screenshots/spec-message-inline-tags.png" alt="" /><figcaption>消息列表中的内联标签</figcaption>
+    </figure>
+    <h3 id="permission-modes">2.4 权限模式管理</h3>
 <p>Wave 代码智聊 提供三种权限管理模式，用户可以根据需要灵活切换：</p>
 <h4 id="permission-mode-default">1. 默认模式（修改前询问）</h4>
 <figure>

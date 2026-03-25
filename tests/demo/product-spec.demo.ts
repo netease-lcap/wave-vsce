@@ -2,6 +2,8 @@ import { test, expect } from '../utils/webviewTestHarness.js';
 import { MessageInjector } from '../utils/messageInjector.js';
 import { UIStateVerifier } from '../utils/uiStateVerifier.js';
 import { MockDataGenerator } from '../fixtures/mockData.js';
+import fs from 'fs';
+import path from 'path';
 import { 
     EDIT_TOOL_NAME, 
     BASH_TOOL_NAME,
@@ -42,6 +44,23 @@ test.describe('Product Specification Screenshots', () => {
         // 1. Welcome Message
         await ui.verifyMessageCount(1);
         await webviewPage.screenshot({ path: 'screenshots/spec-welcome.png' });
+
+        // 1.3 Code Selection Tag
+        await injector.simulateExtensionMessage('updateSelection', {
+            selection: {
+                filePath: '/src/main.ts',
+                fileName: 'main.ts',
+                startLine: 10,
+                endLine: 20,
+                selectedText: 'console.log("Hello");',
+                isEmpty: false
+            }
+        });
+        await webviewPage.waitForSelector('.selection-tag');
+        await webviewPage.locator('.selection-tag').screenshot({ path: 'screenshots/spec-selection-tag.png' });
+        
+        // Clear selection for next steps
+        await injector.simulateExtensionMessage('updateSelection', { selection: null });
 
         // 2. Basic Chat (Markdown & Code)
         const basicChat = [
@@ -311,24 +330,22 @@ test.describe('Product Specification Screenshots', () => {
         await webviewPage.focus('[data-testid="message-input"]');
         await webviewPage.keyboard.press('Control+A');
         await webviewPage.keyboard.press('Backspace');
-        await webviewPage.keyboard.type('@');
         
-        // Simulate folder suggestion
-        const requestId1 = await webviewPage.evaluate(async () => {
-            const poll = () => new Promise(resolve => {
-                const check = () => {
-                    const messages = (window as any).getTestMessages ? (window as any).getTestMessages() : [];
-                    const reqs = messages.filter((m: any) => m.command === 'requestFileSuggestions');
-                    if (reqs.length > 0) resolve(reqs[reqs.length - 1].requestId);
-                    else setTimeout(check, 50);
-                };
-                check();
+        // 13a. Insert Folder Tag
+        await webviewPage.keyboard.type('@');
+        await webviewPage.waitForTimeout(500); // Wait for debounce
+
+        // Capture the actual requestId from the message log
+        const getLatestRequestId = async () => {
+            return await webviewPage.evaluate(() => {
+                const messages = (window as any).getTestMessages ? (window as any).getTestMessages() : [];
+                const reqs = messages.filter((m: any) => m.command === 'requestFileSuggestions');
+                return reqs.length > 0 ? reqs[reqs.length - 1].requestId : 'fallback-id';
             });
-            return await poll();
-        });
+        };
 
         await injector.simulateExtensionMessage('fileSuggestionsResponse', {
-            requestId: requestId1,
+            requestId: await getLatestRequestId(),
             filterText: '',
             suggestions: [
                 { path: 'src', relativePath: 'src', name: 'src', icon: 'codicon-folder', isDirectory: true }
@@ -338,24 +355,14 @@ test.describe('Product Specification Screenshots', () => {
         await webviewPage.keyboard.press('ArrowDown');
         await webviewPage.keyboard.press('Enter');
         
-        await webviewPage.keyboard.type(' 这是文本 @');
+        await webviewPage.keyboard.type(' 这是文本 ');
         
-        // Simulate file suggestion
-        const requestId2 = await webviewPage.evaluate(async () => {
-            const poll = () => new Promise(resolve => {
-                const check = () => {
-                    const messages = (window as any).getTestMessages ? (window as any).getTestMessages() : [];
-                    const reqs = messages.filter((m: any) => m.command === 'requestFileSuggestions');
-                    if (reqs.length > 0) resolve(reqs[reqs.length - 1].requestId);
-                    else setTimeout(check, 50);
-                };
-                check();
-            });
-            return await poll();
-        });
+        // 13b. Insert File Tag
+        await webviewPage.keyboard.type('@');
+        await webviewPage.waitForTimeout(500); // Wait for debounce
 
         await injector.simulateExtensionMessage('fileSuggestionsResponse', {
-            requestId: requestId2,
+            requestId: await getLatestRequestId(),
             filterText: '',
             suggestions: [
                 { path: 'src/main.ts', relativePath: 'src/main.ts', name: 'main.ts', icon: 'codicon-file-code', isDirectory: false }
@@ -367,23 +374,43 @@ test.describe('Product Specification Screenshots', () => {
 
         await webviewPage.keyboard.type(' 这是图片 ');
 
-        // Simulate image paste
-        await webviewPage.evaluate(() => {
+        // 13c. Insert Image Tag (via paste)
+        const logoPath = path.join(process.cwd(), 'LOGO.png');
+        const logoBase64 = fs.readFileSync(logoPath, { encoding: 'base64' });
+        const logoDataUrl = `data:image/png;base64,${logoBase64}`;
+
+        await webviewPage.evaluate(async (dataUrl) => {
+            const res = await fetch(dataUrl);
+            const blob = await res.blob();
+            const file = new File([blob], 'LOGO.png', { type: 'image/png' });
+            
             const dataTransfer = new DataTransfer();
-            const file = new File([''], 'spec-welcome.png', { type: 'image/png' });
             dataTransfer.items.add(file);
+            
             const event = new ClipboardEvent('paste', {
                 clipboardData: dataTransfer,
                 bubbles: true,
                 cancelable: true
             });
-            document.querySelector('[data-testid="message-input"]')?.dispatchEvent(event);
-        });
+            document.getElementById('messageInput')?.dispatchEvent(event);
+        }, logoDataUrl);
 
-        // Wait for the tag to be rendered
-        await webviewPage.waitForSelector('.context-tag-container');
+        // Wait for all tags to be rendered
+        await webviewPage.waitForFunction(() => {
+            return document.querySelectorAll('.context-tag').length >= 3;
+        }, { timeout: 5000 });
         
         await webviewPage.locator('.input-container').screenshot({ path: 'screenshots/spec-inline-mentions.png' });
+
+        // 13d. Image Preview Modal
+        const imageTag = webviewPage.locator('.context-tag.is-image');
+        await imageTag.click();
+        await webviewPage.waitForSelector('.image-preview-modal', { state: 'visible' });
+        await webviewPage.screenshot({ path: 'screenshots/spec-image-preview.png' });
+        
+        // Close modal
+        await webviewPage.click('.image-preview-close');
+        await webviewPage.waitForSelector('.image-preview-modal', { state: 'hidden' });
 
         // 13b. Message List with Inline Tags
         await injector.updateMessages([
