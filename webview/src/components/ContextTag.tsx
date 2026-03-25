@@ -22,7 +22,7 @@ export const ContextTag: React.FC<ContextTagProps> = ({ name, path, icon, isImag
 
   return (
     <span 
-      className={`context-tag ${isClickable ? 'clickable' : ''}`}
+      className={`context-tag ${isClickable ? 'clickable' : ''} ${isImage ? 'is-image' : ''}`}
       onClick={handlePreview}
       title={isClickable ? `点击预览 ${name}` : path}
       data-path={path}

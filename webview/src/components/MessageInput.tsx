@@ -406,6 +406,28 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
     return () => window.removeEventListener('message', handleMessage);
   }, [insertUploadedFilePaths, message, atMention, closeDropdown]);
 
+  // Handle image preview
+  const handleImagePreview = useCallback((url: string, name: string) => {
+    console.log('handleImagePreview triggered:', { url: url.substring(0, 50) + '...', name });
+    // Create a temporary modal for image preview
+    const modal = document.createElement('div');
+    modal.className = 'image-preview-modal';
+    modal.onclick = () => document.body.removeChild(modal);
+    
+    const img = document.createElement('img');
+    img.src = url;
+    img.alt = name;
+    img.onclick = (e) => e.stopPropagation();
+    
+    const closeBtn = document.createElement('div');
+    closeBtn.className = 'image-preview-close';
+    closeBtn.innerHTML = '<i class="codicon codicon-close"></i>';
+    
+    modal.appendChild(img);
+    modal.appendChild(closeBtn);
+    document.body.appendChild(modal);
+  }, []);
+
   // Handle file selection
   const handleFileSelect = useCallback((file: FileItem) => {
     if (!textareaRef.current) return;
@@ -437,12 +459,22 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
     tagSpan.setAttribute('data-is-image', String(!file.isDirectory && /\.(png|jpg|jpeg|gif|webp|svg)$/i.test(file.name)));
     
     // Render the React component into the span
+    const isImage = !file.isDirectory && /\.(png|jpg|jpeg|gif|webp|svg)$/i.test(file.name);
+    console.log('handleFileSelect rendering ContextTag:', { name: file.name, isImage });
     const root = ReactDOM.createRoot(tagSpan);
     root.render(
       <ContextTag 
         name={file.name} 
         path={file.relativePath} 
         icon={file.icon} 
+        isImage={isImage}
+        onClick={isImage ? () => {
+          console.log('Previewing file image:', file.relativePath);
+          vscode.postMessage({
+            command: 'previewImage',
+            path: file.path
+          });
+        } : undefined}
       />
     );
 
@@ -776,6 +808,7 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
         tagSpan.setAttribute('data-is-image', 'true');
         tagSpan.setAttribute('data-image-url', dataUrl);
         
+        console.log('handleImagePaste rendering ContextTag:', { name: file.name || 'pasted-image.png' });
         const root = ReactDOM.createRoot(tagSpan);
         root.render(
           <ContextTag 
@@ -783,6 +816,7 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
             path={`pasted-image-${Date.now()}.png`} 
             icon="codicon-file-media"
             isImage={true}
+            onClick={() => handleImagePreview(dataUrl, file.name || 'pasted-image.png')}
           />
         );
         
