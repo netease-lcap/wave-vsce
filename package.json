@@ -69,7 +69,7 @@
   },
   "scripts": {
     "clean": "node -e \"const fs=require('fs'); ['dist', 'webview/dist'].forEach(d => {try{fs.rmSync(d, {recursive:true, force:true})}catch(e){}})\"",
-    "prepackage": "npm run clean && npm run compile:backend",
+    "prepackage": "npm run clean",
     "compile": "npm run compile:backend && npm run compile:frontend",
     "watch": "npm run watch:backend & npm run watch:frontend",
     "compile:backend": "tsc",
