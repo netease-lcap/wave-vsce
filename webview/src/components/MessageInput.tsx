@@ -2,6 +2,7 @@ import React, { useState, useCallback, KeyboardEvent, useEffect, useRef, forward
 import type { MessageInputProps, FileItem, ConfigurationData, SlashCommand, AttachedImage, PermissionMode } from '../types';
 import { FileSuggestionDropdown } from './FileSuggestionDropdown';
 import { SlashCommandsPopup } from './SlashCommandsPopup';
+import { PermissionModeDropdown } from './PermissionModeDropdown';
 import { AttachedImages } from './AttachedImages';
 import ConfigurationButton from './ConfigurationButton';
 import '../styles/MessageInput.css';
@@ -45,21 +46,16 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
   const lastSelectionRef = useRef<any>(null);
 
   const handlePermissionModeToggle = useCallback(() => {
-    const currentMode = permissionMode || 'default';
-    let newMode: PermissionMode = 'default';
-    if (currentMode === 'default') {
-      newMode = 'acceptEdits';
-    } else if (currentMode === 'acceptEdits') {
-      newMode = 'plan';
-    } else {
-      newMode = 'default';
-    }
-    
+    setIsPermissionMenuOpen(prev => !prev);
+  }, []);
+
+  const handlePermissionModeSelect = useCallback((mode: PermissionMode) => {
     vscode.postMessage({
       command: 'setPermissionMode',
-      mode: newMode
+      mode: mode
     });
-  }, [permissionMode, vscode]);
+    setIsPermissionMenuOpen(false);
+  }, [vscode]);
 
   // Automatically enable selection tag when selection changes
   useEffect(() => {
@@ -98,6 +94,7 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
   const [isLoadingSlashCommands, setIsLoadingSlashCommands] = useState(false);
   const [isComposing, setIsComposing] = useState(false);
   const [attachedImages, setAttachedImages] = useState<AttachedImage[]>(initialAttachedImages || []);
+  const [isPermissionMenuOpen, setIsPermissionMenuOpen] = useState(false);
   
   // Store the atMention state when file upload is triggered
   const [uploadAtMentionState, setUploadAtMentionState] = useState<AtMentionState>({ 
@@ -109,6 +106,7 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const configButtonRef = useRef<HTMLDivElement>(null);
+  const permissionToggleRef = useRef<HTMLDivElement>(null);
   const requestIdRef = useRef<string>('');
 
   // Expose focus method to parent component
@@ -813,30 +811,40 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
         {/* Buttons row */}
         <div className="input-buttons-row">
           {/* Left side - Permission Mode Toggle */}
-          <div 
-            className={`permission-mode-toggle mode-${permissionMode || 'default'}`}
-            onClick={handlePermissionModeToggle}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                handlePermissionModeToggle();
+          <div className="permission-mode-container" ref={permissionToggleRef}>
+            <div 
+              className={`permission-mode-toggle mode-${permissionMode || 'default'}`}
+              onClick={handlePermissionModeToggle}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  handlePermissionModeToggle();
+                }
+              }}
+              tabIndex={0}
+              role="button"
+              title={
+                permissionMode === 'plan' ? '计划模式：仅允许修改计划文件' :
+                permissionMode === 'acceptEdits' ? '自动接受修改' : '修改前询问'
               }
-            }}
-            tabIndex={0}
-            role="button"
-            title={
-              permissionMode === 'plan' ? '计划模式：仅允许修改计划文件' :
-              permissionMode === 'acceptEdits' ? '自动接受修改' : '修改前询问'
-            }
-          >
-            <i className={`codicon ${
-              permissionMode === 'plan' ? 'codicon-notebook' :
-              permissionMode === 'acceptEdits' ? 'codicon-zap' : 'codicon-edit'
-            }`}></i>
-            <span>{
-              permissionMode === 'plan' ? '计划模式' :
-              permissionMode === 'acceptEdits' ? '自动接受修改' : '修改前询问'
-            }</span>
+            >
+              <i className={`codicon ${
+                permissionMode === 'plan' ? 'codicon-notebook' :
+                permissionMode === 'acceptEdits' ? 'codicon-zap' : 'codicon-edit'
+              }`}></i>
+              <span>{
+                permissionMode === 'plan' ? '计划模式' :
+                permissionMode === 'acceptEdits' ? '自动接受修改' : '修改前询问'
+              }</span>
+              <i className="codicon codicon-chevron-up" style={{ fontSize: '10px', marginLeft: '2px', opacity: 0.8 }}></i>
+            </div>
+            <PermissionModeDropdown
+              isVisible={isPermissionMenuOpen}
+              currentMode={permissionMode || 'default'}
+              onSelect={handlePermissionModeSelect}
+              onClose={() => setIsPermissionMenuOpen(false)}
+              triggerRef={permissionToggleRef}
+            />
           </div>
 
           <div className="button-spacer" />

@@ -1,5 +1,8 @@
 {
   "language": "Chinese",
+  "env": {
+    "WAVE_MAX_INPUT_TOKENS": "200000"
+  },
   "permissions": {
     "defaultMode": "acceptEdits",
     "allow": [

@@ -9,13 +9,14 @@ import {
     EXIT_PLAN_MODE_TOOL_NAME,
     GLOB_TOOL_NAME,
     GREP_TOOL_NAME,
-    LS_TOOL_NAME,
     READ_TOOL_NAME,
     WRITE_TOOL_NAME,
     AGENT_TOOL_NAME,
     type Message,
     type SessionMetadata
 } from 'wave-agent-sdk';
+
+const LS_TOOL_NAME = 'LS';
 
 test.describe('Product Specification Screenshots', () => {
     test('capture all features', async ({ webviewPage }) => {
@@ -268,21 +269,39 @@ test.describe('Product Specification Screenshots', () => {
             mode: 'default'
         });
         await webviewPage.waitForSelector('.permission-mode-toggle:has-text("修改前询问")');
-        await inputContainer.screenshot({ path: 'screenshots/spec-permission-mode-default.png' });
+        
+        // Click to show dropdown
+        await webviewPage.click('.permission-mode-toggle');
+        await webviewPage.waitForSelector('.permission-mode-dropdown', { state: 'visible', timeout: 5000 });
+        await webviewPage.screenshot({ path: 'screenshots/spec-permission-mode-default.png' });
+        await webviewPage.click('.permission-mode-toggle'); // Click again to close
+        await webviewPage.waitForSelector('.permission-mode-dropdown', { state: 'hidden', timeout: 5000 });
 
         // Mode 2: Accept Edits (自动接受修改)
         await injector.simulateExtensionMessage('updatePermissionMode', {
             mode: 'acceptEdits'
         });
         await webviewPage.waitForSelector('.permission-mode-toggle:has-text("自动接受修改")');
-        await inputContainer.screenshot({ path: 'screenshots/spec-permission-mode-accept.png' });
+        
+        // Click to show dropdown
+        await webviewPage.click('.permission-mode-toggle');
+        await webviewPage.waitForSelector('.permission-mode-dropdown', { state: 'visible', timeout: 5000 });
+        await webviewPage.screenshot({ path: 'screenshots/spec-permission-mode-accept.png' });
+        await webviewPage.click('.permission-mode-toggle'); // Click again to close
+        await webviewPage.waitForSelector('.permission-mode-dropdown', { state: 'hidden', timeout: 5000 });
 
         // Mode 3: Plan Mode (计划模式)
         await injector.simulateExtensionMessage('updatePermissionMode', {
             mode: 'plan'
         });
         await webviewPage.waitForSelector('.permission-mode-toggle:has-text("计划模式")');
-        await inputContainer.screenshot({ path: 'screenshots/spec-permission-mode-plan.png' });
+        
+        // Click to show dropdown
+        await webviewPage.click('.permission-mode-toggle');
+        await webviewPage.waitForSelector('.permission-mode-dropdown', { state: 'visible', timeout: 5000 });
+        await webviewPage.screenshot({ path: 'screenshots/spec-permission-mode-plan.png' });
+        await webviewPage.click('.permission-mode-toggle'); // Click again to close
+        await webviewPage.waitForSelector('.permission-mode-dropdown', { state: 'hidden', timeout: 5000 });
 
         // Reset to default for remaining screenshots
         await injector.simulateExtensionMessage('updatePermissionMode', {

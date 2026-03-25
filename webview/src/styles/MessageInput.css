@@ -89,6 +89,11 @@
     flex: 1;
 }
 
+.permission-mode-container {
+    position: relative;
+    display: flex;
+}
+
 .permission-mode-toggle {
     display: flex;
     align-items: center;

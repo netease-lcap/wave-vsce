@@ -174,6 +174,17 @@ export interface FileSuggestionDropdownProps {
   isLoading?: boolean;
 }
 
+/**
+ * Props for the permission mode dropdown component
+ */
+export interface PermissionModeDropdownProps {
+  isVisible: boolean;
+  currentMode: PermissionMode;
+  onSelect: (mode: PermissionMode) => void;
+  onClose: () => void;
+  triggerRef: React.RefObject<HTMLElement>;
+}
+
 export interface ChatHeaderProps {
   onClearChat: () => void;
   onAbortMessage: () => void;
