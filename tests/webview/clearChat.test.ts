@@ -58,13 +58,13 @@ test.describe('Clear Chat Functionality', () => {
         ]);
 
         await ui.typeMessage('This text should be preserved');
-        await expect(ui.messageInput).toHaveValue('This text should be preserved');
+        await expect(ui.messageInput).toHaveText('This text should be preserved');
 
         // Clear chat
         await injector.clearMessages();
 
         // Verify input text is preserved but state is reset
-        await expect(ui.messageInput).toHaveValue('This text should be preserved'); // Input preserved
+        await expect(ui.messageInput).toHaveText('This text should be preserved'); // Input preserved
         await ui.verifyInputState(false, false); // Not empty but enabled
         await ui.verifySendButtonVisible(true);
         await ui.verifyAbortButtonVisible(false);

@@ -429,34 +429,36 @@ export const Message: React.FC<MessageProps> = (props) => {
           return (
             <div key={index} className="user-message-wrapper">
               <div className="message-content user-content">
-                {parts.map((part, pIndex) => (
-                  part.type === 'mention' ? (
-                    <ContextTag 
-                      key={pIndex}
-                      name={part.path?.split(/[/\\]/).pop() || ''}
-                      path={part.path || ''}
-                      isImage={part.isImage}
-                      icon={part.isImage ? 'codicon-file-media' : 'codicon-file-code'}
-                      onClick={() => {
-                        if (part.isImage) {
-                          // For images, we might want to show a preview
-                          // For now, just send openFile
+                {parts.map((part, pIndex) => {
+                  if (part.type === 'mention') {
+                    return (
+                      <ContextTag 
+                        key={pIndex}
+                        name={part.path?.split(/[/\\]/).pop() || ''}
+                        path={part.path || ''}
+                        isImage={part.isImage}
+                        icon={part.isImage ? 'codicon-file-media' : 'codicon-file-code'}
+                        onClick={() => {
                           props.vscode.postMessage({
                             command: 'openFile',
                             path: part.path
                           });
-                        } else {
-                          props.vscode.postMessage({
-                            command: 'openFile',
-                            path: part.path
-                          });
-                        }
-                      }}
-                    />
-                  ) : (
-                    <span key={pIndex}>{part.content}</span>
-                  )
-                ))}
+                        }}
+                      />
+                    );
+                  } else if (part.type === 'selection') {
+                    return (
+                      <div key={pIndex} className="selection-reference">
+                        <div className="selection-header">
+                          <i className="codicon codicon-code"></i>
+                          <span>{part.fileName}#{part.startLine}-{part.endLine}</span>
+                        </div>
+                      </div>
+                    );
+                  } else {
+                    return <span key={pIndex}>{part.content}</span>;
+                  }
+                })}
               </div>
             </div>
           );

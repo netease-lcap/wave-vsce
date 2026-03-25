@@ -50,11 +50,11 @@ export const convertToMarkdown = (container: HTMLElement): { markdown: string, i
 };
 
 /**
- * 解析 Markdown 中的标签语法 [@file:path]
+ * 解析 Markdown 中的标签语法 [@file:path] 和 [Selection: fileName#start-end]
  */
-export const parseMentions = (text: string): Array<{ type: 'text' | 'mention', content: string, path?: string, isImage?: boolean }> => {
-  const parts: Array<{ type: 'text' | 'mention', content: string, path?: string, isImage?: boolean }> = [];
-  const regex = /\[@file:(.*?)\]/g;
+export const parseMentions = (text: string): Array<{ type: 'text' | 'mention' | 'selection', content: string, path?: string, isImage?: boolean, fileName?: string, startLine?: string, endLine?: string }> => {
+  const parts: Array<{ type: 'text' | 'mention' | 'selection', content: string, path?: string, isImage?: boolean, fileName?: string, startLine?: string, endLine?: string }> = [];
+  const regex = /\[@file:(.*?)\]|\[Selection: (.*?)#(\d+)-(\d+)\]/g;
   let lastIndex = 0;
   let match;
 
@@ -62,9 +62,23 @@ export const parseMentions = (text: string): Array<{ type: 'text' | 'mention', c
     if (match.index > lastIndex) {
       parts.push({ type: 'text', content: text.substring(lastIndex, match.index) });
     }
-    const path = match[1];
-    const isImage = /\.(png|jpg|jpeg|gif|webp|svg)$/i.test(path);
-    parts.push({ type: 'mention', content: match[0], path, isImage });
+    
+    if (match[1]) {
+      // @file mention
+      const path = match[1];
+      const isImage = /\.(png|jpg|jpeg|gif|webp|svg)$/i.test(path);
+      parts.push({ type: 'mention', content: match[0], path, isImage });
+    } else if (match[2]) {
+      // Selection
+      parts.push({ 
+        type: 'selection', 
+        content: match[0], 
+        fileName: match[2], 
+        startLine: match[3], 
+        endLine: match[4] 
+      });
+    }
+    
     lastIndex = regex.lastIndex;
   }
 

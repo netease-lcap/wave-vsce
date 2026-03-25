@@ -30,7 +30,7 @@ test.describe('Confirmation Dialog', () => {
         await expect(webviewPage.locator('.confirmation-btn-reject')).not.toBeVisible();
 
         // Verify input is hidden when confirmation is showing
-        await expect(webviewPage.locator('textarea')).not.toBeVisible();
+        await expect(webviewPage.getByTestId('message-input')).not.toBeVisible();
     });
 
     test('should show confirmation dialog for command execution tools', async ({ webviewPage }) => {
@@ -70,7 +70,7 @@ test.describe('Confirmation Dialog', () => {
         await expect(webviewPage.locator('.confirmation-dialog')).not.toBeVisible();
 
         // Verify input is visible again
-        await expect(webviewPage.locator('textarea')).toBeVisible();
+        await expect(webviewPage.getByTestId('message-input')).toBeVisible();
 
         // Verify approval message was sent to extension
         const sentMessages = await injector.getMessagesSentToExtension();
@@ -107,7 +107,7 @@ test.describe('Confirmation Dialog', () => {
         await expect(webviewPage.locator('.confirmation-dialog')).not.toBeVisible();
 
         // Verify input is visible again
-        await expect(webviewPage.locator('textarea')).toBeVisible();
+        await expect(webviewPage.getByTestId('message-input')).toBeVisible();
 
         // Verify rejection message was sent to extension
         const sentMessages = await injector.getMessagesSentToExtension();
@@ -218,7 +218,7 @@ test.describe('Confirmation Dialog', () => {
 
         // Verify dialog is hidden and input is visible
         await expect(webviewPage.locator('.confirmation-dialog')).not.toBeVisible();
-        await expect(webviewPage.locator('textarea')).toBeVisible();
+        await expect(webviewPage.getByTestId('message-input')).toBeVisible();
 
         // Verify both responses were sent
         const sentMessages = await injector.getMessagesSentToExtension();
@@ -354,7 +354,7 @@ test.describe('Confirmation Dialog', () => {
         await expect(webviewPage.locator('.confirmation-dialog')).toBeVisible();
 
         // Verify input is hidden (replaced by confirmation)
-        await expect(webviewPage.locator('textarea')).not.toBeVisible();
+        await expect(webviewPage.getByTestId('message-input')).not.toBeVisible();
 
         // All messages should still be accessible and visible (not overlapped)
         const messageCountAfter = await webviewPage.locator('.message').count();
@@ -396,7 +396,7 @@ test.describe('Confirmation Dialog', () => {
         const ui = new UIStateVerifier(webviewPage);
 
         // Verify input is initially visible
-        await expect(webviewPage.locator('textarea')).toBeVisible();
+        await expect(webviewPage.getByTestId('message-input')).toBeVisible();
 
         // Show confirmation
         await injector.simulateExtensionMessage('showConfirmation', {
@@ -407,7 +407,7 @@ test.describe('Confirmation Dialog', () => {
         });
 
         // Verify input is hidden
-        await expect(webviewPage.locator('textarea')).not.toBeVisible();
+        await expect(webviewPage.getByTestId('message-input')).not.toBeVisible();
 
         // Verify confirmation dialog is visible
         await expect(webviewPage.locator('.confirmation-dialog')).toBeVisible();
@@ -416,7 +416,7 @@ test.describe('Confirmation Dialog', () => {
         await webviewPage.locator('.confirmation-btn-apply').click();
 
         // Verify input becomes visible again
-        await expect(webviewPage.locator('textarea')).toBeVisible();
+        await expect(webviewPage.getByTestId('message-input')).toBeVisible();
         await expect(webviewPage.locator('.confirmation-dialog')).not.toBeVisible();
     });
 });

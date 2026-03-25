@@ -212,9 +212,9 @@ test.describe('File Upload Feature', () => {
 
     await webviewPage.waitForTimeout(300);
 
-    // Verify that file paths are inserted into the input
-    const inputValue = await messageInput.inputValue();
-    expect(inputValue).toBe('/tmp/wave-artifacts/document.pdf /tmp/wave-artifacts/image.png ');
+    // Verify that file paths are inserted into the input as tags
+    const inputValue = (await messageInput.innerText()).replace(/\n/g, ' ').replace(/\s+/g, ' ').trim();
+    expect(inputValue).toBe('@ document.pdf @ image.png');
   });
 
   test('should handle single file upload path insertion', async ({ webviewPage }) => {
@@ -243,9 +243,9 @@ test.describe('File Upload Feature', () => {
 
     await webviewPage.waitForTimeout(300);
 
-    // Verify that single file path is inserted into the input
-    const inputValue = await messageInput.inputValue();
-    expect(inputValue).toBe('/tmp/wave-artifacts/single-file.txt ');
+    // Verify that single file path is inserted into the input as a tag
+    const inputValue = (await messageInput.innerText()).replace(/\n/g, ' ').replace(/\s+/g, ' ').trim();
+    expect(inputValue).toBe('@ single-file.txt');
   });
 
   test('should insert file path correctly in basic scenario', async ({ webviewPage }) => {
@@ -273,9 +273,9 @@ test.describe('File Upload Feature', () => {
 
     await webviewPage.waitForTimeout(300);
 
-    // Verify that file path replaces the @ symbol correctly
-    const inputValue = await messageInput.inputValue();
-    expect(inputValue).toBe('/tmp/wave-artifacts/test.pdf ');
+    // Verify that file path replaces the @ symbol correctly as a tag
+    const inputValue = (await messageInput.innerText()).replace(/\n/g, ' ').replace(/\s+/g, ' ').trim();
+    expect(inputValue).toBe('@ test.pdf');
   });
 
   test('should not add extra @ symbol when inserting file paths', async ({ webviewPage }) => {
@@ -304,9 +304,8 @@ test.describe('File Upload Feature', () => {
     await webviewPage.waitForTimeout(300);
 
     // Verify that file path replaces filter text correctly and doesn't add extra @
-    const inputValue = await messageInput.inputValue();
-    expect(inputValue).toBe('/tmp/wave-artifacts/uploaded-file.txt ');
-    expect(inputValue).not.toContain('@'); // Should completely replace @test with file path
+    const inputValue = (await messageInput.innerText()).replace(/\n/g, ' ').replace(/\s+/g, ' ').trim();
+    expect(inputValue).toBe('@ uploaded-file.txt');
   });
 
 });

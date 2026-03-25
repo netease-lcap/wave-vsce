@@ -332,34 +332,68 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
   const insertUploadedFilePaths = useCallback((uploadedFiles: string[]) => {
     if (!textareaRef.current || uploadedFiles.length === 0) return;
 
-    // Create file paths string (space-separated for multiple files) and add trailing space
-    const filePaths = uploadedFiles.join(' ') + ' '; // Add space after file paths
-    
-    // Use the saved atMention state from when upload was triggered, not the current one
-    // This prevents issues caused by focus loss during file selection dialog
-    const savedAtMention = uploadAtMentionState.isActive ? uploadAtMentionState : atMention;
-    
-    // Replace the entire @ mention (including the @ symbol) with file paths
-    // This matches the behavior of regular file selection
-    const newMessage = message.slice(0, savedAtMention.startPos) +
-                      filePaths +
-                      message.slice(savedAtMention.endPos);
+    // Focus the input first to ensure we can work with selection
+    textareaRef.current.focus();
 
-    setMessage(newMessage);
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) return;
 
-    // Focus back to textarea and set cursor position after inserted paths
-    setTimeout(() => {
-      if (textareaRef.current) {
-        textareaRef.current.focus();
-        // For contenteditable, we'd need a more complex selection logic.
-        // For now, we'll just focus it.
+    const range = selection.getRangeAt(0);
+    const textNode = range.startContainer;
+    
+    if (textNode.nodeType === Node.TEXT_NODE) {
+      const text = textNode.textContent || '';
+      // Try to find the @ mention. If we have saved state, use it, otherwise look back from cursor.
+      const lastAtIndex = text.lastIndexOf('@', range.startOffset - 1);
+      
+      if (lastAtIndex !== -1) {
+        range.setStart(textNode, lastAtIndex);
+        range.deleteContents();
+        
+        uploadedFiles.forEach((filePath) => {
+          const fileName = filePath.split(/[/\\]/).pop() || filePath;
+          const isImage = /\.(png|jpg|jpeg|gif|webp|svg)$/i.test(fileName);
+          
+          const tagSpan = document.createElement('span');
+          tagSpan.className = 'context-tag-container';
+          tagSpan.contentEditable = 'false';
+          tagSpan.setAttribute('data-path', filePath);
+          tagSpan.setAttribute('data-name', fileName);
+          tagSpan.setAttribute('data-is-image', String(isImage));
+          
+          const root = ReactDOM.createRoot(tagSpan);
+          root.render(
+            <ContextTag 
+              name={fileName} 
+              path={filePath} 
+              icon={isImage ? 'codicon-file-media' : 'codicon-file-code'} 
+              isImage={isImage}
+            />
+          );
+          
+          range.insertNode(tagSpan);
+          range.setStartAfter(tagSpan);
+          
+          // Add space after each tag
+          const space = document.createTextNode('\u00A0');
+          range.insertNode(space);
+          range.setStartAfter(space);
+        });
+        
+        range.collapse(true);
+        selection.removeAllRanges();
+        selection.addRange(range);
+        
+        // Trigger input event to update message state
+        const inputEvent = new Event('input', { bubbles: true });
+        textareaRef.current?.dispatchEvent(inputEvent);
       }
-    }, 0);
+    }
 
     // Close dropdown and clear saved state
     closeDropdown();
     setUploadAtMentionState({ isActive: false, filterText: '', startPos: 0, endPos: 0 });
-  }, [message, atMention, uploadAtMentionState, closeDropdown]);
+  }, [closeDropdown, uploadAtMentionState, atMention]);
 
   // Listen for file suggestions response from extension
   useEffect(() => {

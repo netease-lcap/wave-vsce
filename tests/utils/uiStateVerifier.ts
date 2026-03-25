@@ -111,12 +111,14 @@ export class UIStateVerifier {
      */
     async verifyInputState(shouldBeEmpty: boolean = false, shouldBeDisabled: boolean = false) {
         if (shouldBeEmpty) {
-            await expect(this.messageInput).toHaveValue('');
+            // For contenteditable, we check innerText or textContent
+            await expect(this.messageInput).toHaveText('');
         }
         if (shouldBeDisabled) {
-            await expect(this.messageInput).toBeDisabled();
+            // For contenteditable, we check contentEditable attribute
+            await expect(this.messageInput).toHaveAttribute('contenteditable', 'false');
         } else {
-            await expect(this.messageInput).toBeEnabled();
+            await expect(this.messageInput).toHaveAttribute('contenteditable', 'true');
         }
     }
 
