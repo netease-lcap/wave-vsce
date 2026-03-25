@@ -855,6 +855,11 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
         // Insert inline tag for the image
         if (!textareaRef.current) continue;
         
+        // Count existing images in the input to determine the next index
+        const existingImageTags = textareaRef.current.querySelectorAll('.context-tag-container[data-is-image="true"]');
+        const nextIndex = existingImageTags.length + 1;
+        const displayName = `图片 ${nextIndex}`;
+        
         const selection = window.getSelection();
         if (!selection || selection.rangeCount === 0) continue;
         
@@ -864,19 +869,20 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
         tagSpan.className = 'context-tag-container';
         tagSpan.contentEditable = 'false';
         tagSpan.setAttribute('data-path', `pasted-image-${Date.now()}.png`);
-        tagSpan.setAttribute('data-name', file.name || 'pasted-image.png');
+        
+        tagSpan.setAttribute('data-name', displayName);
         tagSpan.setAttribute('data-is-image', 'true');
         tagSpan.setAttribute('data-image-url', dataUrl);
         
-        console.log('handleImagePaste rendering ContextTag:', { name: file.name || 'pasted-image.png' });
+        console.log('handleImagePaste rendering ContextTag:', { name: displayName });
         const root = ReactDOM.createRoot(tagSpan);
         root.render(
           <ContextTag 
-            name={file.name || 'pasted-image.png'} 
+            name={displayName} 
             path={`pasted-image-${Date.now()}.png`} 
             icon="codicon-file-media"
             isImage={true}
-            onClick={() => handleImagePreview(dataUrl, file.name || 'pasted-image.png')}
+            onClick={() => handleImagePreview(dataUrl, displayName)}
           />
         );
         

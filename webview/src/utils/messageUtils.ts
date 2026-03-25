@@ -20,17 +20,19 @@ export const convertToMarkdown = (container: HTMLElement): { markdown: string, i
         const isImage = element.getAttribute('data-is-image') === 'true';
         const imageUrl = element.getAttribute('data-image-url');
         
-        // 转换为 Markdown 格式的标签
-        markdown += `[@file:${path}]`;
-        
         // 如果是图片且有数据，则提取
         if (isImage && imageUrl) {
+          const placeholder = `[image${images.length + 1}]`;
+          markdown += placeholder;
           images.push({
             id: `img-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
             data: imageUrl,
             mimeType: imageUrl.split(';')[0].split(':')[1] || 'image/png',
             filename: element.getAttribute('data-name') || 'pasted-image.png'
           });
+        } else {
+          // 转换为 Markdown 格式的标签
+          markdown += `[@file:${path}]`;
         }
       } else if (element.tagName === 'BR') {
         markdown += '\n';
@@ -50,11 +52,11 @@ export const convertToMarkdown = (container: HTMLElement): { markdown: string, i
 };
 
 /**
- * 解析 Markdown 中的标签语法 [@file:path] 和 [Selection: fileName#start-end]
+ * 解析 Markdown 中的标签语法 [@file:path], [Selection: fileName#start-end] 和 [imageN]
  */
-export const parseMentions = (text: string): Array<{ type: 'text' | 'mention' | 'selection', content: string, path?: string, isImage?: boolean, fileName?: string, startLine?: string, endLine?: string }> => {
-  const parts: Array<{ type: 'text' | 'mention' | 'selection', content: string, path?: string, isImage?: boolean, fileName?: string, startLine?: string, endLine?: string }> = [];
-  const regex = /\[@file:(.*?)\]|\[Selection: (.*?)#(\d+)-(\d+)\]/g;
+export const parseMentions = (text: string, attachedImages?: Array<{ data: string, filename?: string }>): Array<{ type: 'text' | 'mention' | 'selection', content: string, path?: string, isImage?: boolean, fileName?: string, startLine?: string, endLine?: string, imageData?: string }> => {
+  const parts: Array<{ type: 'text' | 'mention' | 'selection', content: string, path?: string, isImage?: boolean, fileName?: string, startLine?: string, endLine?: string, imageData?: string }> = [];
+  const regex = /\[@file:(.*?)\]|\[Selection: (.*?)#(\d+)-(\d+)\]|\[image(\d+)\]/g;
   let lastIndex = 0;
   let match;
 
@@ -68,6 +70,18 @@ export const parseMentions = (text: string): Array<{ type: 'text' | 'mention' | 
       const path = match[1];
       const isImage = /\.(png|jpg|jpeg|gif|webp|svg)$/i.test(path);
       parts.push({ type: 'mention', content: match[0], path, isImage });
+    } else if (match[5]) {
+      // [imageN] placeholder
+      const index = parseInt(match[5]) - 1;
+      const attachedImage = attachedImages?.[index];
+      const displayName = `图片 ${match[5]}`;
+      parts.push({ 
+        type: 'mention', 
+        content: match[0], 
+        path: displayName, 
+        isImage: true,
+        imageData: attachedImage?.data
+      });
     } else if (match[2]) {
       // Selection
       parts.push({ 

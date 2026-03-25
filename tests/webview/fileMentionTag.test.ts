@@ -189,7 +189,7 @@ test.describe('File Mention Tag Insertion', () => {
     // Check if image tag is inserted
     const tag = messageInput.locator('.context-tag.is-image');
     await expect(tag).toBeVisible();
-    await expect(tag).toContainText('pasted-image.png');
+    await expect(tag).toContainText('图片 1');
 
     // Click the tag to trigger preview modal
     await tag.click();

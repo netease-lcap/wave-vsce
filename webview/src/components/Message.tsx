@@ -115,6 +115,41 @@ export const Message: React.FC<MessageProps> = (props) => {
     return classes.join(' ');
   };
 
+  const handleImagePreview = (url: string, name: string) => {
+    const modal = document.createElement('div');
+    modal.className = 'image-preview-modal';
+    modal.onclick = () => document.body.removeChild(modal);
+    
+    const img = document.createElement('img');
+    img.src = url;
+    img.alt = name;
+    img.onclick = (e) => e.stopPropagation();
+    
+    const closeBtn = document.createElement('div');
+    closeBtn.className = 'image-preview-close';
+    closeBtn.innerHTML = '<i class="codicon codicon-close"></i>';
+    
+    modal.appendChild(img);
+    modal.appendChild(closeBtn);
+    document.body.appendChild(modal);
+  };
+
+  const getAttachedImages = () => {
+    const images: Array<{ data: string, filename?: string }> = [];
+    message.blocks?.forEach(block => {
+      if (block.type === 'image' && block.imageUrls) {
+        block.imageUrls.forEach((url, i) => {
+          images.push({ data: url, filename: `图片 ${images.length + 1}` });
+        });
+      } else if (block.type === 'tool' && block.images) {
+        block.images.forEach((img, i) => {
+          images.push({ data: img.data, filename: `图片 ${images.length + 1}` });
+        });
+      }
+    });
+    return images;
+  };
+
   const renderMarkdownContent = (content: string, index: number) => {
     const parsed = parseMarkdownWithMermaid(content);
     return (
@@ -424,7 +459,8 @@ export const Message: React.FC<MessageProps> = (props) => {
         if (!content.trim()) return null;
         
         if (message.role === 'user') {
-          const parts = parseMentions(content);
+          const attachedImages = getAttachedImages();
+          const parts = parseMentions(content, attachedImages);
           
           return (
             <div key={index} className="user-message-wrapper">
@@ -439,10 +475,14 @@ export const Message: React.FC<MessageProps> = (props) => {
                         isImage={part.isImage}
                         icon={part.isImage ? 'codicon-file-media' : 'codicon-file-code'}
                         onClick={() => {
-                          props.vscode.postMessage({
-                            command: 'openFile',
-                            path: part.path
-                          });
+                          if (part.isImage && part.imageData) {
+                            handleImagePreview(part.imageData, part.path || 'image');
+                          } else {
+                            props.vscode.postMessage({
+                              command: 'openFile',
+                              path: part.path
+                            });
+                          }
                         }}
                       />
                     );
