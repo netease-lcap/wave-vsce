@@ -71,6 +71,8 @@
     border: none;         /* Remove border */
     white-space: pre-wrap; /* Preserve whitespace and line breaks */
     overflow-wrap: anywhere;
+    display: inline-block;
+    width: 100%;
 }
 
 /* Non-markdown content (fallback) */

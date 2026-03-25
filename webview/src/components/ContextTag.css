@@ -1,0 +1,37 @@
+.context-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+    background-color: var(--vscode-button-secondaryBackground);
+    color: var(--vscode-button-secondaryForeground);
+    margin: 0 2px;
+    user-select: none;
+    vertical-align: middle;
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.context-tag.clickable {
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.context-tag.clickable:hover {
+    background-color: var(--vscode-button-secondaryHoverBackground);
+    text-decoration: underline;
+}
+
+.context-tag i.codicon {
+    font-size: 12px;
+    flex-shrink: 0;
+}
+
+.context-tag .tag-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}

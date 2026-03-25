@@ -1,5 +1,8 @@
-import React from 'react';
+import { ContextTag } from './ContextTag';
+import { parseMentions } from '../utils/messageUtils';
 import { marked } from 'marked';
+
+// ... (existing imports)
 import DOMPurify from 'dompurify';
 import { 
   BASH_TOOL_NAME, 
@@ -362,7 +365,7 @@ export const Message: React.FC<MessageProps> = (props) => {
   };
 
   const renderImageBlock = (imageBlock: ImageBlock, index: number) => {
-    if (!imageBlock.imageUrls || imageBlock.imageUrls.length === 0) {
+    if (!imageBlock.imageUrls || imageBlock.imageUrls.length === 0 || message.role === 'user') {
       return null;
     }
 
@@ -421,35 +424,41 @@ export const Message: React.FC<MessageProps> = (props) => {
         if (!content.trim()) return null;
         
         if (message.role === 'user') {
-          const selectionRegex = /\n\n\[Selection: (.*?)#(\d+)-(\d+)\](?:\n```\n([\s\S]*?)\n```)?$/;
-          const selectionMatch = content.match(selectionRegex);
+          const parts = parseMentions(content);
           
-          if (selectionMatch) {
-            const mainContent = content.substring(0, selectionMatch.index);
-            const fileName = selectionMatch[1];
-            const startLine = selectionMatch[2];
-            const endLine = selectionMatch[3];
-            const selectedText = selectionMatch[4];
-            
-            return (
-              <div key={index} className="user-message-wrapper">
-                <pre className="message-content user-content">
-                  {mainContent}
-                </pre>
-                <div className="selection-reference">
-                  <div className="selection-header">
-                    <i className="codicon codicon-code"></i>
-                    <span>{fileName}#{startLine}-{endLine}</span>
-                  </div>
-                </div>
-              </div>
-            );
-          }
-
           return (
-            <pre key={index} className="message-content user-content">
-              {content}
-            </pre>
+            <div key={index} className="user-message-wrapper">
+              <div className="message-content user-content">
+                {parts.map((part, pIndex) => (
+                  part.type === 'mention' ? (
+                    <ContextTag 
+                      key={pIndex}
+                      name={part.path?.split(/[/\\]/).pop() || ''}
+                      path={part.path || ''}
+                      isImage={part.isImage}
+                      icon={part.isImage ? 'codicon-file-media' : 'codicon-file-code'}
+                      onClick={() => {
+                        if (part.isImage) {
+                          // For images, we might want to show a preview
+                          // For now, just send openFile
+                          props.vscode.postMessage({
+                            command: 'openFile',
+                            path: part.path
+                          });
+                        } else {
+                          props.vscode.postMessage({
+                            command: 'openFile',
+                            path: part.path
+                          });
+                        }
+                      }}
+                    />
+                  ) : (
+                    <span key={pIndex}>{part.content}</span>
+                  )
+                ))}
+              </div>
+            </div>
           );
         }
 

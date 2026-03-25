@@ -29,9 +29,17 @@
     font-family: var(--vscode-font-family);
     font-size: 13px;
     line-height: 1.4;
-    max-height: 100px;
-    resize: none;
+    min-height: 40px;
+    max-height: 200px;
     overflow-y: auto;
+    word-break: break-word;
+}
+
+.content-editable-input:empty:before {
+    content: attr(data-placeholder);
+    color: var(--vscode-input-placeholderForeground);
+    pointer-events: none;
+    display: block;
 }
 
 .message-input:focus {

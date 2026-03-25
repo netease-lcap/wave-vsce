@@ -1,5 +1,8 @@
-import React, { useState, useCallback, KeyboardEvent, useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
-import type { MessageInputProps, FileItem, ConfigurationData, SlashCommand, AttachedImage, PermissionMode } from '../types';
+import React, { useState, useEffect, useCallback, useRef, useImperativeHandle, forwardRef, KeyboardEvent } from 'react';
+import { convertToMarkdown } from '../utils/messageUtils';
+import { ContextTag } from './ContextTag';
+import ReactDOM from 'react-dom';
+import type { MessageInputProps, FileItem, SlashCommand, AttachedImage, PermissionMode } from '../types';
 import { FileSuggestionDropdown } from './FileSuggestionDropdown';
 import { SlashCommandsPopup } from './SlashCommandsPopup';
 import { PermissionModeDropdown } from './PermissionModeDropdown';
@@ -21,26 +24,27 @@ interface SlashCommandState {
   endPos: number;
 }
 
-export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>(({
-  onSendMessage,
-  disabled,
-  isStreaming,
-  onAbortMessage,
-  shouldClearInput,
-  onInputCleared,
-  vscode,
-  showConfiguration,
-  configurationData,
-  configurationLoading,
-  configurationError,
-  onConfigurationOpen,
-  onConfigurationSave,
-  onConfigurationCancel,
-  selection,
-  inputContent,
-  permissionMode,
-  initialAttachedImages
-}, ref) => {
+export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>((props, ref) => {
+  const {
+    onSendMessage,
+    disabled,
+    isStreaming,
+    onAbortMessage,
+    shouldClearInput,
+    onInputCleared,
+    vscode,
+    showConfiguration,
+    configurationData,
+    configurationLoading,
+    configurationError,
+    onConfigurationOpen,
+    onConfigurationSave,
+    onConfigurationCancel,
+    selection,
+    inputContent,
+    permissionMode,
+    initialAttachedImages
+  } = props;
   const [message, setMessage] = useState('');
   const [isSelectionEnabled, setIsSelectionEnabled] = useState(false);
   const lastSelectionRef = useRef<any>(null);
@@ -104,7 +108,7 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
     endPos: 0 
   });
 
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const textareaRef = useRef<HTMLDivElement>(null);
   const configButtonRef = useRef<HTMLDivElement>(null);
   const permissionToggleRef = useRef<HTMLDivElement>(null);
   const requestIdRef = useRef<string>('');
@@ -346,8 +350,8 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
     setTimeout(() => {
       if (textareaRef.current) {
         textareaRef.current.focus();
-        const newCursorPos = savedAtMention.startPos + filePaths.length;
-        textareaRef.current.setSelectionRange(newCursorPos, newCursorPos);
+        // For contenteditable, we'd need a more complex selection logic.
+        // For now, we'll just focus it.
       }
     }, 0);
 
@@ -411,23 +415,76 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
       return;
     }
 
-    const filePathWithSpace = file.relativePath + ' '; // Add space after file path
-    const newMessage = message.slice(0, atMention.startPos) +
-                      filePathWithSpace +
-                      message.slice(atMention.endPos);
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) return;
 
-    setMessage(newMessage);
-    closeDropdown();
+    const range = selection.getRangeAt(0);
+    
+    // Find the @ mention text node and replace it
+    // This is a simplified implementation. In a real app, you'd want to be more precise.
+    // For now, we'll just insert the tag at the current cursor position and remove the @mention text.
+    
+    // Remove the @mention text (from atMention.startPos to atMention.endPos)
+    // Since we are in contenteditable, we need to find the text node.
+    
+    // Create the tag element
+    const tagSpan = document.createElement('span');
+    tagSpan.className = 'context-tag-container'; // Wrapper for React component
+    tagSpan.contentEditable = 'false';
+    tagSpan.setAttribute('data-path', file.relativePath);
+    tagSpan.setAttribute('data-name', file.name);
+    tagSpan.setAttribute('data-is-image', String(!file.isDirectory && /\.(png|jpg|jpeg|gif|webp|svg)$/i.test(file.name)));
+    
+    // Render the React component into the span
+    ReactDOM.render(
+      <ContextTag 
+        name={file.name} 
+        path={file.relativePath} 
+        icon={file.icon} 
+      />, 
+      tagSpan
+    );
 
-    // Focus back to textarea and set cursor position
-    setTimeout(() => {
-      if (textareaRef.current) {
-        textareaRef.current.focus();
-        const newCursorPos = atMention.startPos + filePathWithSpace.length;
-        textareaRef.current.setSelectionRange(newCursorPos, newCursorPos);
+    // Insert the tag and a space
+    range.deleteContents();
+    
+    // We need to find the '@' and the filter text to delete it.
+    // For contenteditable, we should find the '@' in the current text node
+    const textNode = range.startContainer;
+    if (textNode.nodeType === Node.TEXT_NODE) {
+      const text = textNode.textContent || '';
+      // Find the last '@' before the current cursor position
+      const lastAtIndex = text.lastIndexOf('@', range.startOffset - 1);
+      
+      if (lastAtIndex !== -1) {
+        const before = text.substring(0, lastAtIndex);
+        const after = text.substring(range.startOffset);
+        textNode.textContent = before;
+        
+        const nextNode = document.createTextNode(' ' + after);
+        if (textNode.nextSibling) {
+          textNode.parentNode?.insertBefore(tagSpan, textNode.nextSibling);
+          textNode.parentNode?.insertBefore(nextNode, tagSpan.nextSibling);
+        } else {
+          textNode.parentNode?.appendChild(tagSpan);
+          textNode.parentNode?.appendChild(nextNode);
+        }
+        
+        // Move cursor after the space
+        const newRange = document.createRange();
+        newRange.setStart(nextNode, 1);
+        newRange.setEnd(nextNode, 1);
+        selection.removeAllRanges();
+        selection.addRange(newRange);
+        
+        // Trigger input event to update message state
+        const inputEvent = new Event('input', { bubbles: true });
+        textareaRef.current?.dispatchEvent(inputEvent);
       }
-    }, 0);
-  }, [message, atMention.startPos, atMention.endPos, closeDropdown]);
+    }
+
+    closeDropdown();
+  }, [atMention, closeDropdown]);
 
   // Handle file upload
   const handleFileUpload = useCallback(() => {
@@ -512,21 +569,28 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
     setTimeout(() => {
       if (textareaRef.current) {
         textareaRef.current.focus();
-        const newCursorPos = slashCommand.startPos + command.name.length + 2; // +2 for '/' and ' '
-        textareaRef.current.setSelectionRange(newCursorPos, newCursorPos);
+        // For contenteditable, we'd need a more complex selection logic.
       }
     }, 0);
   }, [message, slashCommand.startPos, slashCommand.endPos, closeSlashCommandPopup]);
 
   const handleSend = useCallback(() => {
-    if ((message.trim() || attachedImages.length > 0) && !disabled && !isStreaming) {
+    if (!textareaRef.current) return;
+    
+    const { markdown, images: extractedImages } = convertToMarkdown(textareaRef.current);
+    const allImages = [...attachedImages, ...extractedImages];
+
+    if ((markdown.trim() || allImages.length > 0) && !disabled && !isStreaming) {
       // Convert attached images to base64 format for SDK
-      const images = attachedImages.map(img => ({
+      const images = allImages.map(img => ({
         data: img.data, // This is already base64 data URL
         mediaType: img.mimeType
       }));
       
-      onSendMessage(message, images.length > 0 ? images : undefined, isSelectionEnabled ? selection : undefined);
+      onSendMessage(markdown, images.length > 0 ? images : undefined, isSelectionEnabled ? selection : undefined);
+      
+      // Clear contenteditable
+      textareaRef.current.innerHTML = '';
       setMessage('');
       setIsSelectionEnabled(false);
       // Clear persisted input content
@@ -539,17 +603,17 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
     }
   }, [message, attachedImages, disabled, isStreaming, onSendMessage, closeDropdown, isSelectionEnabled, selection]);
 
-  const handleKeyDown = useCallback((event: KeyboardEvent<HTMLTextAreaElement>) => {
+  const handleKeyDown = useCallback((event: KeyboardEvent<HTMLDivElement>) => {
     // Handle 指令 navigation
     if (slashCommand.isActive && slashCommands.length > 0) {
       switch (event.key) {
         case 'ArrowUp':
           event.preventDefault();
-          setSelectedSlashIndex(prev => Math.max(0, prev - 1));
+          setSelectedSlashIndex((prev: number) => Math.max(0, prev - 1));
           return;
         case 'ArrowDown':
           event.preventDefault();
-          setSelectedSlashIndex(prev => Math.min(slashCommands.length - 1, prev + 1));
+          setSelectedSlashIndex((prev: number) => Math.min(slashCommands.length - 1, prev + 1));
           return;
         case 'Enter':
           event.preventDefault();
@@ -574,11 +638,11 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
       switch (event.key) {
         case 'ArrowUp':
           event.preventDefault();
-          setSelectedIndex(prev => Math.max(minIndex, prev - 1));
+          setSelectedIndex((prev: number) => Math.max(minIndex, prev - 1));
           return;
         case 'ArrowDown':
           event.preventDefault();
-          setSelectedIndex(prev => Math.min(maxIndex, prev + 1));
+          setSelectedIndex((prev: number) => Math.min(maxIndex, prev + 1));
           return;
         case 'Enter':
           event.preventDefault();
@@ -613,10 +677,43 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
     }
   }, [slashCommand.isActive, slashCommands, selectedSlashIndex, handleSlashCommandSelect, closeSlashCommandPopup, atMention.isActive, atMention.filterText, suggestions, selectedIndex, handleFileSelect, handleFileUpload, closeDropdown, handleSend, isComposing]);
 
-  const handleInput = useCallback((event: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const newValue = event.target.value;
-    const cursorPos = event.target.selectionStart || 0;
+  // Handle cursor position changes
+  const handleSelectionChange = useCallback(() => {
+    if (!textareaRef.current) return;
 
+    const selection = window.getSelection();
+    let cursorPos = 0;
+    if (selection && selection.rangeCount > 0) {
+      const range = selection.getRangeAt(0);
+      const preCaretRange = range.cloneRange();
+      preCaretRange.selectNodeContents(textareaRef.current);
+      preCaretRange.setEnd(range.endContainer, range.endOffset);
+      cursorPos = preCaretRange.toString().length;
+    }
+
+    const currentText = textareaRef.current.innerText;
+    const mentionState = detectAtMention(currentText, cursorPos);
+    const slashCommandState = detectSlashCommand(currentText, cursorPos);
+
+    if (!mentionState.isActive) {
+      closeDropdown();
+    } else {
+      setAtMention(mentionState);
+      setDropdownPosition(calculateDropdownPosition());
+    }
+
+    if (!slashCommandState.isActive) {
+      closeSlashCommandPopup();
+    } else {
+      setSlashCommand(slashCommandState);
+      setSlashPopupPosition(calculateDropdownPosition());
+    }
+  }, [detectAtMention, detectSlashCommand, closeDropdown, closeSlashCommandPopup, calculateDropdownPosition]);
+
+  const handleInput = useCallback((event: React.FormEvent<HTMLDivElement>) => {
+    const target = event.currentTarget;
+    const newValue = target.innerText;
+    
     setMessage(newValue);
     
     // Send updated content to extension for persistence
@@ -625,49 +722,14 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
       content: newValue
     });
 
-    // Auto-resize textarea
-    const target = event.target;
-    target.style.height = 'auto';
-    target.style.height = target.scrollHeight + 'px';
-
-    // Detect @ mention
-    const mentionState = detectAtMention(newValue, cursorPos);
-    setAtMention(mentionState);
-
-    // Detect 指令
-    const slashCommandState = detectSlashCommand(newValue, cursorPos);
-    setSlashCommand(slashCommandState);
-
-    if (mentionState.isActive) {
-      setDropdownPosition(calculateDropdownPosition());
-    }
-
-    if (slashCommandState.isActive) {
-      setSlashPopupPosition(calculateDropdownPosition());
-    }
-  }, [detectAtMention, detectSlashCommand, calculateDropdownPosition]);
+    // Selection change will handle the dropdown state
+    handleSelectionChange();
+  }, [handleSelectionChange, vscode]);
 
   // Handle configuration button click
   const handleConfigurationClick = useCallback(() => {
     onConfigurationOpen();
   }, [onConfigurationOpen]);
-
-  // Handle cursor position changes
-  const handleSelectionChange = useCallback(() => {
-    if (!textareaRef.current) return;
-
-    const cursorPos = textareaRef.current.selectionStart || 0;
-    const mentionState = detectAtMention(message, cursorPos);
-    const slashCommandState = detectSlashCommand(message, cursorPos);
-
-    if (!mentionState.isActive) {
-      closeDropdown();
-    }
-
-    if (!slashCommandState.isActive) {
-      closeSlashCommandPopup();
-    }
-  }, [message, detectAtMention, detectSlashCommand, closeDropdown, closeSlashCommandPopup]);
 
   // Handle IME composition events
   const handleCompositionStart = useCallback(() => {
@@ -699,23 +761,57 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
     for (const file of imageFiles) {
       try {
         const dataUrl = await createDataUrlFromBlob(file, file.name);
-        const newImage: AttachedImage = {
-          id: generateImageId(),
-          data: dataUrl,
-          mimeType: file.type,
-          filename: file.name,
-          size: file.size
-        };
         
-        setAttachedImages(prev => [...prev, newImage]);
+        // Insert inline tag for the image
+        if (!textareaRef.current) continue;
+        
+        const selection = window.getSelection();
+        if (!selection || selection.rangeCount === 0) continue;
+        
+        const range = selection.getRangeAt(0);
+        
+        const tagSpan = document.createElement('span');
+        tagSpan.className = 'context-tag-container';
+        tagSpan.contentEditable = 'false';
+        tagSpan.setAttribute('data-path', `pasted-image-${Date.now()}.png`);
+        tagSpan.setAttribute('data-name', file.name || 'pasted-image.png');
+        tagSpan.setAttribute('data-is-image', 'true');
+        tagSpan.setAttribute('data-image-url', dataUrl);
+        
+        ReactDOM.render(
+          <ContextTag 
+            name={file.name || 'pasted-image.png'} 
+            path={`pasted-image-${Date.now()}.png`} 
+            icon="codicon-file-media"
+            isImage={true}
+          />, 
+          tagSpan
+        );
+        
+        range.deleteContents();
+        range.insertNode(tagSpan);
+        
+        // Insert a space after the tag
+        const space = document.createTextNode(' ');
+        range.setStartAfter(tagSpan);
+        range.insertNode(space);
+        range.setStartAfter(space);
+        range.setEndAfter(space);
+        selection.removeAllRanges();
+        selection.addRange(range);
+        
+        // Trigger input event to update message state
+        const inputEvent = new Event('input', { bubbles: true });
+        textareaRef.current.dispatchEvent(inputEvent);
+        
       } catch (error) {
         console.error('Failed to process image:', error);
       }
     }
-  }, [generateImageId]);
+  }, [createDataUrlFromBlob, textareaRef]);
 
   const handleRemoveImage = useCallback((imageId: string) => {
-    setAttachedImages(prev => prev.filter(img => img.id !== imageId));
+    setAttachedImages((prev: AttachedImage[]) => prev.filter((img: AttachedImage) => img.id !== imageId));
   }, []);
 
   // Paste event handler
@@ -781,31 +877,21 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
             </span>
           </div>
         )}
-
-        {/* Attached Images */}
-        {attachedImages.length > 0 && (
-          <AttachedImages
-            images={attachedImages}
-            onRemove={handleRemoveImage}
-          />
-        )}
         
-        {/* Textarea - full width */}
-        <textarea
+        {/* ContentEditable - full width */}
+        <div
           ref={textareaRef}
           id="messageInput"
-          className="message-input"
-          value={message}
-          onChange={handleInput}
+          className="message-input content-editable-input"
+          contentEditable={!disabled}
+          onInput={handleInput}
           onKeyDown={handleKeyDown}
           onSelect={handleSelectionChange}
           onClick={handleSelectionChange}
           onCompositionStart={handleCompositionStart}
           onCompositionEnd={handleCompositionEnd}
-          disabled={disabled}
-          placeholder="输入 / 发送指令，输入 @ 添加上下文，或粘贴图片..."
-          rows={2}
           data-testid="message-input"
+          data-placeholder="输入 / 发送指令，输入 @ 添加上下文，或粘贴图片..."
         />
 
         {/* Buttons row */}

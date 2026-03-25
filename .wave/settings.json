@@ -4,7 +4,7 @@
     "WAVE_MAX_INPUT_TOKENS": "200000"
   },
   "permissions": {
-    "defaultMode": "acceptEdits",
+    "defaultMode": "plan",
     "allow": [
       "Bash(npm run compile*)",
       "Bash(npm run package*)",

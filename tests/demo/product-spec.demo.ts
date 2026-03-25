@@ -307,19 +307,97 @@ test.describe('Product Specification Screenshots', () => {
         });
         await webviewPage.waitForSelector('.permission-mode-toggle:has-text("修改前询问")');
         
-        // 13. Selection Reference
+        // 13. Inline Context Tags (Mentions)
+        await webviewPage.focus('[data-testid="message-input"]');
+        await webviewPage.keyboard.press('Control+A');
+        await webviewPage.keyboard.press('Backspace');
+        await webviewPage.keyboard.type('@');
+        
+        // Simulate folder suggestion
+        const requestId1 = await webviewPage.evaluate(async () => {
+            const poll = () => new Promise(resolve => {
+                const check = () => {
+                    const messages = (window as any).getTestMessages ? (window as any).getTestMessages() : [];
+                    const reqs = messages.filter((m: any) => m.command === 'requestFileSuggestions');
+                    if (reqs.length > 0) resolve(reqs[reqs.length - 1].requestId);
+                    else setTimeout(check, 50);
+                };
+                check();
+            });
+            return await poll();
+        });
+
+        await injector.simulateExtensionMessage('fileSuggestionsResponse', {
+            requestId: requestId1,
+            filterText: '',
+            suggestions: [
+                { path: 'src', relativePath: 'src', name: 'src', icon: 'codicon-folder', isDirectory: true }
+            ]
+        });
+        await webviewPage.waitForSelector('.suggestion-item', { state: 'visible' });
+        await webviewPage.keyboard.press('ArrowDown');
+        await webviewPage.keyboard.press('Enter');
+        
+        await webviewPage.keyboard.type(' 这是文本 @');
+        
+        // Simulate file suggestion
+        const requestId2 = await webviewPage.evaluate(async () => {
+            const poll = () => new Promise(resolve => {
+                const check = () => {
+                    const messages = (window as any).getTestMessages ? (window as any).getTestMessages() : [];
+                    const reqs = messages.filter((m: any) => m.command === 'requestFileSuggestions');
+                    if (reqs.length > 0) resolve(reqs[reqs.length - 1].requestId);
+                    else setTimeout(check, 50);
+                };
+                check();
+            });
+            return await poll();
+        });
+
+        await injector.simulateExtensionMessage('fileSuggestionsResponse', {
+            requestId: requestId2,
+            filterText: '',
+            suggestions: [
+                { path: 'src/main.ts', relativePath: 'src/main.ts', name: 'main.ts', icon: 'codicon-file-code', isDirectory: false }
+            ]
+        });
+        await webviewPage.waitForSelector('.suggestion-item', { state: 'visible' });
+        await webviewPage.keyboard.press('ArrowDown');
+        await webviewPage.keyboard.press('Enter');
+
+        await webviewPage.keyboard.type(' 这是图片 ');
+
+        // Simulate image paste
+        await webviewPage.evaluate(() => {
+            const dataTransfer = new DataTransfer();
+            const file = new File([''], 'spec-welcome.png', { type: 'image/png' });
+            dataTransfer.items.add(file);
+            const event = new ClipboardEvent('paste', {
+                clipboardData: dataTransfer,
+                bubbles: true,
+                cancelable: true
+            });
+            document.querySelector('[data-testid="message-input"]')?.dispatchEvent(event);
+        });
+
+        // Wait for the tag to be rendered
+        await webviewPage.waitForSelector('.context-tag-container');
+        
+        await webviewPage.locator('.input-container').screenshot({ path: 'screenshots/spec-inline-mentions.png' });
+
+        // 13b. Message List with Inline Tags
         await injector.updateMessages([
             {
                 role: 'user',
                 blocks: [
                     {
                         type: 'text',
-                        content: '解释这段代码：\n\n[Selection: src/app.ts#10-15]\n```\nconst app = express();\napp.get("/", (req, res) => {\n  res.send("Hello World");\n});\n```'
+                        content: '这是一个文件夹 [@file:src] 这是文本 [@file:src/main.ts] 这是图片 [@file:pasted-image.png]'
                     }
                 ]
             }
         ]);
-        await webviewPage.screenshot({ path: 'screenshots/spec-selection.png' });
+        await webviewPage.locator('.messages-container').screenshot({ path: 'screenshots/spec-message-inline-tags.png' });
 
         // 14. Session Selector - 使用 SDK 的 SessionMetadata 类型
         const now = Date.now();
@@ -439,32 +517,7 @@ test.describe('Product Specification Screenshots', () => {
         await bashConfirmDialog.waitFor({ state: 'visible' });
         await bashConfirmDialog.screenshot({ path: 'screenshots/spec-bash-confirm.png' });
 
-        // 18. Image Attachment
-        await injector.simulateExtensionMessage('setInitialState', {
-            messages: [],
-            isStreaming: false,
-            sessions: [],
-            configurationData: {
-                authMethod: 'apiKey',
-                apiKey: 'sk-xxxxxxxxxxxxxxxx',
-                baseURL: 'https://api.openai.com/v1',
-                agentModel: 'gpt-4',
-                fastModel: 'gpt-3.5-turbo'
-            },
-            permissionMode: 'default',
-            inputContent: '请分析这张图片中的 UI 设计',
-            attachedImages: [
-                {
-                    id: 'img-1',
-                    data: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
-                    mimeType: 'image/png',
-                    filename: 'ui-design.png'
-                }
-            ]
-        });
-        await webviewPage.waitForSelector('.attached-images');
-        await webviewPage.locator('.input-container').screenshot({ path: 'screenshots/spec-image-attachment.png' });
-
+        // 18. Image Attachment (Removed as it's now inline)
         // 19. Exploration Tools
         const explorationMessages: Message[] = [
             {
