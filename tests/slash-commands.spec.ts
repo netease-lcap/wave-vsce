@@ -55,11 +55,11 @@ test.describe('Slash Commands', () => {
 
     // 8. Verify input content (should be "/init" + non-breaking space)
     // Note: In innerText, \u00A0 is often rendered as a normal space
-    const content = await input.innerText();
-    // We check if it starts with /init and has a space-like character at the end
-    expect(content).toMatch(/^\/init[\s\u00A0]$/);
+    await expect(async () => {
+      const content = await input.innerText();
+      expect(content.trim()).toBe('/init');
+    }).toPass();
     
-    // Also verify the exact character if possible
     const rawContent = await input.evaluate(el => el.textContent);
     expect(rawContent).toBe('/init\u00A0');
   });
@@ -70,6 +70,8 @@ test.describe('Slash Commands', () => {
 
     // 1. Type some text and then '/'
     await input.type('hello ');
+    // Small delay to ensure DOM is updated
+    await webviewPage.waitForTimeout(100);
     await input.press('/');
 
     // 2. Simulate response
@@ -86,8 +88,10 @@ test.describe('Slash Commands', () => {
     await webviewPage.keyboard.press('Enter');
 
     // 4. Verify content
-    const content = await input.innerText();
-    expect(content).toMatch(/^hello \/init[\s\u00A0]$/);
+    await expect(async () => {
+      const content = await input.innerText();
+      expect(content.trim()).toBe('hello /init');
+    }).toPass();
     
     const rawContent = await input.evaluate(el => el.textContent);
     expect(rawContent).toBe('hello /init\u00A0');
