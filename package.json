@@ -64,16 +64,6 @@
         "command": "wave-code.focusView",
         "title": "聚焦到聊天输入框",
         "category": "Wave"
-      },
-      {
-        "command": "wave-code.openWiki",
-        "title": "打开 WaveWiki",
-        "category": "Wave"
-      },
-      {
-        "command": "wave-code.openWikiWindow",
-        "title": "在新窗口打开 WaveWiki",
-        "category": "Wave"
       }
     ]
   },

@@ -14,25 +14,21 @@ export class WebviewManager {
     private context: vscode.ExtensionContext;
     private callbacks: WebviewManagerCallbacks;
 
-    private instanceId: string = Math.random().toString(36).substring(7);
-
     constructor(context: vscode.ExtensionContext, callbacks: WebviewManagerCallbacks) {
         this.context = context;
         this.callbacks = callbacks;
-        console.log(`WebviewManager instance created: ${this.instanceId}`);
     }
 
-    public setSidebarView(webviewView: vscode.WebviewView, contentType: string = 'chat') {
-        console.log(`[${this.instanceId}] setSidebarView called with contentType: ${contentType}`);
+    public setSidebarView(webviewView: vscode.WebviewView) {
         this.sidebarView = webviewView;
-        this.setupWebview(webviewView.webview, 'sidebar', undefined, contentType);
+        this.setupWebview(webviewView.webview, 'sidebar');
     }
 
     public getSidebarView(): vscode.WebviewView | undefined {
         return this.sidebarView;
     }
 
-    public createTabPanel(viewType: string, title: string, column: vscode.ViewColumn, contentType: string = 'chat'): vscode.WebviewPanel {
+    public createTabPanel(viewType: string, title: string, column: vscode.ViewColumn): vscode.WebviewPanel {
         this.tabPanel = vscode.window.createWebviewPanel(
             viewType,
             title,
@@ -47,7 +43,7 @@ export class WebviewManager {
             }
         );
 
-        this.setupWebview(this.tabPanel.webview, 'tab', undefined, contentType);
+        this.setupWebview(this.tabPanel.webview, 'tab');
 
         this.tabPanel.onDidDispose(() => {
             this.tabPanel = undefined;
@@ -61,7 +57,7 @@ export class WebviewManager {
         return this.tabPanel;
     }
 
-    public createWindowPanel(viewType: string, title: string, windowId: string, contentType: string = 'chat'): vscode.WebviewPanel {
+    public createWindowPanel(viewType: string, title: string, windowId: string): vscode.WebviewPanel {
         const panel = vscode.window.createWebviewPanel(
             viewType,
             title,
@@ -74,7 +70,7 @@ export class WebviewManager {
         );
 
         this.windowPanels.set(windowId, panel);
-        this.setupWebview(panel.webview, 'window', windowId, contentType);
+        this.setupWebview(panel.webview, 'window', windowId);
 
         panel.onDidDispose(() => {
             this.windowPanels.delete(windowId);
@@ -92,13 +88,13 @@ export class WebviewManager {
         return this.windowPanels;
     }
 
-    private setupWebview(webview: vscode.Webview, viewType: 'sidebar' | 'tab' | 'window', windowId?: string, contentType: string = 'chat') {
+    private setupWebview(webview: vscode.Webview, viewType: 'sidebar' | 'tab' | 'window', windowId?: string) {
         webview.options = {
             enableScripts: true,
             localResourceRoots: [this.context.extensionUri]
         };
 
-        webview.html = this.getWebviewContent(webview, contentType);
+        webview.html = this.getWebviewContent(webview);
 
         webview.onDidReceiveMessage(async (message) => {
             await this.callbacks.onMessage(message, viewType, windowId);
@@ -130,8 +126,7 @@ export class WebviewManager {
         this.windowPanels.forEach(panel => panel.webview.postMessage(message));
     }
 
-    public getWebviewContent(webview: vscode.Webview, contentType: string = 'chat'): string {
-        console.log(`[${this.instanceId}] Generating webview content for type: ${contentType}`);
+    public getWebviewContent(webview: vscode.Webview): string {
         const scriptUri = webview.asWebviewUri(
             vscode.Uri.joinPath(this.context.extensionUri, 'webview', 'dist', 'chat.js')
         );
@@ -141,12 +136,8 @@ export class WebviewManager {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; connect-src ${webview.cspSource} data: blob:; img-src ${webview.cspSource} data: blob:; style-src ${webview.cspSource} 'unsafe-inline'; script-src ${webview.cspSource} 'unsafe-inline'; font-src ${webview.cspSource};">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; connect-src ${webview.cspSource} data: blob:; img-src ${webview.cspSource} data: blob:; style-src ${webview.cspSource} 'unsafe-inline'; script-src ${webview.cspSource}; font-src ${webview.cspSource};">
     <title>Wave AI Chat</title>
-    <script>
-        window.WAVE_VIEW_TYPE = "${contentType}";
-        console.log('[${this.instanceId}] Webview HTML: window.WAVE_VIEW_TYPE set to:', window.WAVE_VIEW_TYPE);
-    </script>
 </head>
 <body>
     <div id="root"></div>

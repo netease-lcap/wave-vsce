@@ -1,18 +1,13 @@
 import * as vscode from 'vscode';
 import { ChatProvider } from './chatProvider';
-import { WikiProvider } from './wikiProvider';
 
 let chatProvider: ChatProvider | undefined;
-let wikiProvider: WikiProvider | undefined;
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('Wave AI 聊天扩展已激活！');
 
     // Create a single ChatProvider instance for the extension lifecycle
     chatProvider = new ChatProvider(context);
-
-    // Create WikiProvider instance
-    wikiProvider = new WikiProvider(context);
 
     // Register sidebar command
     const openChatSidebarCommand = vscode.commands.registerCommand('wave-code.openChatSidebar', async () => {
@@ -39,15 +34,6 @@ export function activate(context: vscode.ExtensionContext) {
         }
     });
 
-    // Register open wiki command
-    const openWikiCommand = vscode.commands.registerCommand('wave-code.openWiki', async () => {
-        await wikiProvider!.createOrShowWikiPanel('tab');
-    });
-
-    const openWikiWindowCommand = vscode.commands.registerCommand('wave-code.openWikiWindow', async () => {
-        await wikiProvider!.createOrShowWikiPanel('window');
-    });
-
     async function openChatWithProgress(mode: 'sidebar' | 'tab' | 'window') {
         try {
             // Show progress indicator while opening chat
@@ -68,9 +54,7 @@ export function activate(context: vscode.ExtensionContext) {
         openChatSidebarCommand,
         openChatTabCommand,
         openChatWindowCommand,
-        focusViewCommand,
-        openWikiCommand,
-        openWikiWindowCommand
+        focusViewCommand
     );
     
     console.log('Wave 聊天命令注册成功');
@@ -83,11 +67,6 @@ export async function deactivate() {
     if (chatProvider) {
         await chatProvider.destroy();
         chatProvider = undefined;
-    }
-
-    if (wikiProvider) {
-        wikiProvider.dispose();
-        wikiProvider = undefined;
     }
     
     console.log('Wave AI 聊天扩展已停用');
