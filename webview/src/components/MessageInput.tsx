@@ -619,21 +619,47 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
   const handleSlashCommandSelect = useCallback((command: SlashCommand) => {
     if (!textareaRef.current) return;
 
-    const newMessage = message.slice(0, slashCommand.startPos) +
-                      `/${command.name} ` +
-                      message.slice(slashCommand.endPos);
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) return;
 
-    setMessage(newMessage);
-    closeSlashCommandPopup();
+    const range = selection.getRangeAt(0);
+    const textNode = range.startContainer;
 
-    // Focus back to textarea and set cursor position
-    setTimeout(() => {
-      if (textareaRef.current) {
-        textareaRef.current.focus();
-        // For contenteditable, we'd need a more complex selection logic.
+    if (textNode.nodeType === Node.TEXT_NODE) {
+      const text = textNode.textContent || '';
+      // Find the last '/' before the cursor
+      const lastSlashIndex = text.lastIndexOf('/', range.startOffset - 1);
+
+      if (lastSlashIndex !== -1) {
+        // Check if it's a valid position (start of line or preceded by whitespace)
+        const charBefore = text[lastSlashIndex - 1];
+        const isValidPosition = lastSlashIndex === 0 || /\s/.test(charBefore) || charBefore === '\u00A0';
+
+        if (isValidPosition) {
+          // Set range to cover the '/' and any filter text
+          range.setStart(textNode, lastSlashIndex);
+          range.deleteContents();
+
+          // Insert the command text
+          const commandText = `/${command.name}\u00A0`;
+          const newNode = document.createTextNode(commandText);
+          range.insertNode(newNode);
+
+          // Move cursor after the inserted text
+          range.setStartAfter(newNode);
+          range.collapse(true);
+          selection.removeAllRanges();
+          selection.addRange(range);
+
+          // Trigger input event to update message state
+          const inputEvent = new Event('input', { bubbles: true });
+          textareaRef.current.dispatchEvent(inputEvent);
+        }
       }
-    }, 0);
-  }, [message, slashCommand.startPos, slashCommand.endPos, closeSlashCommandPopup]);
+    }
+
+    closeSlashCommandPopup();
+  }, [closeSlashCommandPopup]);
 
   const handleSend = useCallback(() => {
     if (!textareaRef.current) return;
