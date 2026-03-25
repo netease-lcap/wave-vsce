@@ -5,8 +5,8 @@
     padding: 2px 8px;
     border-radius: 4px;
     font-size: 13px;
-    background-color: rgba(66, 133, 244, 0.1);
-    color: #4285f4;
+    background-color: var(--vscode-button-secondaryBackground);
+    color: var(--vscode-button-secondaryForeground);
     margin: 0 2px;
     user-select: none;
     vertical-align: middle;
@@ -20,6 +20,7 @@
 .context-tag .tag-at {
     font-weight: bold;
     font-size: 14px;
+    opacity: 0.9;
 }
 
 .context-tag.clickable {
@@ -28,7 +29,7 @@
 }
 
 .context-tag.clickable:hover {
-    background-color: rgba(66, 133, 244, 0.2);
+    background-color: var(--vscode-button-secondaryHoverBackground);
     text-decoration: underline;
 }
 
