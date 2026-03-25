@@ -24,8 +24,12 @@ export class FileService {
             const allItems = fileItems.map((item) => {
                 const relativePath = item.path;
                 const fullPath = path.join(workspacePath, relativePath);
-                const pathSegments = relativePath.split(path.sep);
-                const name = pathSegments[pathSegments.length - 1];
+                
+                // Handle trailing slashes for directories to get the correct name
+                // This ensures robust name extraction regardless of whether the SDK returns trailing slashes
+                const normalizedPath = relativePath.endsWith('/') ? relativePath.slice(0, -1) : relativePath;
+                const name = path.basename(normalizedPath);
+                
                 const extensionMatch = name.match(/\.([^.]+)$/);
                 const extension = extensionMatch ? extensionMatch[1] : '';
                 const isDirectory = item.type === 'directory';
