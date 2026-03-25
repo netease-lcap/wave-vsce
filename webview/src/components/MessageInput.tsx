@@ -218,7 +218,7 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
         break;
       }
       // Stop if we hit whitespace or newline
-      if (text[i] === ' ' || text[i] === '\n') {
+      if (text[i] === ' ' || text[i] === '\n' || text[i] === '\u00A0') {
         break;
       }
     }
@@ -228,7 +228,8 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
     }
 
     // Check if @ is at start of line or preceded by whitespace
-    const isValidPosition = atPos === 0 || /\s/.test(text[atPos - 1]);
+    const charBefore = text[atPos - 1];
+    const isValidPosition = atPos === 0 || /\s/.test(charBefore) || charBefore === '\u00A0';
     if (!isValidPosition) {
       return { isActive: false, filterText: '', startPos: 0, endPos: 0 };
     }
@@ -445,37 +446,31 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
       />
     );
 
-    // Insert the tag and a space
-    range.deleteContents();
-    
-    // We need to find the '@' and the filter text to delete it.
-    // For contenteditable, we should find the '@' in the current text node
+    // Find the '@' and the filter text to delete it.
     const textNode = range.startContainer;
     if (textNode.nodeType === Node.TEXT_NODE) {
       const text = textNode.textContent || '';
-      // Find the last '@' before the current cursor position
       const lastAtIndex = text.lastIndexOf('@', range.startOffset - 1);
       
       if (lastAtIndex !== -1) {
-        const before = text.substring(0, lastAtIndex);
-        const after = text.substring(range.startOffset);
-        textNode.textContent = before;
+        // Set range to cover the '@' and filter text
+        range.setStart(textNode, lastAtIndex);
+        range.deleteContents();
         
-        const nextNode = document.createTextNode(' ' + after);
-        if (textNode.nextSibling) {
-          textNode.parentNode?.insertBefore(tagSpan, textNode.nextSibling);
-          textNode.parentNode?.insertBefore(nextNode, tagSpan.nextSibling);
-        } else {
-          textNode.parentNode?.appendChild(tagSpan);
-          textNode.parentNode?.appendChild(nextNode);
-        }
+        // Insert the tag
+        range.insertNode(tagSpan);
+        
+        // Insert a space after the tag
+        // Use a non-breaking space to ensure it's not collapsed by the browser
+        const space = document.createTextNode('\u00A0');
+        range.setStartAfter(tagSpan);
+        range.insertNode(space);
         
         // Move cursor after the space
-        const newRange = document.createRange();
-        newRange.setStart(nextNode, 1);
-        newRange.setEnd(nextNode, 1);
+        range.setStartAfter(space);
+        range.setEndAfter(space);
         selection.removeAllRanges();
-        selection.addRange(newRange);
+        selection.addRange(range);
         
         // Trigger input event to update message state
         const inputEvent = new Event('input', { bubbles: true });
@@ -484,7 +479,7 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
     }
 
     closeDropdown();
-  }, [atMention, closeDropdown]);
+  }, [closeDropdown]);
 
   // Handle file upload
   const handleFileUpload = useCallback(() => {
@@ -682,18 +677,19 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
     if (!textareaRef.current) return;
 
     const selection = window.getSelection();
-    let cursorPos = 0;
-    if (selection && selection.rangeCount > 0) {
-      const range = selection.getRangeAt(0);
-      const preCaretRange = range.cloneRange();
-      preCaretRange.selectNodeContents(textareaRef.current);
-      preCaretRange.setEnd(range.endContainer, range.endOffset);
-      cursorPos = preCaretRange.toString().length;
-    }
+    if (!selection || selection.rangeCount === 0) return;
 
+    const range = selection.getRangeAt(0);
+    const preCaretRange = range.cloneRange();
+    preCaretRange.selectNodeContents(textareaRef.current);
+    preCaretRange.setEnd(range.endContainer, range.endOffset);
+    
+    const textBeforeCursor = preCaretRange.toString();
     const currentText = textareaRef.current.innerText;
-    const mentionState = detectAtMention(currentText, cursorPos);
-    const slashCommandState = detectSlashCommand(currentText, cursorPos);
+
+    // Use textBeforeCursor for detection as it's more reliable for cursor position
+    const mentionState = detectAtMention(textBeforeCursor, textBeforeCursor.length);
+    const slashCommandState = detectSlashCommand(textBeforeCursor, textBeforeCursor.length);
 
     if (!mentionState.isActive) {
       closeDropdown();
@@ -722,8 +718,10 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
       content: newValue
     });
 
-    // Selection change will handle the dropdown state
-    handleSelectionChange();
+    // Use setTimeout to ensure selection is updated after DOM changes
+    setTimeout(() => {
+      handleSelectionChange();
+    }, 0);
   }, [handleSelectionChange, vscode]);
 
   // Handle configuration button click
