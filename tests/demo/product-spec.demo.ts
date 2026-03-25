@@ -16,8 +16,6 @@ import {
     type SessionMetadata
 } from 'wave-agent-sdk';
 
-const LS_TOOL_NAME = 'LS';
-
 test.describe('Product Specification Screenshots', () => {
     test('capture all features', async ({ webviewPage }) => {
         const injector = new MessageInjector(webviewPage);
@@ -498,15 +496,6 @@ test.describe('Product Specification Screenshots', () => {
                         parameters: JSON.stringify({ pattern: 'interface.*API', type: 'ts', path: 'src' }),
                         result: 'src/types.ts:10:export interface UserAPI {\nsrc/types.ts:20:export interface AuthAPI {',
                         shortResult: 'Found 2 matching lines'
-                    },
-                    {
-                        type: 'tool',
-                        name: LS_TOOL_NAME,
-                        stage: 'end',
-                        compactParams: 'src',
-                        parameters: JSON.stringify({ path: 'src' }),
-                        result: 'components/\nutils/\nmain.ts\napp.tsx',
-                        shortResult: '4 items (2 dirs, 2 files)'
                     },
                     {
                         type: 'tool',
