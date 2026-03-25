@@ -35,7 +35,7 @@ test.describe('Product Specification Screenshots', () => {
                 authMethod: 'apiKey',
                 apiKey: 'sk-xxxxxxxxxxxxxxxx',
                 baseURL: 'https://api.openai.com/v1',
-                agentModel: 'gpt-4',
+                model: 'gpt-4',
                 fastModel: 'gpt-3.5-turbo'
             },
             permissionMode: 'default'
@@ -272,7 +272,7 @@ test.describe('Product Specification Screenshots', () => {
                 authMethod: 'apiKey',
                 apiKey: 'sk-xxxxxxxxxxxxxxxx',
                 baseURL: 'https://api.openai.com/v1',
-                agentModel: 'gpt-4',
+                model: 'gpt-4',
                 fastModel: 'gpt-3.5-turbo'
             }
         });

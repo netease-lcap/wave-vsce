@@ -16,7 +16,7 @@ test.describe('Plan Mode Initialization', () => {
             sessions: [],
             configurationData: {
                 baseURL: 'https://api.example.com',
-                agentModel: 'gpt-4',
+                model: 'gpt-4',
                 fastModel: 'gpt-3.5',
                 authMethod: 'apiKey',
                 apiKey: 'test-key'

@@ -265,8 +265,8 @@ export interface ConfigurationData {
   headers?: string;
   /** Base URL for API endpoints */
   baseURL?: string;
-  /** Primary agent model */
-  agentModel?: string;
+  /** Primary model */
+  model?: string;
   /** Fast model for quick responses */
   fastModel?: string;
   /** Preferred language for agent communication */

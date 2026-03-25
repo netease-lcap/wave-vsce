@@ -26,7 +26,7 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps & { vscode: any }> 
     apiKey: '',
     headers: '',
     baseURL: '',
-    agentModel: '',
+    model: '',
     fastModel: '',
     language: 'Chinese'
   });
@@ -173,85 +173,87 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps & { vscode: any }> 
 
         {activeTab === 'general' ? (
           <form onSubmit={handleSubmit} className="configuration-form">
-            <div className="configuration-field">
-              <label htmlFor="apiKey">API Key:</label>
-              <input
-                id="apiKey"
-                type="password"
-                value={formData.apiKey || ''}
-                onChange={(e) => handleInputChange('apiKey', e.target.value)}
-                placeholder="输入 API Key (或设置 WAVE_API_KEY 环境变量)"
-                disabled={isLoading}
-              />
-            </div>
-
-            <div className="configuration-field">
-              <label htmlFor="headers">Headers (JSON):</label>
-              <input
-                id="headers"
-                type="text"
-                value={formData.headers || ''}
-                onChange={(e) => handleInputChange('headers', e.target.value)}
-                placeholder='{"Authorization": "Bearer ..."} (或设置 WAVE_CUSTOM_HEADERS)'
-                disabled={isLoading}
-              />
-            </div>
-
-            <div className="configuration-field">
-              <label htmlFor="baseURL">Base URL:</label>
-              <input
-                id="baseURL"
-                type="url"
-                value={formData.baseURL || ''}
-                onChange={(e) => handleInputChange('baseURL', e.target.value)}
-                placeholder="https://api.example.com/v1 (或设置 WAVE_BASE_URL)"
-                disabled={isLoading}
-              />
-            </div>
-
-            <div className="configuration-field">
-              <label htmlFor="agentModel">Agent Model:</label>
-              <input
-                id="agentModel"
-                type="text"
-                value={formData.agentModel || ''}
-                onChange={(e) => handleInputChange('agentModel', e.target.value)}
-                placeholder="请输入模型名称 (或设置 WAVE_MODEL)"
-                disabled={isLoading}
-              />
-            </div>
-
-            <div className="configuration-field">
-              <label htmlFor="fastModel">Fast Model:</label>
-              <input
-                id="fastModel"
-                type="text"
-                value={formData.fastModel || ''}
-                onChange={(e) => handleInputChange('fastModel', e.target.value)}
-                placeholder="请输入快速模型名称 (或设置 WAVE_FAST_MODEL)"
-                disabled={isLoading}
-              />
-            </div>
-
-            <div className="configuration-field">
-              <label htmlFor="language">语言 (Language):</label>
-              <select
-                id="language"
-                value={formData.language}
-                onChange={(e) => handleInputChange('language', e.target.value)}
-                disabled={isLoading}
-                className="configuration-select"
-              >
-                <option value="Chinese">中文</option>
-                <option value="English">英文</option>
-              </select>
-            </div>
-
-            {error && (
-              <div className="configuration-error">
-                {error}
+            <div className="configuration-fields-scroll-area">
+              <div className="configuration-field">
+                <label htmlFor="apiKey">API Key:</label>
+                <input
+                  id="apiKey"
+                  type="password"
+                  value={formData.apiKey || ''}
+                  onChange={(e) => handleInputChange('apiKey', e.target.value)}
+                  placeholder="输入 API Key (或设置 WAVE_API_KEY 环境变量)"
+                  disabled={isLoading}
+                />
               </div>
-            )}
+
+              <div className="configuration-field">
+                <label htmlFor="headers">Headers (JSON):</label>
+                <input
+                  id="headers"
+                  type="text"
+                  value={formData.headers || ''}
+                  onChange={(e) => handleInputChange('headers', e.target.value)}
+                  placeholder='{"Authorization": "Bearer ..."} (或设置 WAVE_CUSTOM_HEADERS)'
+                  disabled={isLoading}
+                />
+              </div>
+
+              <div className="configuration-field">
+                <label htmlFor="baseURL">Base URL:</label>
+                <input
+                  id="baseURL"
+                  type="url"
+                  value={formData.baseURL || ''}
+                  onChange={(e) => handleInputChange('baseURL', e.target.value)}
+                  placeholder="https://api.example.com/v1 (或设置 WAVE_BASE_URL)"
+                  disabled={isLoading}
+                />
+              </div>
+
+              <div className="configuration-field">
+                <label htmlFor="model">Model:</label>
+                <input
+                  id="model"
+                  type="text"
+                  value={formData.model || ''}
+                  onChange={(e) => handleInputChange('model', e.target.value)}
+                  placeholder="请输入模型名称 (或设置 WAVE_MODEL)"
+                  disabled={isLoading}
+                />
+              </div>
+
+              <div className="configuration-field">
+                <label htmlFor="fastModel">Fast Model:</label>
+                <input
+                  id="fastModel"
+                  type="text"
+                  value={formData.fastModel || ''}
+                  onChange={(e) => handleInputChange('fastModel', e.target.value)}
+                  placeholder="请输入快速模型名称 (或设置 WAVE_FAST_MODEL)"
+                  disabled={isLoading}
+                />
+              </div>
+
+              <div className="configuration-field">
+                <label htmlFor="language">语言 (Language):</label>
+                <select
+                  id="language"
+                  value={formData.language}
+                  onChange={(e) => handleInputChange('language', e.target.value)}
+                  disabled={isLoading}
+                  className="configuration-select"
+                >
+                  <option value="Chinese">中文</option>
+                  <option value="English">英文</option>
+                </select>
+              </div>
+
+              {error && (
+                <div className="configuration-error">
+                  {error}
+                </div>
+              )}
+            </div>
 
             <div className="configuration-actions">
               <button

@@ -4,7 +4,7 @@ export interface ConfigurationData {
     apiKey?: string;
     headers?: string;
     baseURL: string;
-    agentModel: string;
+    model: string;
     fastModel: string;
     language?: string;
 }
@@ -17,7 +17,7 @@ export class ConfigurationService {
             apiKey: this.context.globalState.get<string>('apiKey') || '',
             headers: this.context.globalState.get<string>('headers') || '',
             baseURL: this.context.globalState.get<string>('baseURL') || '',
-            agentModel: this.context.globalState.get<string>('agentModel') || '',
+            model: this.context.globalState.get<string>('model') || '',
             fastModel: this.context.globalState.get<string>('fastModel') || '',
             language: this.context.globalState.get<string>('language') || 'Chinese'
         };
@@ -28,7 +28,7 @@ export class ConfigurationService {
             if (configData.apiKey !== undefined) await this.context.globalState.update('apiKey', configData.apiKey);
             if (configData.headers !== undefined) await this.context.globalState.update('headers', configData.headers);
             if (configData.baseURL !== undefined) await this.context.globalState.update('baseURL', configData.baseURL);
-            if (configData.agentModel !== undefined) await this.context.globalState.update('agentModel', configData.agentModel);
+            if (configData.model !== undefined) await this.context.globalState.update('model', configData.model);
             if (configData.fastModel !== undefined) await this.context.globalState.update('fastModel', configData.fastModel);
             if (configData.language !== undefined) await this.context.globalState.update('language', configData.language);
         } catch (error) {

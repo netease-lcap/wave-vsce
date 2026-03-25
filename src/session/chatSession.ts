@@ -91,7 +91,7 @@ export class ChatSession {
                 apiKey: config.apiKey || undefined,
                 defaultHeaders: this.parseHeaders(config.headers),
                 baseURL: config.baseURL || undefined,
-                model: config.agentModel,
+                model: config.model,
                 fastModel: config.fastModel,
                 language: config.language,
                 lspManager: new VscodeLspAdapter(),

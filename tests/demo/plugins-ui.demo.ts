@@ -9,7 +9,7 @@ test.describe('Plugin Configuration UI Demo', () => {
                 configurationData: {
                     apiKey: 'test-key',
                     baseURL: 'https://api.example.com',
-                    agentModel: 'test-model',
+                    model: 'test-model',
                     fastModel: 'fast-model',
                     language: 'Chinese'
                 }

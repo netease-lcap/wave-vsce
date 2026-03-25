@@ -38,7 +38,7 @@ async function demonstrateSimplifiedStreaming() {
         agent = await Agent.create({
             callbacks,
             workdir: process.cwd(),
-            agentModel: 'gemini-2.5-flash'
+            model: 'gemini-2.5-flash'
         });
         
         console.log('✅ Agent created with only onMessagesChange callback!');

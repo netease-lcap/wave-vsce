@@ -10,7 +10,7 @@ test.describe('Language Configuration Demo', () => {
                     apiKey: 'test-key',
                     headers: '',
                     baseURL: 'https://api.example.com',
-                    agentModel: 'gemini-3-flash',
+                    model: 'gemini-3-flash',
                     fastModel: 'gemini-2.5-flash',
                     backendLink: 'https://backend.example.com',
                     language: 'English'

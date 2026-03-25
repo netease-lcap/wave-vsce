@@ -11,7 +11,7 @@ test.describe('Configuration Popup Demo', () => {
                     authMethod: 'apiKey',
                     apiKey: '',
                     baseURL: '',
-                    agentModel: 'gemini-3-flash',
+                    model: 'gemini-3-flash',
                     fastModel: 'gemini-2.5-flash'
                 },
                 error: '请先在设置中配置鉴权信息 (API Key 或 Headers) 和 Base URL。也可以通过环境变量 WAVE_API_KEY/WAVE_CUSTOM_HEADERS 和 WAVE_BASE_URL 进行配置。'

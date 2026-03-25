@@ -5,7 +5,7 @@ test.describe('Language Configuration Logic', () => {
         const config = {
             apiKey: 'test-key',
             baseURL: 'https://api.example.com',
-            agentModel: 'gpt-4',
+            model: 'gpt-4',
             fastModel: 'gpt-3.5-turbo',
             backendLink: 'https://backend.example.com',
             language: 'English'
@@ -18,7 +18,7 @@ test.describe('Language Configuration Logic', () => {
         const config = {
             apiKey: 'test-key',
             baseURL: 'https://api.example.com',
-            agentModel: 'gpt-4',
+            model: 'gpt-4',
             fastModel: 'gpt-3.5-turbo',
             backendLink: 'https://backend.example.com',
             language: ''

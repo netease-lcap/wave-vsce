@@ -21,6 +21,9 @@
     padding: 16px;
     width: 90%;
     max-width: 400px;
+    height: 500px;
+    display: flex;
+    flex-direction: column;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
@@ -62,15 +65,17 @@
 /* Plugins Container */
 .plugins-container {
     display: flex;
+    flex: 1;
     flex-direction: column;
     gap: 12px;
-    min-height: 300px;
+    min-height: 0;
 }
 
 .plugin-tabs {
     display: flex;
     gap: 8px;
     border-bottom: 1px solid var(--vscode-panel-border);
+    flex-shrink: 0;
 }
 
 .plugin-tab {
@@ -91,7 +96,7 @@
 .plugin-content {
     flex: 1;
     overflow-y: auto;
-    max-height: 400px;
+    min-height: 0;
 }
 
 .plugin-list, .marketplace-list {
@@ -307,14 +312,26 @@ input:checked + .slider:before {
 /* Configuration Form */
 .configuration-form {
     display: flex;
+    flex: 1;
     flex-direction: column;
     gap: 12px;
+    min-height: 0;
+}
+
+.configuration-fields-scroll-area {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-right: 4px; /* Space for scrollbar */
 }
 
 .configuration-field {
     display: flex;
     flex-direction: column;
     gap: 4px;
+    flex-shrink: 0;
 }
 
 .configuration-field label {
@@ -391,9 +408,10 @@ input:checked + .slider:before {
     display: flex;
     gap: 8px;
     justify-content: flex-end;
-    margin-top: 16px;
+    margin-top: auto;
     padding-top: 12px;
     border-top: 1px solid var(--vscode-panel-border);
+    flex-shrink: 0;
 }
 
 .configuration-cancel-btn,

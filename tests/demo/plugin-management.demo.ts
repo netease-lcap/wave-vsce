@@ -15,7 +15,7 @@ test.describe('Plugin Management Screenshots', () => {
                 configurationData: {
                     apiKey: 'sk-xxxxxxxxxxxxxxxx',
                     baseURL: 'https://api.openai.com/v1',
-                    agentModel: 'gpt-4',
+                    model: 'gpt-4',
                     fastModel: 'gpt-3.5-turbo',
                     language: 'Chinese'
                 },
