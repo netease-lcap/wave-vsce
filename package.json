@@ -2,7 +2,7 @@
   "name": "wave-vscode-chat",
   "displayName": "Wave 代码智聊",
   "description": "Wave code for VS Code",
-  "version": "0.0.5",
+  "version": "0.1.0",
   "publisher": "wave-code",
   "icon": "LOGO.png",
   "repository": {
@@ -69,7 +69,7 @@
   },
   "scripts": {
     "clean": "node -e \"const fs=require('fs'); ['dist', 'webview/dist'].forEach(d => {try{fs.rmSync(d, {recursive:true, force:true})}catch(e){}})\"",
-    "prepackage": "npm run clean",
+    "prepackage": "npm run clean && npm run compile:backend",
     "compile": "npm run compile:backend && npm run compile:frontend",
     "watch": "npm run watch:backend & npm run watch:frontend",
     "compile:backend": "tsc",
@@ -83,7 +83,9 @@
     "test": "playwright test --project=chromium",
     "pretest:demo": "npm run check-types && npm run compile",
     "test:demo": "playwright test --project=demo",
-    "deploy:spec": "bash scripts/deploy-spec.sh"
+    "deploy:spec": "bash scripts/deploy-spec.sh",
+    "preinstall:vsix": "npm run package",
+    "install:vsix": "code --install-extension wave-vscode-chat-*.vsix"
   },
   "devDependencies": {
     "@playwright/test": "^1.58.2",
