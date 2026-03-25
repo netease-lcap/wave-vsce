@@ -4,6 +4,7 @@ import type { MessageListProps } from '../types';
 import '../styles/MessageList.css';
 
 const welcomeMessage = {
+  id: 'welcome-message',
   role: 'assistant' as const,
   blocks: [{ 
     type: 'text' as const, 
