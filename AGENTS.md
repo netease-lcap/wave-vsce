@@ -16,10 +16,6 @@ This file provides guidance to Wave Code when working with code in this reposito
 - `npm run test:demo -- tests/demo/your-test.demo.ts`: 运行单个演示测试。
 - `npm run package`: 将扩展打包为 `.vsix` 文件。
 
-### GitLab MR 管理
-- **一键创建并开启自动合并**: 使用 `glab` 命令行工具可以快速创建 MR 并开启自动合并：
-  `glab mr create --fill --yes --auto-merge --remove-source-branch`
-
 ## 高层架构 (High-Level Architecture)
 
 本仓库是一个带有基于 React 的 webview 聊天界面的 VS Code 扩展。
