@@ -105,6 +105,7 @@ export interface ChatAppProps {
 
 export interface MessageListProps {
   messages: Message[];
+  queuedMessages?: QueuedMessage[];
   streamingMessageIndex?: number;
   vscode: any;
 }
@@ -112,6 +113,7 @@ export interface MessageListProps {
 export interface MessageProps {
   message: Message;
   isStreaming?: boolean;
+  isQueued?: boolean;
   vscode: any;
 }
 
@@ -198,6 +200,12 @@ export interface SessionSelectorProps {
   disabled: boolean;
 }
 
+export interface QueuedMessage {
+  text: string;
+  images?: Array<{ data: string; mediaType: string; }>;
+  selection?: SelectionInfo;
+}
+
 // Chat state management
 export interface ChatState {
   messages: Message[];
@@ -211,6 +219,7 @@ export interface ChatState {
   sessionsLoading: boolean;
   sessionsError?: string;
   pendingConfirmations: ConfirmationRequest[];
+  queuedMessages: QueuedMessage[];
   // Configuration state
   showConfiguration: boolean;
   configurationData?: ConfigurationData;
@@ -332,6 +341,7 @@ export type ChatAction =
   | { type: 'SET_CONFIGURATION_DATA'; payload: ConfigurationData }
   | { type: 'UPDATE_SELECTION'; payload: SelectionInfo | undefined }
   | { type: 'SET_PERMISSION_MODE'; payload: PermissionMode }
+  | { type: 'SET_QUEUED_MESSAGES'; payload: QueuedMessage[] }
   | { type: 'SET_INITIAL_STATE'; payload: {
       messages: Message[];
       tasks?: Task[];
@@ -344,4 +354,5 @@ export type ChatAction =
       inputContent?: string;
       permissionMode?: PermissionMode;
       attachedImages?: AttachedImage[];
+      queuedMessages?: QueuedMessage[];
     } };

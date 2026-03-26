@@ -27,6 +27,7 @@ const initialState: ChatState = {
   sessionsLoading: false,
   sessionsError: undefined,
   pendingConfirmations: [],
+  queuedMessages: [],
   // Configuration state
   showConfiguration: false,
   configurationData: undefined,
@@ -153,6 +154,7 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
         currentSession: action.payload.currentSession || state.currentSession,
         configurationData: action.payload.configurationData || state.configurationData,
         pendingConfirmations: action.payload.pendingConfirmations || [],
+        queuedMessages: action.payload.queuedMessages || [],
         inputContent: action.payload.inputContent,
         selection: action.payload.selection,
         permissionMode: action.payload.permissionMode || state.permissionMode,
@@ -164,6 +166,11 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
       return {
         ...state,
         selection: action.payload
+      };
+    case 'SET_QUEUED_MESSAGES':
+      return {
+        ...state,
+        queuedMessages: action.payload
       };
     case 'SET_PERMISSION_MODE':
       return {
@@ -202,6 +209,9 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
           break;
         case 'updatePermissionMode':
           dispatch({ type: 'SET_PERMISSION_MODE', payload: message.mode });
+          break;
+        case 'updateQueue':
+          dispatch({ type: 'SET_QUEUED_MESSAGES', payload: message.queue });
           break;
         // Test-only handlers 
         case 'startStreaming':
@@ -255,7 +265,8 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
               selection: message.selection,
               inputContent: message.inputContent,
               permissionMode: message.permissionMode,
-              attachedImages: message.attachedImages
+              attachedImages: message.attachedImages,
+              queuedMessages: message.queuedMessages
             }
           });
           break;
@@ -289,7 +300,7 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
 
   const handleSendMessage = useCallback((text: string, images?: Array<{ data: string; mediaType: string; }>, selection?: any) => {
     const trimmedText = text.trim();
-    if (state.isStreaming || (!trimmedText && (!images || images.length === 0))) return;
+    if (!trimmedText && (!images || images.length === 0)) return;
 
     // Send to extension
     vscode.postMessage({
@@ -298,7 +309,7 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
       images: images,
       selection: selection
     });
-  }, [state.isStreaming, vscode]);
+  }, [vscode]);
 
   const handleClearChat = useCallback(() => {
     if (state.isStreaming) return;
@@ -418,6 +429,7 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
       
       <MessageList 
         messages={state.messages} 
+        queuedMessages={state.queuedMessages}
         streamingMessageIndex={streamingMessageIndex}
         vscode={vscode}
       />

@@ -655,7 +655,7 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
     const { markdown, images: extractedImages } = convertToMarkdown(textareaRef.current);
     const allImages = [...attachedImages, ...extractedImages];
 
-    if ((markdown.trim() || allImages.length > 0) && !disabled && !isStreaming) {
+    if ((markdown.trim() || allImages.length > 0) && !disabled) {
       // Convert attached images to base64 format for SDK
       const images = allImages.map(img => ({
         data: img.data, // This is already base64 data URL
@@ -1046,11 +1046,10 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
             className="send-button"
             onClick={handleSend}
             disabled={disabled || (!message.trim() && attachedImages.length === 0)}
-            style={{ display: isStreaming ? 'none' : 'block' }}
             data-testid="send-btn"
-            title="发送"
+            title={isStreaming ? "加入队列" : "发送"}
           >
-            <i className="codicon codicon-arrow-up"></i>
+            <i className={`codicon ${isStreaming ? 'codicon-list-ordered' : 'codicon-arrow-up'}`}></i>
           </button>
         </div>
 

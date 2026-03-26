@@ -12,11 +12,12 @@ const welcomeMessage = {
   }]
 };
 
-export const MessageList: React.FC<MessageListProps> = ({ messages, streamingMessageIndex, vscode }) => {
+export const MessageList: React.FC<MessageListProps> = ({ messages, queuedMessages, streamingMessageIndex, vscode }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const prevMessagesLengthRef = useRef(messages.length);
+  const prevQueuedLengthRef = useRef(queuedMessages?.length || 0);
 
   // Auto-scroll to bottom when messages change, streaming updates, or subagent messages update
   useEffect(() => {
@@ -24,8 +25,9 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, streamingMes
     const messagesEnd = messagesEndRef.current;
     if (!container || !messagesEnd) return;
 
-    const isNewMessage = messages.length > prevMessagesLengthRef.current;
+    const isNewMessage = messages.length > prevMessagesLengthRef.current || (queuedMessages?.length || 0) > prevQueuedLengthRef.current;
     prevMessagesLengthRef.current = messages.length;
+    prevQueuedLengthRef.current = queuedMessages?.length || 0;
 
     const scrollToBottom = (behavior: ScrollBehavior = 'smooth', force = false) => {
       const isNearBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 200;
@@ -54,7 +56,7 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, streamingMes
     return () => {
       resizeObserver.disconnect();
     };
-  }, [messages, streamingMessageIndex]);
+  }, [messages, queuedMessages, streamingMessageIndex]);
 
   return (
     <div 
@@ -79,6 +81,28 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, streamingMes
             key={`${message.role}-${index}`}
             message={message}
             isStreaming={isStreaming}
+            vscode={vscode}
+          />
+        );
+      })}
+
+      {/* Queued messages */}
+      {(queuedMessages || []).map((qm, index) => {
+        const message = {
+          id: `queued-${index}`,
+          role: 'user' as const,
+          blocks: [
+            { type: 'text' as const, content: qm.text },
+            ...(qm.images || []).map(img => ({ type: 'image' as const, imageUrls: [img.data] })),
+            ...(qm.selection ? [{ type: 'text' as const, content: `\n\n[Selection: ${qm.selection.fileName}#${qm.selection.startLine}-${qm.selection.endLine}]` }] : [])
+          ]
+        };
+
+        return (
+          <Message
+            key={`queued-${index}`}
+            message={message as any}
+            isQueued={true}
             vscode={vscode}
           />
         );

@@ -24,6 +24,25 @@
     background-color: var(--vscode-chat-requestBubbleHoverBackground);
 }
 
+.message.user.queued {
+    opacity: 0.7;
+    border: 1px dashed var(--vscode-panel-border);
+}
+
+.queued-label {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    color: var(--vscode-descriptionForeground);
+    margin-bottom: 6px;
+    font-weight: 500;
+}
+
+.queued-label i {
+    font-size: 12px;
+}
+
 .message.assistant .error {
     color: var(--vscode-descriptionForeground);
     font-style: italic;

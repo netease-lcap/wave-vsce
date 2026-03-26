@@ -99,12 +99,15 @@ const parseMarkdownWithMermaid = (content: string): ParsedMarkdownContent => {
 
 
 export const Message: React.FC<MessageProps> = (props) => {
-  const { message, isStreaming = false } = props;
+  const { message, isStreaming = false, isQueued = false } = props;
   const getMessageClassName = () => {
     const classes = ['message'];
     
     if (message.role === 'user') {
       classes.push('user');
+      if (isQueued) {
+        classes.push('queued');
+      }
     } else if (message.role === 'assistant') {
       classes.push('assistant');
       if (isStreaming) {
@@ -465,6 +468,12 @@ export const Message: React.FC<MessageProps> = (props) => {
           return (
             <div key={index} className="user-message-wrapper">
               <div className="message-content user-content">
+                {isQueued && (
+                  <div className="queued-label">
+                    <i className="codicon codicon-clock"></i>
+                    <span>已排队</span>
+                  </div>
+                )}
                 {parts.map((part, pIndex) => {
                   if (part.type === 'mention') {
                     return (

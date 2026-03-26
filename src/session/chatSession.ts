@@ -9,9 +9,16 @@ export interface ChatSessionCallbacks {
     onTasksChange: (tasks: Task[]) => void;
     onSessionIdChange: (sessionId: string) => void;
     onStreamingChange: (isStreaming: boolean) => void;
+    onQueueChange: (queue: QueuedMessage[]) => void;
     onPermissionModeChange: (mode: PermissionMode) => void;
     onToolPermissionRequest: (context: ToolPermissionContext) => Promise<PermissionDecision>;
     onError: (error: any) => void;
+}
+
+export interface QueuedMessage {
+    text: string;
+    images?: Array<{ data: string; mediaType: string; }>;
+    selection?: SelectionInfo;
 }
 
 export class ChatSession {
@@ -22,6 +29,7 @@ export class ChatSession {
     public isStreaming: boolean = false;
     public isInitializing: boolean = false;
     public inputContent: string = '';
+    public messageQueue: QueuedMessage[] = [];
     public pendingConfirmations: Map<string, { 
         resolve: (decision: PermissionDecision) => void; 
         toolName: string;
@@ -115,6 +123,12 @@ export class ChatSession {
             throw new Error('智能体未初始化');
         }
 
+        if (this.isStreaming) {
+            this.messageQueue.push({ text, images, selection });
+            this.callbacks.onQueueChange(this.messageQueue);
+            return;
+        }
+
         try {
             this.isStreaming = true;
             this.callbacks.onStreamingChange(true);
@@ -135,12 +149,24 @@ export class ChatSession {
             
             await this.agent.sendMessage(fullText, processedImages);
             
-            this.isStreaming = false;
-            this.callbacks.onStreamingChange(false);
         } catch (error) {
+            throw error;
+        } finally {
             this.isStreaming = false;
             this.callbacks.onStreamingChange(false);
-            throw error;
+            
+            // Process next message in queue
+            if (this.messageQueue.length > 0) {
+                const nextMessage = this.messageQueue.shift()!;
+                this.callbacks.onQueueChange(this.messageQueue);
+                // Use setTimeout to avoid deep recursion and allow UI to update
+                setTimeout(() => {
+                    this.sendMessage(nextMessage.text, nextMessage.images, nextMessage.selection).catch(err => {
+                        console.error('Error processing queued message:', err);
+                        this.callbacks.onError(err);
+                    });
+                }, 0);
+            }
         }
     }
 
@@ -148,6 +174,7 @@ export class ChatSession {
         if (this.agent) {
             this.agent.abortMessage();
         }
+        this.clearQueue();
     }
 
     public async clearChat() {
@@ -157,6 +184,14 @@ export class ChatSession {
             this.agent.clearMessages();
             this.throttledUpdateChatMessages([]);
         }
+        this.clearQueue();
+    }
+
+    private clearQueue() {
+        if (this.messageQueue.length > 0) {
+            this.messageQueue = [];
+            this.callbacks.onQueueChange(this.messageQueue);
+        }
     }
 
     public async restoreSession(sessionId: string) {
@@ -165,6 +200,7 @@ export class ChatSession {
             this.inputContent = '';
             await this.agent.restoreSession(sessionId);
         }
+        this.clearQueue();
     }
 
     public async updateConfig(config: ConfigurationData, extensionMode: vscode.ExtensionMode) {
@@ -183,6 +219,7 @@ export class ChatSession {
             // 重新初始化
             await this.initialize(config, extensionMode, currentSessionId);
         }
+        this.clearQueue();
     }
 
     private parseHeaders(headersStr?: string): Record<string, string> | undefined {
@@ -262,5 +299,6 @@ export class ChatSession {
         this.pendingConfirmations.clear();
         this.isStreaming = false;
         this.pendingUpdate = false;
+        this.messageQueue = [];
     }
 }

@@ -100,6 +100,7 @@
         <ul>
           <li><a href="#welcome-interface">1.1 欢迎界面</a></li>
           <li><a href="#basic-chat">1.2 基础对话</a></li>
+          <li><a href="#message-queuing">1.3 消息队列</a></li>
         </ul>
       </li>
       <li><a href="#intelligent-input-context">2. 智能输入与上下文</a>
@@ -163,6 +164,21 @@
 <p>支持 Markdown 格式的文本交互，能够生成带有语法高亮的代码块，方便用户直接阅读和复制。</p>
 <figure>
 <img src="./screenshots/spec-basic-chat.png" alt="" /><figcaption>基础对话</figcaption>
+</figure>
+<h3 id="message-queuing">1.3 消息队列</h3>
+<p>当 AI 正在处理当前请求并进行流式输出时，用户仍然可以发送新消息。这些消息会自动进入队列，并在当前任务完成后按顺序自动执行。</p>
+<p><strong>主要特性：</strong></p>
+<ul>
+<li><strong>忙碌时发送</strong>：在 AI 运行时，发送按钮会变为“加入队列”图标，点击即可将消息加入队列。</li>
+<li><strong>视觉反馈</strong>：排队中的消息会显示在消息列表末尾，并带有“已排队”标识和半透明效果。</li>
+<li><strong>自动执行</strong>：当前任务完成后，下一条排队消息会自动开始处理，无需用户手动干预。</li>
+<li><strong>队列管理</strong>：点击“停止”按钮、按下 <code>Esc</code> 键或“清除聊天”会同时清空当前任务和所有排队消息。</li>
+</ul>
+<figure>
+<img src="./screenshots/spec-queue-button.png" alt="" /><figcaption>加入队列按钮</figcaption>
+</figure>
+<figure>
+<img src="./screenshots/spec-queued-message.png" alt="" /><figcaption>已排队的消息</figcaption>
 </figure>
 <hr />
     <h2 id="intelligent-input-context">2. 智能输入与上下文</h2>
