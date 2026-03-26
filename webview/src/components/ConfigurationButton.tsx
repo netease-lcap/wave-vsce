@@ -21,7 +21,7 @@ const ConfigurationButton: React.FC<ConfigurationButtonProps> = ({
       type="button"
       title="配置 AI 设置"
     >
-      配置
+      <i className="codicon codicon-settings"></i>
     </button>
   );
 };

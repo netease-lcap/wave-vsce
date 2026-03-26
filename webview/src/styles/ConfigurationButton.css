@@ -1,23 +1,31 @@
 /* Configuration button */
 .configuration-button {
+    background-color: transparent;
+    color: var(--vscode-foreground);
     border: none;
-    padding: 4px 12px;
-    border-radius: 4px;
+    padding: 4px;
+    border-radius: 3px;
     cursor: pointer;
-    font-size: 12px;
-    height: 28px;
-    min-width: 50px;
-    flex-shrink: 0;
-    background-color: var(--vscode-button-secondaryBackground);
-    color: var(--vscode-button-secondaryForeground);
+    display: flex;
+    align-items: center;
+    justify-content: center;
     position: relative;
+    flex-shrink: 0;
 }
 
 .configuration-button:hover {
-    background-color: var(--vscode-button-secondaryHoverBackground);
+    background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+.configuration-button .codicon {
+    font-size: 16px;
 }
 
 .configuration-button:disabled {
-    opacity: 0.5;
+    opacity: 0.4;
     cursor: not-allowed;
+}
+
+.configuration-button:disabled:hover {
+    background-color: transparent;
 }

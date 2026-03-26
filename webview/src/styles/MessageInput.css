@@ -52,34 +52,51 @@
 .send-button,
 .abort-button {
     border: none;
-    padding: 4px 12px;
-    border-radius: 4px;
     cursor: pointer;
-    font-size: 12px;
     height: 28px;
-    min-width: 50px;
     flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .send-button {
     background-color: var(--vscode-button-background);
     color: var(--vscode-button-foreground);
+    border-radius: 50%;
+    width: 28px;
+    padding: 0;
+    font-size: 16px;
+}
+
+.send-button i.codicon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    line-height: 1;
+    color: var(--vscode-button-foreground);
+    opacity: 1;
+    font-weight: bold;
+}
+
+.abort-button {
+    background-color: var(--vscode-inputValidation-errorBackground);
+    color: var(--vscode-inputValidation-errorForeground);
+    border-radius: 4px;
+    padding: 4px 8px;
+    width: 32px;
+    font-size: 14px;
 }
 
 .send-button:hover {
     background-color: var(--vscode-button-hoverBackground);
 }
 
-
-
 .send-button:disabled {
     opacity: 0.5;
     cursor: not-allowed;
-}
-
-.abort-button {
-    background-color: var(--vscode-inputValidation-errorBackground);
-    color: var(--vscode-inputValidation-errorForeground);
 }
 
 .abort-button:hover {

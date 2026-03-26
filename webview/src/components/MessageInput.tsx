@@ -1051,8 +1051,6 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
             />
           </div>
 
-          <div className="button-spacer" />
-
           <div ref={configButtonRef}>
             <ConfigurationButton
               onClick={handleConfigurationClick}
@@ -1060,14 +1058,17 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
             />
           </div>
 
+          <div className="button-spacer" />
+
           <button
             className="abort-button"
             id="abortButton"
             onClick={onAbortMessage}
             style={{ display: isStreaming ? 'block' : 'none' }}
             data-testid="abort-btn"
+            title="停止"
           >
-            停止
+            <i className="codicon codicon-debug-stop"></i>
           </button>
 
           <button
@@ -1077,8 +1078,9 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
             disabled={disabled || (!message.trim() && attachedImages.length === 0)}
             style={{ display: isStreaming ? 'none' : 'block' }}
             data-testid="send-btn"
+            title="发送"
           >
-            发送
+            <i className="codicon codicon-arrow-up"></i>
           </button>
         </div>
 
