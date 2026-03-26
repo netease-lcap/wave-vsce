@@ -6,7 +6,7 @@
     font-size: 13px;
     background-color: var(--vscode-badge-background);
     color: var(--vscode-badge-foreground);
-    margin: 0 2px;
+    margin: 2px;
     user-select: none;
     max-width: 200px;
     overflow: hidden;
