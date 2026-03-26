@@ -17,8 +17,8 @@ This file provides guidance to Wave Code when working with code in this reposito
 - `npm run package`: 将扩展打包为 `.vsix` 文件。
 
 ### GitLab MR 管理
-- **一键创建并开启自动合并**: 使用 `git push` 选项可以同时创建 MR 并开启自动合并：
-  `git push -o merge_request.create -o merge_request.target=master -o merge_request.merge_when_pipeline_succeeds -o merge_request.remove_source_branch -u origin <branch-name>`
+- **一键创建并开启自动合并**: 使用 `glab` 命令行工具可以快速创建 MR 并开启自动合并：
+  `glab mr create --fill --yes --auto-merge --remove-source-branch`
 
 ## 高层架构 (High-Level Architecture)
 
