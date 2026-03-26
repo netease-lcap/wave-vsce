@@ -470,7 +470,7 @@ export const Message: React.FC<MessageProps> = (props) => {
                     return (
                       <ContextTag 
                         key={pIndex}
-                        name={part.path?.split(/[/\\]/).pop() || ''}
+                        name={part.path?.replace(/[/\\]$/, '').split(/[/\\]/).pop() || ''}
                         path={part.path || ''}
                         isImage={part.isImage}
                         icon={part.isImage ? 'codicon-file-media' : 'codicon-file-code'}
