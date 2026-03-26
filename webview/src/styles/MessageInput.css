@@ -105,40 +105,37 @@
     display: flex;
 }
 
-.permission-mode-toggle {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 4px 8px;
+.permission-mode-select {
+    background-color: transparent;
+    border: 1px solid transparent;
     border-radius: 4px;
     font-size: 12px;
     color: var(--vscode-descriptionForeground);
     cursor: pointer;
-    user-select: none;
+    padding: 2px 4px;
+    outline: none;
+    font-family: inherit;
     transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-.permission-mode-toggle:hover,
-.permission-mode-toggle:focus-visible {
+.permission-mode-select:hover,
+.permission-mode-select:focus {
     background-color: var(--vscode-toolbar-hoverBackground);
     color: var(--vscode-foreground);
-    outline: 1px solid var(--vscode-focusBorder);
-    outline-offset: -1px;
+    border-color: var(--vscode-focusBorder);
 }
 
-.permission-mode-toggle.mode-acceptEdits {
+.permission-mode-select.mode-acceptEdits {
     color: var(--vscode-gitDecoration-addedResourceForeground);
 }
 
-.permission-mode-toggle.mode-plan {
+.permission-mode-select.mode-plan {
     color: var(--vscode-gitDecoration-submoduleResourceForeground);
 }
 
-/* Removed font-weight to make it less jarring */
-
-.permission-mode-toggle i.codicon {
-    font-size: 12px !important;
-    color: inherit;
+.permission-mode-select option {
+    background-color: var(--vscode-dropdown-background);
+    color: var(--vscode-dropdown-foreground);
 }
 /* Selection Tag */
 .selection-tag {

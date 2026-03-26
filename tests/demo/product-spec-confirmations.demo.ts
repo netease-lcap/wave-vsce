@@ -101,53 +101,36 @@ test.describe('Product Specification Screenshots - Confirmations', () => {
         await webviewPage.keyboard.press('Escape');
         await webviewPage.waitForSelector('.configuration-dialog', { state: 'hidden' });
 
-        // 12. Permission Mode Toggle - Show all three modes
+        // 12. Permission Mode Select - Show all three modes
         const inputContainer = webviewPage.locator('.input-container');
         
         // Mode 1: Default (修改前询问)
         await injector.simulateExtensionMessage('updatePermissionMode', {
             mode: 'default'
         });
-        await webviewPage.waitForSelector('.permission-mode-toggle:has-text("修改前询问")');
-        
-        // Click to show dropdown
-        await webviewPage.click('.permission-mode-toggle');
-        await webviewPage.waitForSelector('.permission-mode-dropdown', { state: 'visible', timeout: 5000 });
+        await webviewPage.waitForSelector('.permission-mode-select');
+        await expect(webviewPage.locator('.permission-mode-select')).toHaveValue('default');
         await webviewPage.screenshot({ path: 'screenshots/spec-permission-mode-default.png' });
-        await webviewPage.click('.permission-mode-toggle'); // Click again to close
-        await webviewPage.waitForSelector('.permission-mode-dropdown', { state: 'hidden', timeout: 5000 });
 
         // Mode 2: Accept Edits (自动接受修改)
         await injector.simulateExtensionMessage('updatePermissionMode', {
             mode: 'acceptEdits'
         });
-        await webviewPage.waitForSelector('.permission-mode-toggle:has-text("自动接受修改")');
-        
-        // Click to show dropdown
-        await webviewPage.click('.permission-mode-toggle');
-        await webviewPage.waitForSelector('.permission-mode-dropdown', { state: 'visible', timeout: 5000 });
+        await expect(webviewPage.locator('.permission-mode-select')).toHaveValue('acceptEdits');
         await webviewPage.screenshot({ path: 'screenshots/spec-permission-mode-accept.png' });
-        await webviewPage.click('.permission-mode-toggle'); // Click again to close
-        await webviewPage.waitForSelector('.permission-mode-dropdown', { state: 'hidden', timeout: 5000 });
 
         // Mode 3: Plan Mode (计划模式)
         await injector.simulateExtensionMessage('updatePermissionMode', {
             mode: 'plan'
         });
-        await webviewPage.waitForSelector('.permission-mode-toggle:has-text("计划模式")');
-        
-        // Click to show dropdown
-        await webviewPage.click('.permission-mode-toggle');
-        await webviewPage.waitForSelector('.permission-mode-dropdown', { state: 'visible', timeout: 5000 });
+        await expect(webviewPage.locator('.permission-mode-select')).toHaveValue('plan');
         await webviewPage.screenshot({ path: 'screenshots/spec-permission-mode-plan.png' });
-        await webviewPage.click('.permission-mode-toggle'); // Click again to close
-        await webviewPage.waitForSelector('.permission-mode-dropdown', { state: 'hidden', timeout: 5000 });
 
         // Reset to default for remaining screenshots
         await injector.simulateExtensionMessage('updatePermissionMode', {
             mode: 'default'
         });
-        await webviewPage.waitForSelector('.permission-mode-toggle:has-text("修改前询问")');
+        await expect(webviewPage.locator('.permission-mode-select')).toHaveValue('default');
 
         // 15. Plan 确认对话框 - 只显示确认对话框组件
         await injector.simulateExtensionMessage('showConfirmation', {

@@ -27,13 +27,11 @@ test.describe('Plan Mode Initialization', () => {
         // Wait for state update
         await webviewPage.waitForTimeout(500);
 
-        // Verify the permission mode toggle shows "计划模式"
-        const toggle = webviewPage.locator('.permission-mode-toggle');
-        await expect(toggle).toBeVisible();
-        const text = await toggle.innerText();
-        console.log('Toggle text:', text);
-        await expect(toggle).toContainText('计划模式');
-        await expect(toggle).toHaveClass(/mode-plan/);
+        // Verify the permission mode select shows "计划模式"
+        const select = webviewPage.locator('.permission-mode-select');
+        await expect(select).toBeVisible();
+        await expect(select).toHaveValue('plan');
+        await expect(select).toHaveClass(/mode-plan/);
 
         // Verify that no error message like "plan file not set" is displayed
         // (Assuming errors are displayed in the message container or as a notification)
