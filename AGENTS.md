@@ -16,6 +16,11 @@ This file provides guidance to Wave Code when working with code in this reposito
 - `npm run test:demo -- tests/demo/your-test.demo.ts`: 运行单个演示测试。
 - `npm run package`: 将扩展打包为 `.vsix` 文件。
 
+### GitLab MR 管理
+- **自动合并 (Auto-merge)**: 当 `glab mr merge --auto-merge` 失败时，可以使用 GitLab API 直接启用：
+  `glab api projects/vusion%2Fwave-vsce/merge_requests/<iid>/merge -X PUT -F merge_when_pipeline_succeeds=true -F should_remove_source_branch=true`
+  *注意：`<iid>` 是 MR 的编号。*
+
 ## 高层架构 (High-Level Architecture)
 
 本仓库是一个带有基于 React 的 webview 聊天界面的 VS Code 扩展。
@@ -42,7 +47,8 @@ This file provides guidance to Wave Code when working with code in this reposito
 该扩展严重依赖 `wave-agent-sdk` 来实现 AI 能力。智能体使用项目特定的工具（Bash、文件操作、LSP）进行初始化，并处理复杂的推理和工具执行逻辑。
 
 ## 测试策略 (Testing Strategy)
-- **Bug 修复的 TDD**: 所有 Bug 修复必须遵循测试驱动开发 (TDD) 方法。
+- **强制性 TDD**: 任何代码变更（包括 Bug 修复、新功能开发、重构等）都必须遵循测试驱动开发 (TDD) 方法。
+- **必须编写测试**: 在提交任何更改之前，必须编写并验证相应的测试用例（如 Playwright E2E 测试）。
 - **UI 验证**: 对于 UI 更改，使用 `tests/demo/` 编写 Playwright 脚本，模拟扩展消息并捕获截图，以便进行手动或自动验证。
 - **LSP 探索**: 使用 `LSP` 工具探索第三方库（如 `wave-agent-sdk`），因为源代码可能不在 `src` 文件夹中。
 
