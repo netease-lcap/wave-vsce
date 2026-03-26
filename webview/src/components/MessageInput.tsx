@@ -1068,7 +1068,7 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
             data-testid="abort-btn"
             title="停止"
           >
-            <i className="codicon codicon-debug-stop"></i>
+            <i className="codicon codicon-stop-circle"></i>
           </button>
 
           <button
