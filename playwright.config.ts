@@ -23,6 +23,8 @@ export default defineConfig({
   },
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
+    /* Default viewport size (simulating VS Code sidebar) */
+    viewport: { width: 400, height: 800 },
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
     /* Screenshot on failure */
@@ -37,13 +39,17 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      use: { 
+        ...devices['Desktop Chrome'],
+        viewport: { width: 400, height: 800 }
+      },
       testIgnore: '**/demo/**',
     },
     {
       name: 'demo',
       use: {
         ...devices['Desktop Chrome'],
+        viewport: { width: 400, height: 800 },
         screenshot: 'on',
       },
       testMatch: '**/demo/**/*.demo.ts',

@@ -23,9 +23,6 @@ test.describe('Product Specification Screenshots', () => {
         const injector = new MessageInjector(webviewPage);
         const ui = new UIStateVerifier(webviewPage);
 
-        // Set viewport size for better screenshots (simulating VS Code sidebar)
-        await webviewPage.setViewportSize({ width: 400, height: 800 });
-
         // Provide initial state with valid configuration
         await injector.simulateExtensionMessage('setInitialState', {
             messages: [],
