@@ -8,10 +8,10 @@ This file provides guidance to Wave Code when working with code in this reposito
 - `npm run compile`: 编译后端 (TypeScript) 和前端 (Webpack)。
 - `npm run compile:backend`: 仅编译 VS Code 扩展后端。
 - `npm run compile:frontend`: 仅编译 React webview 前端。
-- `npm run watch`: 同时运行后端和前端的监听器。
+- `npm run watch`: 同时运行后端 and 前端的监听器。
 
 ### 测试 (Testing)
-- `npm test`: 运行 Playwright 端到端测试。
+- `npm test`: 运行 Playwright 端到端测试.
 - `npm run test:demo`: 运行演示专用 Playwright 测试（用于生成截图和验证 UI）。
 - `npm run test:demo -- tests/demo/your-test.demo.ts`: 运行单个演示测试。
 - `npm run package`: 将扩展打包为 `.vsix` 文件。
@@ -20,6 +20,8 @@ This file provides guidance to Wave Code when working with code in this reposito
 - **自动合并 (Auto-merge)**: 当 `glab mr merge --auto-merge` 失败时，可以使用 GitLab API 直接启用：
   `glab api projects/vusion%2Fwave-vsce/merge_requests/<iid>/merge -X PUT -F merge_when_pipeline_succeeds=true -F should_remove_source_branch=true`
   *注意：`<iid>` 是 MR 的编号。*
+- **一键创建并开启自动合并**: 使用 `git push` 选项可以同时创建 MR 并开启自动合并：
+  `git push -o merge_request.create -o merge_request.target=master -o merge_request.merge_when_pipeline_succeeds -o merge_request.remove_source_branch -u origin <branch-name>`
 
 ## 高层架构 (High-Level Architecture)
 
