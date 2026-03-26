@@ -17,9 +17,6 @@ This file provides guidance to Wave Code when working with code in this reposito
 - `npm run package`: 将扩展打包为 `.vsix` 文件。
 
 ### GitLab MR 管理
-- **自动合并 (Auto-merge)**: 当 `glab mr merge --auto-merge` 失败时，可以使用 GitLab API 直接启用：
-  `glab api projects/vusion%2Fwave-vsce/merge_requests/<iid>/merge -X PUT -F merge_when_pipeline_succeeds=true -F should_remove_source_branch=true`
-  *注意：`<iid>` 是 MR 的编号。*
 - **一键创建并开启自动合并**: 使用 `git push` 选项可以同时创建 MR 并开启自动合并：
   `git push -o merge_request.create -o merge_request.target=master -o merge_request.merge_when_pipeline_succeeds -o merge_request.remove_source_branch -u origin <branch-name>`
 
