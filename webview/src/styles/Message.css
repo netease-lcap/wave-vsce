@@ -22,6 +22,10 @@
 .message.assistant .error {
     color: var(--vscode-descriptionForeground);
     font-style: italic;
+    max-height: 200px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
 }
 
 .message.streaming::after {
@@ -91,6 +95,10 @@
     color: var(--vscode-descriptionForeground);
     font-style: italic;
     margin-top: 4px;
+    max-height: 200px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
 }
 
 /* Reasoning blocks */

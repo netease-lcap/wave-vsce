@@ -128,6 +128,7 @@
           <li><a href="#skill-system">3.14 Skill 技能系统</a></li>
           <li><a href="#mcp-integration">3.15 MCP 协议集成</a></li>
           <li><a href="#ai-reasoning">3.16 AI 思考过程</a></li>
+          <li><a href="#error-message-display">3.17 错误消息展示</a></li>
         </ul>
       </li>
       <li><a href="#session-config-management">4. 会话与配置管理</a>
@@ -291,6 +292,10 @@
 <figure>
 <img src="./screenshots/spec-reasoning.png" alt="" /><figcaption>AI 思考过程</figcaption>
 </figure>
+<h3 id="error-message-display">3.17 错误消息展示</h3>
+<p>当工具执行出错或 AI 返回错误信息时，Wave 会以醒目的方式展示错误内容。为了防止过长的错误消息占据过多屏幕空间，错误消息区域设置了最大高度，并支持内部滚动。</p>
+<p><strong>主要特性：</strong> - 醒目的错误样式标识 - 自动限制最大高度（200px） - 支持内部垂直滚动，方便查看完整错误信息 - 保持原始格式（如换行和空格）</p>
+<p><img src="./screenshots/tool-error-scrollable.png" alt="工具执行错误" /> <img src="./screenshots/error-block-scrollable.png" alt="通用错误消息" /></p>
 <hr />
 <h2 id="session-config-management">4. 会话与配置管理</h2>
 <h3 id="session-management">4.1 会话管理</h3>
