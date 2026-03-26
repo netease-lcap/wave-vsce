@@ -1,7 +1,6 @@
 .context-tag {
     display: inline-flex;
     align-items: center;
-    gap: 4px;
     padding: 2px 8px;
     border-radius: 4px;
     font-size: 13px;
@@ -9,13 +8,10 @@
     color: var(--vscode-badge-foreground);
     margin: 0 2px;
     user-select: none;
-    vertical-align: middle;
     max-width: 200px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    font-weight: 500;
-    border: 1px solid transparent;
 }
 
 .context-tag .tag-at {
@@ -27,7 +23,6 @@
 .context-tag.clickable {
     cursor: pointer;
     transition: all 0.2s ease;
-    border-color: var(--vscode-button-border, transparent);
 }
 
 .context-tag.clickable:hover {

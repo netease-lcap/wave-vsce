@@ -11,12 +11,17 @@
 }
 
 .message.user {
-    background-color: var(--vscode-button-background);
-    color: var(--vscode-button-foreground);
+    background-color: var(--vscode-chat-requestBubbleBackground);
+    color: var(--vscode-foreground);
     border-radius: 8px;
     padding: 8px 12px;
     margin-bottom: 8px;
     overflow-wrap: break-word; /* 长词自动换行 */
+    transition: background-color 0.2s ease;
+}
+
+.message.user:hover {
+    background-color: var(--vscode-chat-requestBubbleHoverBackground);
 }
 
 .message.assistant .error {
@@ -580,7 +585,7 @@
 .selection-reference {
     margin-top: 8px;
     padding-top: 8px;
-    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    border-top: 1px solid var(--vscode-panel-border, rgba(255, 255, 255, 0.2));
     font-size: 12px;
     opacity: 0.9;
 }
