@@ -162,7 +162,7 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
     let decision: any;
     if (confirmation.toolName === BASH_TOOL_NAME) {
       const rule = confirmation.suggestedPrefix
-        ? `Bash(${confirmation.suggestedPrefix}:*)`
+        ? `Bash(${confirmation.suggestedPrefix})`
         : `Bash(${confirmation.toolInput?.command})`;
       decision = {
         behavior: 'allow',
