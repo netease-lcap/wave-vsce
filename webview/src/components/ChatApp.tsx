@@ -19,6 +19,7 @@ const initialState: ChatState = {
   messages: [],
   tasks: [],
   isTaskListVisible: false,
+  isTaskListCollapsed: false,
   isStreaming: false,
   inputDisabled: false,
   shouldClearInput: false,
@@ -51,12 +52,24 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
         ...state,
         tasks: action.payload,
         // Auto-show task list when tasks are first created
-        isTaskListVisible: state.tasks.length === 0 && action.payload.length > 0 ? true : state.isTaskListVisible
+        isTaskListVisible: state.tasks.length === 0 && action.payload.length > 0 ? true : state.isTaskListVisible,
+        // Auto-expand task list when tasks are first created
+        isTaskListCollapsed: state.tasks.length === 0 && action.payload.length > 0 ? false : state.isTaskListCollapsed
       };
     case 'TOGGLE_TASK_LIST':
       return {
         ...state,
         isTaskListVisible: !state.isTaskListVisible
+      };
+    case 'TOGGLE_TASK_LIST_COLLAPSE':
+      return {
+        ...state,
+        isTaskListCollapsed: !state.isTaskListCollapsed
+      };
+    case 'SET_TASK_LIST_COLLAPSED':
+      return {
+        ...state,
+        isTaskListCollapsed: action.payload
       };
     case 'START_STREAMING':
       return {
@@ -149,6 +162,7 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
         messages: action.payload.messages,
         tasks: action.payload.tasks || [],
         isTaskListVisible: (action.payload.tasks && action.payload.tasks.length > 0) ? true : state.isTaskListVisible,
+        isTaskListCollapsed: action.payload.isTaskListCollapsed !== undefined ? action.payload.isTaskListCollapsed : state.isTaskListCollapsed,
         isStreaming: action.payload.isStreaming !== undefined ? action.payload.isStreaming : state.isStreaming,
         sessions: action.payload.sessions || state.sessions || [],
         currentSession: action.payload.currentSession || state.currentSession,
@@ -203,6 +217,9 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
           break;
         case 'updateTasks':
           dispatch({ type: 'SET_TASKS', payload: message.tasks });
+          if (message.isTaskListCollapsed !== undefined) {
+            dispatch({ type: 'SET_TASK_LIST_COLLAPSED', payload: message.isTaskListCollapsed });
+          }
           break;
         case 'updateSelection':
           dispatch({ type: 'UPDATE_SELECTION', payload: message.selection });
@@ -258,6 +275,7 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
               messages: message.messages,
               tasks: message.tasks,
               isStreaming: message.isStreaming,
+              isTaskListCollapsed: message.isTaskListCollapsed,
               sessions: message.sessions,
               currentSession: message.session,
               configurationData: message.configurationData,
@@ -422,9 +440,6 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
         onSessionSelect={handleSessionSelect}
         sessionsLoading={state.sessionsLoading}
         sessionsError={state.sessionsError}
-        tasks={state.tasks}
-        isTaskListVisible={state.isTaskListVisible}
-        onToggleTaskList={handleToggleTaskList}
       />
       
       <MessageList 
@@ -434,45 +449,49 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
         vscode={vscode}
       />
 
-      <TaskList
-        tasks={state.tasks}
-        isVisible={state.isTaskListVisible}
-        onClose={handleToggleTaskList}
-      />
-      
-      {state.pendingConfirmations.length === 0 && (
-        <MessageInput
-          ref={messageInputRef}
-          onSendMessage={handleSendMessage}
-          disabled={state.inputDisabled}
-          isStreaming={state.isStreaming}
-          onAbortMessage={handleAbortMessage}
-          shouldClearInput={state.shouldClearInput}
-          onInputCleared={handleInputCleared}
-          vscode={vscode}
-          showConfiguration={state.showConfiguration}
-          configurationData={state.configurationData}
-          configurationLoading={state.configurationLoading}
-          configurationError={state.configurationError}
-          onConfigurationOpen={handleConfigurationOpen}
-          onConfigurationSave={handleConfigurationSave}
-          onConfigurationCancel={handleConfigurationCancel}
-          selection={state.selection}
-          inputContent={state.inputContent}
-          permissionMode={state.permissionMode}
-          initialAttachedImages={state.attachedImages}
+      <div className="input-area-container">
+        <TaskList
+          tasks={state.tasks}
+          isVisible={state.isTaskListVisible}
+          isCollapsed={state.isTaskListCollapsed}
+          onToggleCollapse={() => dispatch({ type: 'TOGGLE_TASK_LIST_COLLAPSE' })}
         />
-      )}
+        
+        {state.pendingConfirmations.length === 0 && (
+          <MessageInput
+            ref={messageInputRef}
+            onSendMessage={handleSendMessage}
+            disabled={state.inputDisabled}
+            isStreaming={state.isStreaming}
+            onAbortMessage={handleAbortMessage}
+            shouldClearInput={state.shouldClearInput}
+            onInputCleared={handleInputCleared}
+            vscode={vscode}
+            showConfiguration={state.showConfiguration}
+            configurationData={state.configurationData}
+            configurationLoading={state.configurationLoading}
+            configurationError={state.configurationError}
+            onConfigurationOpen={handleConfigurationOpen}
+            onConfigurationSave={handleConfigurationSave}
+            onConfigurationCancel={handleConfigurationCancel}
+            selection={state.selection}
+            inputContent={state.inputContent}
+            permissionMode={state.permissionMode}
+            initialAttachedImages={state.attachedImages}
+            isTaskListVisible={state.isTaskListVisible && state.tasks.length > 0}
+          />
+        )}
 
-      {state.pendingConfirmations.length > 0 && (
-        <ConfirmationDialog
-          key={state.pendingConfirmations[0].confirmationId}
-          data-confirmation-id={state.pendingConfirmations[0].confirmationId}
-          confirmation={state.pendingConfirmations[0]}
-          onConfirm={handleConfirmation}
-          onReject={handleRejection}
-        />
-      )}
+        {state.pendingConfirmations.length > 0 && (
+          <ConfirmationDialog
+            key={state.pendingConfirmations[0].confirmationId}
+            data-confirmation-id={state.pendingConfirmations[0].confirmationId}
+            confirmation={state.pendingConfirmations[0]}
+            onConfirm={handleConfirmation}
+            onReject={handleRejection}
+          />
+        )}
+      </div>
 
       <ConfigurationDialog
         isVisible={state.showConfiguration}

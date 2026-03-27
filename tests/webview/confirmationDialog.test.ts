@@ -291,8 +291,11 @@ test.describe('Confirmation Dialog', () => {
             return elements.map(el => el.className.split(' ')[0]); // Get first class name
         });
 
-        // Confirmation dialog should be the last element in the chat container
-        expect(elementsOrder[elementsOrder.length - 1]).toBe('confirmation-dialog');
+        // input-area-container should be the last element in the chat container
+        expect(elementsOrder[elementsOrder.length - 1]).toBe('input-area-container');
+
+        // Verify confirmation dialog is inside input-area-container
+        await expect(webviewPage.locator('.input-area-container .confirmation-dialog')).toBeVisible();
 
         // Verify messages are still visible and not overlapped
         await expect(webviewPage.locator('.message').first()).toBeVisible();
@@ -372,15 +375,18 @@ test.describe('Confirmation Dialog', () => {
             return Array.from(chatContainer.children).map(child => child.className);
         });
 
-        // Should have header, messages, and confirmation dialog (no input when confirmation is shown)
+        // Should have header, messages, and input-area-container (no input when confirmation is shown)
         expect(chatContainerChildren).toEqual([
             'chat-header',
             'messages-container',
-            'confirmation-dialog'
+            'input-area-container'
         ]);
 
-        // Verify confirmation dialog is styled consistently with input area
-        const dialogStyles = await webviewPage.locator('.confirmation-dialog').evaluate(el => {
+        // Verify confirmation dialog is inside input-area-container
+        await expect(webviewPage.locator('.input-area-container .confirmation-dialog')).toBeVisible();
+
+        // Verify input-area-container is styled consistently with input area
+        const containerStyles = await webviewPage.locator('.input-area-container').evaluate(el => {
             const styles = window.getComputedStyle(el);
             return {
                 borderTop: styles.borderTop,
@@ -389,9 +395,9 @@ test.describe('Confirmation Dialog', () => {
         });
 
         // Should use static positioning (not fixed/absolute) and have border-top
-        expect(dialogStyles.position).toBe('static');
-        expect(dialogStyles.borderTop).toContain('1px');
-        expect(dialogStyles.borderTop).toContain('solid');
+        expect(containerStyles.position).toBe('static');
+        expect(containerStyles.borderTop).toContain('1px');
+        expect(containerStyles.borderTop).toContain('solid');
     });
 
     test('should prevent user interaction with input while confirmation is shown', async ({ webviewPage }) => {

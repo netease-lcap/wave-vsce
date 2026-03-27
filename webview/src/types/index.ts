@@ -152,6 +152,7 @@ export interface MessageInputProps {
   inputContent?: string;
   permissionMode?: PermissionMode;
   initialAttachedImages?: AttachedImage[];
+  isTaskListVisible?: boolean;
 }
 
 /**
@@ -185,9 +186,6 @@ export interface ChatHeaderProps {
   onSessionSelect: (sessionId: string) => void;
   sessionsLoading: boolean;
   sessionsError?: string;
-  tasks: Task[];
-  isTaskListVisible: boolean;
-  onToggleTaskList: () => void;
 }
 
 // Session selector component props
@@ -211,6 +209,7 @@ export interface ChatState {
   messages: Message[];
   tasks: Task[];
   isTaskListVisible: boolean;
+  isTaskListCollapsed: boolean;
   isStreaming: boolean;
   inputDisabled: boolean;
   shouldClearInput: boolean;
@@ -324,6 +323,8 @@ export type ChatAction =
   | { type: 'SET_MESSAGES'; payload: Message[] }
   | { type: 'SET_TASKS'; payload: Task[] }
   | { type: 'TOGGLE_TASK_LIST' }
+  | { type: 'TOGGLE_TASK_LIST_COLLAPSE' }
+  | { type: 'SET_TASK_LIST_COLLAPSED'; payload: boolean }
   | { type: 'START_STREAMING' }
   | { type: 'END_STREAMING' }
   | { type: 'SET_INPUT_DISABLED'; payload: boolean }
@@ -346,6 +347,7 @@ export type ChatAction =
       messages: Message[];
       tasks?: Task[];
       isStreaming: boolean;
+      isTaskListCollapsed?: boolean;
       sessions: SessionMetadata[];
       currentSession?: SessionMetadata;
       configurationData: ConfigurationData;

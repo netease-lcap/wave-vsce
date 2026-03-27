@@ -65,10 +65,33 @@ test.describe('Product Specification Screenshots - Tools', () => {
                 { id: '1', subject: '搜索相关文件', description: '查找项目中与任务列表相关的组件和样式文件', status: 'completed', blocks: [], blockedBy: [], metadata: {} },
                 { id: '2', subject: '实现任务列表组件', description: '编写 React 组件和 CSS 样式', status: 'in_progress', activeForm: '编写 CSS', blocks: ['3'], blockedBy: [], metadata: {} },
                 { id: '3', subject: '运行测试', description: '确保新功能正常工作且不影响现有功能', status: 'pending', blocks: [], blockedBy: ['2'], metadata: {} }
-            ]
+            ],
+            isTaskListCollapsed: false
         });
         await webviewPage.waitForSelector('.task-list-container');
         await webviewPage.screenshot({ path: 'screenshots/spec-task-list.png' });
+
+        // 7.1 Task List Collapsed
+        await injector.simulateExtensionMessage('updateTasks', {
+            tasks: [
+                { id: '1', subject: '搜索相关文件', status: 'completed', blocks: [], blockedBy: [], metadata: {} },
+                { id: '2', subject: '实现任务列表组件', status: 'in_progress', blocks: ['3'], blockedBy: [], metadata: {} },
+                { id: '3', subject: '运行测试', status: 'pending', blocks: [], blockedBy: ['2'], metadata: {} }
+            ],
+            isTaskListCollapsed: true
+        });
+        // Wait for the class to be applied
+        await webviewPage.waitForFunction(() => {
+            const el = document.querySelector('.task-list-container');
+            return el && el.classList.contains('collapsed');
+        });
+        await webviewPage.screenshot({ path: 'screenshots/spec-task-list-collapsed.png' });
+        
+        // Restore expanded state for subsequent screenshots if needed
+        await injector.simulateExtensionMessage('updateTasks', {
+            tasks: [],
+            isTaskListCollapsed: false
+        });
 
         // 8. Subagent Display (Task Explore)
         const subagentMessage: Message = {

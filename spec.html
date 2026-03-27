@@ -238,9 +238,19 @@
 <img src="./screenshots/spec-diff-viewer.png" alt="" /><figcaption>文件差异对比</figcaption>
 </figure>
 <h3 id="task-list">3.3 任务列表 (Task List)</h3>
-<p>AI 会根据任务目标自动规划并管理任务列表，实时展示任务进度（待办、进行中、已完成、已删除）以及任务间的依赖关系。用户可以通过顶部按钮或快捷键 <code>Ctrl+T</code> 随时查看或隐藏任务列表。</p>
+<p>AI 会根据任务目标自动规划并管理任务列表，实时展示任务进度（待办、进行中、已完成、已删除）以及任务间的依赖关系。任务列表集成在输入框上方，支持折叠以节省空间。用户可以通过快捷键 <code>Ctrl+T</code> 随时查看或隐藏任务列表。</p>
+<p><strong>主要特性：</strong></p>
+<ul>
+<li><strong>集成布局</strong>：任务列表紧贴在输入框上方，视觉上融为一体。</li>
+<li><strong>可折叠设计</strong>：点击任务列表 Header（显示 "Plan" 和任务计数）即可在展开和折叠状态间切换。</li>
+<li><strong>自动展开</strong>：当新任务首次创建时，列表会自动展开以提醒用户。</li>
+<li><strong>状态指示</strong>：Header 左侧的 Chevron 图标直观展示当前折叠状态。</li>
+</ul>
 <figure>
-<img src="./screenshots/spec-task-list.png" alt="" /><figcaption>任务列表</figcaption>
+<img src="./screenshots/spec-task-list.png" alt="" /><figcaption>任务列表（展开状态）</figcaption>
+</figure>
+<figure>
+<img src="./screenshots/spec-task-list-collapsed.png" alt="" /><figcaption>任务列表（折叠状态）</figcaption>
 </figure>
 <h3 id="subagent-display">3.4 子代理状态 (Subagent Display)</h3>
 <p>对于复杂的任务，Wave 会启动子代理（如 Explore 代理）进行深度探索。子代理的执行过程会以工具块的形式展示，实时显示其正在使用的工具 and 进度（如 <code>...Read, Write (2 tools | 1,234 tokens)</code>）。</p>

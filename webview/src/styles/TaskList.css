@@ -1,6 +1,5 @@
 .task-list-container {
-  border-top: 1px solid var(--vscode-panel-border);
-  background-color: var(--vscode-sideBar-background);
+  background-color: var(--vscode-panel-background);
   max-height: 300px;
   overflow-y: auto;
   display: flex;
@@ -12,31 +11,34 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 12px;
+  padding: 6px 12px;
   background-color: var(--vscode-editor-background);
   border-bottom: 1px solid var(--vscode-panel-border);
   position: sticky;
   top: 0;
   z-index: 1;
+  cursor: pointer;
+  user-select: none;
+}
+
+.task-list-header:hover {
+  background-color: var(--vscode-list-hoverBackground);
 }
 
 .task-list-title {
-  font-weight: bold;
+  font-weight: 600;
   display: flex;
   align-items: center;
   gap: 6px;
   color: var(--vscode-foreground);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.task-list-close {
-  cursor: pointer;
+.task-count {
+  font-size: 11px;
   color: var(--vscode-descriptionForeground);
-  display: flex;
-  align-items: center;
-}
-
-.task-list-close:hover {
-  color: var(--vscode-foreground);
 }
 
 .task-items {

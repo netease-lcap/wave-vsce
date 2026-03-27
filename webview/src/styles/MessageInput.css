@@ -1,8 +1,11 @@
 /* Input Area */
 .input-container {
     padding: 10px;
-    border-top: 1px solid var(--vscode-panel-border);
     background-color: var(--vscode-panel-background);
+}
+
+.input-container.with-task-list {
+    padding-top: 0;
 }
 
 .input-wrapper {
