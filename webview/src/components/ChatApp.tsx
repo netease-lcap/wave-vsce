@@ -345,6 +345,20 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
     });
   }, [state.isStreaming, vscode]);
 
+  const handleDeleteQueuedMessage = useCallback((index: number) => {
+    const newQueue = [...state.queuedMessages];
+    newQueue.splice(index, 1);
+    
+    // Update local state
+    dispatch({ type: 'SET_QUEUED_MESSAGES', payload: newQueue });
+    
+    // Notify extension to update its queue
+    vscode.postMessage({
+      command: 'deleteQueuedMessage',
+      index: index
+    });
+  }, [state.queuedMessages, vscode]);
+
   // Configuration handlers
   const handleConfigurationOpen = useCallback(() => {
     dispatch({ 
@@ -447,6 +461,7 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
         queuedMessages={state.queuedMessages}
         streamingMessageIndex={streamingMessageIndex}
         vscode={vscode}
+        onDeleteQueuedMessage={handleDeleteQueuedMessage}
       />
 
       <div className="input-area-container">

@@ -170,6 +170,13 @@ export class ChatSession {
         }
     }
 
+    public deleteQueuedMessage(index: number) {
+        if (index >= 0 && index < this.messageQueue.length) {
+            this.messageQueue.splice(index, 1);
+            this.callbacks.onQueueChange(this.messageQueue);
+        }
+    }
+
     public abortMessage() {
         if (this.agent) {
             this.agent.abortMessage();

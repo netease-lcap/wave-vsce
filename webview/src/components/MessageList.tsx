@@ -12,7 +12,7 @@ const welcomeMessage = {
   }]
 };
 
-export const MessageList: React.FC<MessageListProps> = ({ messages, queuedMessages, streamingMessageIndex, vscode }) => {
+export const MessageList: React.FC<MessageListProps> = ({ messages, queuedMessages, streamingMessageIndex, vscode, onDeleteQueuedMessage }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -104,6 +104,7 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, queuedMessag
             message={message as any}
             isQueued={true}
             vscode={vscode}
+            onDeleteQueuedMessage={() => onDeleteQueuedMessage?.(index)}
           />
         );
       })}

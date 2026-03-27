@@ -108,6 +108,7 @@ export interface MessageListProps {
   queuedMessages?: QueuedMessage[];
   streamingMessageIndex?: number;
   vscode: any;
+  onDeleteQueuedMessage?: (index: number) => void;
 }
 
 export interface MessageProps {
@@ -115,6 +116,7 @@ export interface MessageProps {
   isStreaming?: boolean;
   isQueued?: boolean;
   vscode: any;
+  onDeleteQueuedMessage?: () => void;
 }
 
 // Image attachment types (uses base64 data directly)

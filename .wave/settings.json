@@ -12,7 +12,9 @@
       "Bash(git branch*)",
       "Bash(npm test*)",
       "Bash(npx playwright test*)",
-      "Bash(npm run test*)"
+      "Bash(npm run test*)",
+      "Bash(npm i*)",
+      "Bash(npm install*)"
     ]
   }
 }

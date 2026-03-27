@@ -149,4 +149,41 @@ test.describe('Message Queuing', () => {
     // 5. Verify queue is empty in UI
     await expect(messagesContainer).not.toContainText('已排队');
   });
+
+  test('should delete a specific queued message when clicking the delete icon', async ({ webviewPage }) => {
+    // 1. Start streaming and queue two messages
+    await webviewPage.evaluate(() => {
+      (window as any).simulateExtensionMessage({
+        command: 'startStreaming'
+      });
+      (window as any).simulateExtensionMessage({
+        command: 'updateQueue',
+        queue: [
+          { text: 'Queued message 1' },
+          { text: 'Queued message 2' }
+        ]
+      });
+    });
+
+    const messagesContainer = webviewPage.getByTestId('messages-container');
+    await expect(messagesContainer).toContainText('Queued message 1');
+    await expect(messagesContainer).toContainText('Queued message 2');
+
+    // 2. Find and click the delete button for the first queued message
+    const deleteButtons = webviewPage.locator('.delete-queued-button');
+    await expect(deleteButtons).toHaveCount(2);
+    await deleteButtons.first().click();
+
+    // 3. Verify deleteQueuedMessage was sent to extension with correct index
+    const deleteMessageSent = await webviewPage.evaluate(() => {
+      const messages = (window as any).getTestMessages();
+      return messages.some((m: any) => m.command === 'deleteQueuedMessage' && m.index === 0);
+    });
+    expect(deleteMessageSent).toBe(true);
+
+    // 4. Verify local state update (the message should be gone from UI immediately)
+    await expect(messagesContainer).not.toContainText('Queued message 1');
+    await expect(messagesContainer).toContainText('Queued message 2');
+    await expect(deleteButtons).toHaveCount(1);
+  });
 });

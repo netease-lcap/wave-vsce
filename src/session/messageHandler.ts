@@ -89,6 +89,9 @@ export class MessageHandler {
             case 'setPermissionMode':
                 await this.handleSetPermissionMode(message.mode, viewType, windowId);
                 break;
+            case 'deleteQueuedMessage':
+                await this.handleDeleteQueuedMessage(message.index, viewType, windowId);
+                break;
             case 'listPlugins':
                 await this.handleListPlugins(viewType, windowId);
                 break;
@@ -245,6 +248,11 @@ export class MessageHandler {
             console.error(`设置 ${viewType} 权限模式失败:`, error);
             vscode.window.showErrorMessage('设置权限模式失败: ' + error);
         }
+    }
+
+    private async handleDeleteQueuedMessage(index: number, viewType?: 'sidebar' | 'tab' | 'window', windowId?: string) {
+        const session = this.context.getChatSession(viewType || 'tab', windowId);
+        session.deleteQueuedMessage(index);
     }
 
     private handleUpdateInputContent(content: string, viewType?: 'sidebar' | 'tab' | 'window', windowId?: string) {
@@ -459,7 +467,8 @@ export class MessageHandler {
             configurationData,
             pendingConfirmations,
             selection: this.context.getSelection(),
-            permissionMode: session.agent?.getPermissionMode()
+            permissionMode: session.agent?.getPermissionMode(),
+            queuedMessages: session.messageQueue
         }, viewType, windowId);
     }
 

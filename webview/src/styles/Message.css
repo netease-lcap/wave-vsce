@@ -39,6 +39,39 @@
     font-weight: 500;
 }
 
+.queued-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+.queued-header .queued-label {
+    margin-bottom: 0;
+}
+
+.delete-queued-button {
+    background: none;
+    border: none;
+    color: var(--vscode-descriptionForeground);
+    cursor: pointer;
+    padding: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 3px;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.delete-queued-button:hover {
+    background-color: var(--vscode-toolbar-hoverBackground);
+    color: var(--vscode-errorForeground);
+}
+
+.delete-queued-button i {
+    font-size: 14px;
+}
+
 .queued-label i {
     font-size: 12px;
 }

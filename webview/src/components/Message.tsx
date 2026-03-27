@@ -469,9 +469,21 @@ export const Message: React.FC<MessageProps> = (props) => {
             <div key={index} className="user-message-wrapper">
               <div className="message-content user-content">
                 {isQueued && (
-                  <div className="queued-label">
-                    <i className="codicon codicon-clock"></i>
-                    <span>已排队</span>
+                  <div className="queued-header">
+                    <div className="queued-label">
+                      <i className="codicon codicon-clock"></i>
+                      <span>已排队</span>
+                    </div>
+                    <button 
+                      className="delete-queued-button" 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        props.onDeleteQueuedMessage?.();
+                      }}
+                      title="删除排队消息"
+                    >
+                      <i className="codicon codicon-trash"></i>
+                    </button>
                   </div>
                 )}
                 {parts.map((part, pIndex) => {
