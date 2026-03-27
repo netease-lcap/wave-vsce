@@ -138,12 +138,12 @@ test.describe('Rich Input Features', () => {
     await expect(messageInput.locator('.context-tag')).toHaveCount(0);
   });
 
-  test('should toggle selection tag and include it in sendMessage', async ({ webviewPage }) => {
+  test('should insert inline selection tag and render it in history', async ({ webviewPage }) => {
     const injector = new MessageInjector(webviewPage);
     await injector.clearMessageLog();
 
-    // 1. Mock a selection
-    const mockSelection = {
+    // 1. Simulate "Add to Wave" command from extension
+    const selection = {
       filePath: '/workspace/src/app.ts',
       fileName: 'app.ts',
       startLine: 1,
@@ -152,23 +152,19 @@ test.describe('Rich Input Features', () => {
       isEmpty: false
     };
 
-    await injector.simulateExtensionMessage('setInitialState', {
-      messages: [],
-      selection: mockSelection,
-      configurationData: {}
+    await injector.simulateExtensionMessage('addSelectionToInput', {
+      selection: selection
     });
 
-    const selectionTag = webviewPage.locator('.selection-tag');
-    await expect(selectionTag).toBeVisible();
-    await expect(selectionTag).toHaveClass(/enabled/); // Should be enabled by default when selection exists
-
-    // 2. Toggle it off
-    await selectionTag.click();
-    await expect(selectionTag).toHaveClass(/disabled/);
+    // 2. Verify inline tag is inserted in the input
+    const messageInput = webviewPage.getByTestId('message-input');
+    const inlineTag = messageInput.locator('.context-tag-container[data-is-selection="true"]');
+    await expect(inlineTag).toBeVisible();
+    await expect(inlineTag).toContainText('app.ts#1-10');
 
     // 3. Type and send
-    await webviewPage.getByTestId('message-input').focus();
-    await webviewPage.keyboard.type('Hello');
+    await messageInput.focus();
+    await webviewPage.keyboard.type('Check this: ');
 
     await webviewPage.evaluate(() => {
       (window as any).sentMessages = [];
@@ -185,24 +181,9 @@ test.describe('Rich Input Features', () => {
       return (window as any).sentMessages.find((m: any) => m.command === 'sendMessage');
     });
 
-    // Selection should be undefined because it was disabled
+    // The markdown should contain the selection placeholder
+    expect(sentMessage.text).toContain('[Selection: /workspace/src/app.ts|app.ts#1-10]');
+    // Selection property should be undefined as it's now inline
     expect(sentMessage.selection).toBeUndefined();
-
-    // 4. Toggle it back on and send again
-    await selectionTag.click();
-    await expect(selectionTag).toHaveClass(/enabled/);
-
-    await webviewPage.getByTestId('message-input').focus();
-    await webviewPage.keyboard.type('Again');
-    
-    await webviewPage.evaluate(() => { (window as any).sentMessages = []; });
-    await webviewPage.getByTestId('send-btn').click();
-
-    const sentMessage2 = await webviewPage.evaluate(() => {
-      return (window as any).sentMessages.find((m: any) => m.command === 'sendMessage');
-    });
-
-    // Selection should be included
-    expect(sentMessage2.selection).toEqual(mockSelection);
   });
 });
