@@ -324,7 +324,6 @@ export interface ConfigurationDialogProps {
 export type ChatAction =
   | { type: 'SET_MESSAGES'; payload: Message[] }
   | { type: 'SET_TASKS'; payload: Task[] }
-  | { type: 'TOGGLE_TASK_LIST' }
   | { type: 'TOGGLE_TASK_LIST_COLLAPSE' }
   | { type: 'SET_TASK_LIST_COLLAPSED'; payload: boolean }
   | { type: 'START_STREAMING' }

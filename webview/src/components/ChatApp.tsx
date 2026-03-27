@@ -51,15 +51,10 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
       return {
         ...state,
         tasks: action.payload,
-        // Auto-show task list when tasks are first created
-        isTaskListVisible: state.tasks.length === 0 && action.payload.length > 0 ? true : state.isTaskListVisible,
+        // Show task list if there are tasks
+        isTaskListVisible: action.payload.length > 0,
         // Auto-expand task list when tasks are first created
         isTaskListCollapsed: state.tasks.length === 0 && action.payload.length > 0 ? false : state.isTaskListCollapsed
-      };
-    case 'TOGGLE_TASK_LIST':
-      return {
-        ...state,
-        isTaskListVisible: !state.isTaskListVisible
       };
     case 'TOGGLE_TASK_LIST_COLLAPSE':
       return {
@@ -161,7 +156,7 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
         ...state,
         messages: action.payload.messages,
         tasks: action.payload.tasks || [],
-        isTaskListVisible: (action.payload.tasks && action.payload.tasks.length > 0) ? true : state.isTaskListVisible,
+        isTaskListVisible: (action.payload.tasks && action.payload.tasks.length > 0) ? true : false,
         isTaskListCollapsed: action.payload.isTaskListCollapsed !== undefined ? action.payload.isTaskListCollapsed : state.isTaskListCollapsed,
         isStreaming: action.payload.isStreaming !== undefined ? action.payload.isStreaming : state.isStreaming,
         sessions: action.payload.sessions || state.sessions || [],
@@ -383,7 +378,7 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
   }, []);
 
   const handleToggleTaskList = useCallback(() => {
-    dispatch({ type: 'TOGGLE_TASK_LIST' });
+    dispatch({ type: 'TOGGLE_TASK_LIST_COLLAPSE' });
   }, []);
 
   // Keyboard shortcuts
