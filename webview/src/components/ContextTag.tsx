@@ -10,7 +10,7 @@ interface ContextTagProps {
 }
 
 export const ContextTag: React.FC<ContextTagProps> = ({ name, path, icon, isImage, onClick }) => {
-  const isClickable = isImage && onClick;
+  const isClickable = onClick !== undefined;
 
   const handlePreview = (e: React.MouseEvent) => {
     if (isClickable) {
@@ -24,7 +24,7 @@ export const ContextTag: React.FC<ContextTagProps> = ({ name, path, icon, isImag
     <span 
       className={`context-tag ${isClickable ? 'clickable' : ''} ${isImage ? 'is-image' : ''}`}
       onClick={handlePreview}
-      title={isClickable ? `点击预览 ${name}` : path}
+      title={isClickable ? `点击查看 ${name}` : path}
       data-path={path}
     >
       <span className="tag-at">@</span>

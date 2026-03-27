@@ -31,7 +31,7 @@ test.describe('Product Specification Screenshots - UI Basic', () => {
         await webviewPage.screenshot({ path: 'screenshots/spec-welcome.png' });
 
         // 1.3 Code Selection Tag
-        await injector.simulateExtensionMessage('updateSelection', {
+        await injector.simulateExtensionMessage('addSelectionToInput', {
             selection: {
                 filePath: '/src/main.ts',
                 fileName: 'main.ts',
@@ -41,11 +41,13 @@ test.describe('Product Specification Screenshots - UI Basic', () => {
                 isEmpty: false
             }
         });
-        await webviewPage.waitForSelector('.selection-tag');
-        await webviewPage.locator('.selection-tag').screenshot({ path: 'screenshots/spec-selection-tag.png' });
+        await webviewPage.waitForSelector('.context-tag-container[data-is-selection="true"]');
+        await webviewPage.locator('.context-tag-container[data-is-selection="true"]').screenshot({ path: 'screenshots/spec-selection-inline-tag.png' });
         
-        // Clear selection for next steps
-        await injector.simulateExtensionMessage('updateSelection', { selection: null });
+        // Clear input for next steps
+        await webviewPage.focus('[data-testid="message-input"]');
+        await webviewPage.keyboard.press('Control+A');
+        await webviewPage.keyboard.press('Backspace');
 
         // 2. Basic Chat (Markdown & Code)
         const basicChat = [

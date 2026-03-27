@@ -189,9 +189,12 @@
     <h2 id="intelligent-input-context">2. 智能输入与上下文</h2>
     <p>Wave 提供了一个强大的富文本输入框，支持内联标签、指令补全和图片附件，让用户能够高效地构建复杂的上下文。</p>
     <h3 id="code-selection-reference">2.1 代码选择与引用</h3>
-    <p>当用户在编辑器中选中代码时，Wave 会在输入框上方自动生成一个选择标签。点击该标签可以快速将其作为上下文附加到对话中。</p>
+    <p>用户可以通过编辑器右键菜单中的“添加到 Wave”选项，将选中的代码手动添加到对话上下文中。选中的代码会以蓝色内联标签的形式插入到输入框当前光标位置。在消息历史中，点击该标签可快速跳转回编辑器中的对应文件及行号。</p>
     <figure>
-    <img src="./screenshots/spec-selection-tag.png" alt="" /><figcaption>代码选择标签</figcaption>
+    <img src="./screenshots/spec-selection-menu.png" alt="" /><figcaption>右键菜单：添加到 Wave</figcaption>
+    </figure>
+    <figure>
+    <img src="./screenshots/spec-selection-inline-tag.png" alt="" /><figcaption>输入框中的代码选中标签</figcaption>
     </figure>
     <h3 id="slash-commands">2.2 指令系统 (Slash Commands)</h3>
     <p>通过输入 <code>/</code>，用户可以快速调用预设的指令，如 <code>/explain</code>、<code>/fix</code> 等，提高操作效率。</p>

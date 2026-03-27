@@ -64,8 +64,22 @@
         "command": "wave-code.focusView",
         "title": "聚焦到聊天输入框",
         "category": "Wave"
+      },
+      {
+        "command": "wave-code.addToWave",
+        "title": "添加到 Wave",
+        "category": "Wave"
       }
-    ]
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "wave-code.addToWave",
+          "when": "editorHasSelection",
+          "group": "navigation"
+        }
+      ]
+    }
   },
   "scripts": {
     "clean": "node -e \"const fs=require('fs'); ['dist', 'webview/dist'].forEach(d => {try{fs.rmSync(d, {recursive:true, force:true})}catch(e){}})\"",

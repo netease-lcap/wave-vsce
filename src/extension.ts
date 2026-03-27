@@ -34,6 +34,16 @@ export function activate(context: vscode.ExtensionContext) {
         }
     });
 
+    // Register add to wave command
+    const addToWaveCommand = vscode.commands.registerCommand('wave-code.addToWave', async () => {
+        try {
+            await chatProvider!.addToWave();
+        } catch (error) {
+            console.error('添加到 Wave 时出错:', error);
+            vscode.window.showErrorMessage('添加到 Wave 失败: ' + error);
+        }
+    });
+
     async function openChatWithProgress(mode: 'sidebar' | 'tab' | 'window') {
         try {
             // Show progress indicator while opening chat
@@ -54,7 +64,8 @@ export function activate(context: vscode.ExtensionContext) {
         openChatSidebarCommand,
         openChatTabCommand,
         openChatWindowCommand,
-        focusViewCommand
+        focusViewCommand,
+        addToWaveCommand
     );
     
     console.log('Wave 聊天命令注册成功');

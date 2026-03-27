@@ -122,6 +122,44 @@ export class MessageHandler {
             case 'updateMarketplace':
                 await this.handleUpdateMarketplace(message.name, viewType, windowId);
                 break;
+            case 'openFile':
+                await this.handleOpenFile(message.path, message.startLine, message.endLine);
+                break;
+            case 'previewImage':
+                await this.handlePreviewImage(message.path);
+                break;
+        }
+    }
+
+    private async handleOpenFile(filePath: string, startLine?: number, endLine?: number) {
+        if (!filePath) return;
+        
+        try {
+            const uri = vscode.Uri.file(filePath);
+            const document = await vscode.workspace.openTextDocument(uri);
+            const editor = await vscode.window.showTextDocument(document);
+            
+            if (startLine !== undefined) {
+                const start = new vscode.Position(Math.max(0, startLine - 1), 0);
+                const end = new vscode.Position(Math.max(0, (endLine || startLine) - 1), 0);
+                editor.selection = new vscode.Selection(start, end);
+                editor.revealRange(new vscode.Range(start, end), vscode.TextEditorRevealType.InCenter);
+            }
+        } catch (error) {
+            console.error('打开文件失败:', error);
+            vscode.window.showErrorMessage('打开文件失败: ' + error);
+        }
+    }
+
+    private async handlePreviewImage(filePath: string) {
+        if (!filePath) return;
+        
+        try {
+            const uri = vscode.Uri.file(filePath);
+            await vscode.commands.executeCommand('vscode.open', uri);
+        } catch (error) {
+            console.error('预览图片失败:', error);
+            vscode.window.showErrorMessage('预览图片失败: ' + error);
         }
     }
 
@@ -466,7 +504,6 @@ export class MessageHandler {
             } : undefined,
             configurationData,
             pendingConfirmations,
-            selection: this.context.getSelection(),
             permissionMode: session.agent?.getPermissionMode(),
             queuedMessages: session.messageQueue
         }, viewType, windowId);

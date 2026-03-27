@@ -98,12 +98,31 @@ export class ChatProvider implements vscode.WebviewViewProvider {
         
         this.context.subscriptions.push(workspaceChangeListener);
 
-        // Listen for selection changes
+        // Listen for selection changes - removed auto-sync
+        /*
         this.selectionService.onSelectionChange((selection) => {
             this.webviewManager.postMessage({
                 command: 'updateSelection',
                 selection
             });
+        });
+        */
+    }
+
+    public async addToWave() {
+        const selection = this.selectionService.getSelection();
+        if (!selection || selection.isEmpty) {
+            vscode.window.showInformationMessage('请先在编辑器中选择一段代码');
+            return;
+        }
+
+        // Ensure chat view is visible
+        await this.focusView();
+
+        // Send selection to webview
+        this.webviewManager.postMessage({
+            command: 'addSelectionToInput',
+            selection
         });
     }
 

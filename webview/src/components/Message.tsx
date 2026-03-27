@@ -508,13 +508,23 @@ export const Message: React.FC<MessageProps> = (props) => {
                       />
                     );
                   } else if (part.type === 'selection') {
+                    const displayName = `${part.fileName}#${part.startLine}-${part.endLine}`;
+                    const filePath = part.path || part.fileName || '';
                     return (
-                      <div key={pIndex} className="selection-reference">
-                        <div className="selection-header">
-                          <i className="codicon codicon-code"></i>
-                          <span>{part.fileName}#{part.startLine}-{part.endLine}</span>
-                        </div>
-                      </div>
+                      <ContextTag 
+                        key={pIndex}
+                        name={displayName}
+                        path={filePath}
+                        icon="codicon-code"
+                        onClick={() => {
+                          props.vscode.postMessage({
+                            command: 'openFile',
+                            path: filePath,
+                            startLine: part.startLine ? parseInt(part.startLine) : undefined,
+                            endLine: part.endLine ? parseInt(part.endLine) : undefined
+                          });
+                        }}
+                      />
                     );
                   } else {
                     return <span key={pIndex}>{part.content}</span>;

@@ -142,10 +142,12 @@ export class ChatSession {
             }
             
             let fullText = text;
+            /*
             if (selection && !text.trim().startsWith('/clear')) {
                 const selectionHeader = `\n\n[Selection: ${selection.fileName}#${selection.startLine}-${selection.endLine}]`;
                 fullText += selectionHeader;
             }
+            */
             
             await this.agent.sendMessage(fullText, processedImages);
             

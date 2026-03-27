@@ -39,13 +39,11 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
     onConfigurationOpen,
     onConfigurationSave,
     onConfigurationCancel,
-    selection,
     inputContent,
     permissionMode,
     initialAttachedImages
   } = props;
   const [message, setMessage] = useState('');
-  const [isSelectionEnabled, setIsSelectionEnabled] = useState(false);
   const lastSelectionRef = useRef<any>(null);
 
   const handlePermissionModeSelect = useCallback((event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -56,21 +54,6 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
     });
   }, [vscode]);
 
-  // Automatically enable selection tag when selection changes
-  useEffect(() => {
-    if (selection && !selection.isEmpty) {
-      const selectionChanged = !lastSelectionRef.current ||
-        lastSelectionRef.current.filePath !== selection.filePath ||
-        lastSelectionRef.current.startLine !== selection.startLine ||
-        lastSelectionRef.current.endLine !== selection.endLine ||
-        lastSelectionRef.current.selectedText !== selection.selectedText;
-
-      if (selectionChanged) {
-        setIsSelectionEnabled(true);
-      }
-    }
-    lastSelectionRef.current = selection;
-  }, [selection]);
   const [atMention, setAtMention] = useState<AtMentionState>({
     isActive: false,
     filterText: '',
@@ -353,6 +336,7 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
           tagSpan.setAttribute('data-path', filePath);
           tagSpan.setAttribute('data-name', fileName);
           tagSpan.setAttribute('data-is-image', String(isImage));
+          tagSpan.innerText = isImage ? '[image]' : `[@file:${filePath}]`;
           
           const root = ReactDOM.createRoot(tagSpan);
           root.render(
@@ -387,6 +371,66 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
     closeDropdown();
     setUploadAtMentionState({ isActive: false, filterText: '', startPos: 0, endPos: 0 });
   }, [closeDropdown, uploadAtMentionState, atMention]);
+
+  // Handle inserting selection tags into the input
+  const insertSelectionTag = useCallback((selection: any) => {
+    if (!textareaRef.current || !selection || selection.isEmpty) return;
+
+    // Focus the input first to ensure we can work with selection
+    textareaRef.current.focus();
+
+    const windowSelection = window.getSelection();
+    if (!windowSelection || windowSelection.rangeCount === 0) return;
+
+    const range = windowSelection.getRangeAt(0);
+    
+    const fileName = selection.fileName.split(/[/\\]/).pop() || selection.fileName;
+    const displayName = `${fileName}#${selection.startLine}-${selection.endLine}`;
+    
+    const tagSpan = document.createElement('span');
+    tagSpan.className = 'context-tag-container';
+    tagSpan.contentEditable = 'false';
+    tagSpan.setAttribute('data-path', selection.filePath);
+    tagSpan.setAttribute('data-name', fileName);
+    tagSpan.setAttribute('data-start-line', String(selection.startLine));
+    tagSpan.setAttribute('data-end-line', String(selection.endLine));
+    tagSpan.setAttribute('data-is-selection', 'true');
+    tagSpan.innerText = `[Selection: ${selection.filePath}|${fileName}#${selection.startLine}-${selection.endLine}]`;
+    
+    const root = ReactDOM.createRoot(tagSpan);
+    root.render(
+      <ContextTag 
+        name={displayName} 
+        path={selection.filePath} 
+        icon="codicon-code"
+        onClick={() => {
+          vscode.postMessage({
+            command: 'openFile',
+            path: selection.filePath,
+            startLine: selection.startLine,
+            endLine: selection.endLine
+          });
+        }}
+      />
+    );
+    
+    range.deleteContents();
+    range.insertNode(tagSpan);
+    range.setStartAfter(tagSpan);
+    
+    // Add space after the tag
+    const space = document.createTextNode('\u00A0');
+    range.insertNode(space);
+    range.setStartAfter(space);
+    
+    range.collapse(true);
+    windowSelection.removeAllRanges();
+    windowSelection.addRange(range);
+    
+    // Trigger input event to update message state
+    const inputEvent = new Event('input', { bubbles: true });
+    textareaRef.current?.dispatchEvent(inputEvent);
+  }, [vscode]);
 
   // Listen for file suggestions response from extension
   useEffect(() => {
@@ -424,12 +468,14 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
       } else if (data.command === 'uploadError') {
         console.error('文件上传失败:', data.error);
         // Could show an error notification here if needed
+      } else if (data.command === 'addSelectionToInput') {
+        insertSelectionTag(data.selection);
       }
     };
 
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
-  }, [insertUploadedFilePaths, message, atMention, closeDropdown]);
+  }, [insertUploadedFilePaths, insertSelectionTag, message, atMention, closeDropdown]);
 
   // Handle image preview
   const handleImagePreview = useCallback((url: string, name: string) => {
@@ -481,6 +527,7 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
     tagSpan.setAttribute('data-path', file.relativePath);
     tagSpan.setAttribute('data-name', file.name);
     tagSpan.setAttribute('data-is-image', String(!file.isDirectory && /\.(png|jpg|jpeg|gif|webp|svg)$/i.test(file.name)));
+    tagSpan.innerText = `[@file:${file.relativePath}]`;
     
     // Render the React component into the span
     const isImage = !file.isDirectory && /\.(png|jpg|jpeg|gif|webp|svg)$/i.test(file.name);
@@ -662,12 +709,11 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
         mediaType: img.mimeType
       }));
       
-      onSendMessage(markdown, images.length > 0 ? images : undefined, isSelectionEnabled ? selection : undefined);
+      onSendMessage(markdown, images.length > 0 ? images : undefined);
       
       // Clear contenteditable
       textareaRef.current.innerHTML = '';
       setMessage('');
-      setIsSelectionEnabled(false);
       // Clear persisted input content
       vscode.postMessage({
         command: 'updateInputContent',
@@ -676,7 +722,7 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
       setAttachedImages([]);
       closeDropdown();
     }
-  }, [message, attachedImages, disabled, isStreaming, onSendMessage, closeDropdown, isSelectionEnabled, selection]);
+  }, [message, attachedImages, disabled, isStreaming, onSendMessage, closeDropdown]);
 
   const handleKeyDown = useCallback((event: KeyboardEvent<HTMLDivElement>) => {
     // Handle 指令 navigation
@@ -861,6 +907,7 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
         tagSpan.setAttribute('data-name', displayName);
         tagSpan.setAttribute('data-is-image', 'true');
         tagSpan.setAttribute('data-image-url', dataUrl);
+        tagSpan.innerText = `[image]`;
         
         const root = ReactDOM.createRoot(tagSpan);
         root.render(
@@ -964,31 +1011,6 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
   return (
     <div className="input-container" data-testid="input-container">
       <div className="input-wrapper">
-        {/* Selection Tag */}
-        {selection && (
-          <div 
-            className={`selection-tag ${isSelectionEnabled ? 'enabled' : 'disabled'}`}
-            onClick={() => setIsSelectionEnabled(!isSelectionEnabled)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                setIsSelectionEnabled(!isSelectionEnabled);
-              }
-            }}
-            tabIndex={0}
-            role="button"
-            title={isSelectionEnabled 
-              ? `正在向 AI 展示您的当前选择 (${selection.fileName}${selection.isEmpty ? '' : `:${selection.startLine}-${selection.endLine}`})` 
-              : `未向 AI 展示您的当前选择. 点击以附加.`}
-          >
-            <i className={`codicon ${isSelectionEnabled ? 'codicon-code' : 'codicon-circle-slash'}`}></i>
-            <span>
-              {selection.fileName.split(/[/\\]/).pop()}
-              {!selection.isEmpty && `#${selection.startLine}-${selection.endLine}`}
-            </span>
-          </div>
-        )}
-        
         {/* ContentEditable - full width */}
         <div
           ref={textareaRef}

@@ -3,12 +3,12 @@ import { MessageInjector } from '../utils/messageInjector.js';
 import { UIStateVerifier } from '../utils/uiStateVerifier.js';
 import { Message } from 'wave-agent-sdk';
 
-test.describe('Selection Feature', () => {
-    test('should display selection tag and toggle it', async ({ webviewPage }) => {
+test.describe('Selection Feature (Inline Tags)', () => {
+    test('should insert inline selection tag and render it in history', async ({ webviewPage }) => {
         const injector = new MessageInjector(webviewPage);
         const ui = new UIStateVerifier(webviewPage);
 
-        // 1. Simulate selection update from extension
+        // 1. Simulate "Add to Wave" command from extension
         const selection = {
             filePath: '/path/to/src/file.ts',
             fileName: 'src/file.ts',
@@ -21,101 +21,119 @@ test.describe('Selection Feature', () => {
 
         await webviewPage.evaluate((sel) => {
             window.postMessage({
-                command: 'updateSelection',
+                command: 'addSelectionToInput',
                 selection: sel
             }, '*');
         }, selection);
 
-        // Wait for selection tag to appear and verify content
-        const selectionTag = webviewPage.locator('.selection-tag');
-        await expect(selectionTag).toBeVisible();
-        await expect(selectionTag).toContainText('file.ts#10-20');
+        // 2. Verify inline tag is inserted in the input
+        const input = webviewPage.locator('#messageInput');
+        const inlineTag = input.locator('.context-tag-container[data-is-selection="true"]');
+        await expect(inlineTag).toBeVisible();
+        await expect(inlineTag).toContainText('file.ts#10-20');
         
-        // Verify it's enabled by default when first received
-        await expect(selectionTag).toHaveClass(/enabled/);
-        await expect(selectionTag).not.toHaveClass(/disabled/);
+        // Verify old selection tag is NOT visible
+        const oldSelectionTag = webviewPage.locator('.selection-tag');
+        await expect(oldSelectionTag).not.toBeVisible();
 
-        // 2. Toggle selection off
-        await selectionTag.click();
+        // 3. Type some text and send
+        await ui.typeMessage('Check this code: ');
         
-        // Verify it's disabled
-        await expect(selectionTag).toHaveClass(/disabled/);
-        await expect(selectionTag).not.toHaveClass(/enabled/);
-
-        // 3. Toggle selection back on
-        await selectionTag.click();
-        await expect(selectionTag).toHaveClass(/enabled/);
-
-        // 4. Send message and verify selection IS included when enabled
         await injector.clearMessageLog();
-        await ui.typeMessage('Hello');
         await ui.clickSend();
         
-        let sentMessages = await injector.getMessagesSentToExtension();
-        let sendMessage = sentMessages.find(m => m.command === 'sendMessage');
+        // 4. Verify the markdown sent to extension
+        const sentMessages = await injector.getMessagesSentToExtension();
+        const sendMessage = sentMessages.find(m => m.command === 'sendMessage');
         expect(sendMessage).toBeDefined();
-        expect(sendMessage.selection).toEqual(selection);
-
-        // Verify it's automatically disabled after sending
-        await expect(selectionTag).toHaveClass(/disabled/);
-        await expect(selectionTag).not.toHaveClass(/enabled/);
-
-        // 5. Toggle selection back on and then off manually
-        await selectionTag.click();
-        await expect(selectionTag).toHaveClass(/enabled/);
-        await selectionTag.click();
-        await expect(selectionTag).toHaveClass(/disabled/);
-        
-        // 6. Send message and verify selection is NOT included when disabled
-        await injector.clearMessageLog();
-        await ui.typeMessage('Hello again');
-        await ui.clickSend();
-        
-        sentMessages = await injector.getMessagesSentToExtension();
-        sendMessage = sentMessages.find(m => m.command === 'sendMessage');
-        expect(sendMessage).toBeDefined();
+        // The markdown should contain the selection placeholder
+        // Use a more flexible check as the order might depend on where the cursor was
+        expect(sendMessage.text).toContain('[Selection: /path/to/src/file.ts|file.ts#10-20]');
+        // Selection property should be undefined as it's now inline
         expect(sendMessage.selection).toBeUndefined();
 
-        // 7. Change selection and verify it's automatically enabled
-        const newSelection = {
-            ...selection,
-            startLine: 21,
-            endLine: 30,
-            selectedText: 'new selection'
-        };
-
-        await webviewPage.evaluate((sel) => {
-            window.postMessage({
-                command: 'updateSelection',
-                selection: sel
-            }, '*');
-        }, newSelection);
-
-        await expect(selectionTag).toHaveClass(/enabled/);
-        await expect(selectionTag).toContainText('file.ts#21-30');
-
-        // 8. Simulate message in history with selection
+        // 5. Simulate message in history with selection tag
         const messages: Message[] = [
             {
-                id: 'msg_sel_1',
+                id: 'msg_sel_inline',
                 role: 'user',
                 blocks: [
                     { 
                         type: 'text', 
-                        content: 'Hello again\n\n[Selection: file.ts#10-20]' 
+                        content: 'Check this code: [Selection: /path/to/src/file.ts|file.ts#10-20]' 
                     }
                 ]
             }
         ];
         await injector.updateMessages(messages);
         
-        // Wait for message to render and verify reference block
-        const selectionRef = webviewPage.locator('.selection-reference');
-        await expect(selectionRef).toBeVisible();
-        await expect(selectionRef.locator('.selection-header')).toContainText('file.ts#10-20');
+        // 6. Verify message rendering
+        const messageElement = webviewPage.locator('.message.user').last();
+        const renderedTag = messageElement.locator('.context-tag');
+        await expect(renderedTag).toBeVisible();
+        await expect(renderedTag).toContainText('file.ts#10-20');
         
-        // Verify no code block is rendered (as per latest requirement)
-        const selectionCode = selectionRef.locator('.selection-code');
-        await expect(selectionCode).not.toBeVisible();
+        // Verify old block-level reference is NOT visible
+        const selectionRef = webviewPage.locator('.selection-reference');
+        await expect(selectionRef).not.toBeVisible();
+
+        // 7. Test clicking the tag
+        await injector.clearMessageLog();
+        // Wait for any potential re-renders
+        await webviewPage.waitForTimeout(500);
+        await renderedTag.click();
+        
+        // Wait for message to be sent
+        await webviewPage.waitForFunction(() => {
+            const messages = (window as any).getTestMessages ? (window as any).getTestMessages() : [];
+            return messages.some((m: any) => m.command === 'openFile');
+        }, { timeout: 5000 });
+
+        const clickMessages = await injector.getMessagesSentToExtension();
+        const openFileMsg = clickMessages.find(m => m.command === 'openFile');
+        expect(openFileMsg).toBeDefined();
+        expect(openFileMsg.path).toBe('/path/to/src/file.ts');
+        expect(openFileMsg.startLine).toBe(10);
+        expect(openFileMsg.endLine).toBe(20);
+    });
+
+    test('should be backward compatible with old selection format', async ({ webviewPage }) => {
+        const injector = new MessageInjector(webviewPage);
+        
+        const messages: Message[] = [
+            {
+                id: 'msg_sel_old',
+                role: 'user',
+                blocks: [
+                    { 
+                        type: 'text', 
+                        content: 'Old format: [Selection: file.ts#10-20]' 
+                    }
+                ]
+            }
+        ];
+        await injector.updateMessages(messages);
+        
+        const messageElement = webviewPage.locator('.message.user').last();
+        const renderedTag = messageElement.locator('.context-tag');
+        await expect(renderedTag).toBeVisible();
+        await expect(renderedTag).toContainText('file.ts#10-20');
+        
+        // Test clicking old format (path will be fileName)
+        await injector.clearMessageLog();
+        // Wait for any potential re-renders
+        await webviewPage.waitForTimeout(500);
+        await renderedTag.click();
+        
+        // Wait for message to be sent
+        await webviewPage.waitForFunction(() => {
+            const messages = (window as any).getTestMessages ? (window as any).getTestMessages() : [];
+            return messages.some((m: any) => m.command === 'openFile');
+        }, { timeout: 5000 });
+
+        const clickMessages = await injector.getMessagesSentToExtension();
+        const openFileMsg = clickMessages.find(m => m.command === 'openFile');
+        expect(openFileMsg).toBeDefined();
+        expect(openFileMsg.path).toBe('file.ts');
     });
 });

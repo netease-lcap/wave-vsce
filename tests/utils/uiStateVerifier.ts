@@ -200,7 +200,10 @@ export class UIStateVerifier {
      * Type message in input field
      */
     async typeMessage(message: string) {
-        await this.messageInput.fill(message);
+        // For contenteditable, fill() clears existing nodes (like tags).
+        // We use focus + keyboard.type to append/insert text.
+        await this.messageInput.focus();
+        await this.page.keyboard.type(message);
     }
 
     /**
