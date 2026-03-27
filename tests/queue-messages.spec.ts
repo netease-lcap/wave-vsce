@@ -43,9 +43,10 @@ test.describe('Message Queuing', () => {
     });
 
     // 6. Verify message is in the queue (visual check)
-    const messagesContainer = webviewPage.getByTestId('messages-container');
-    await expect(messagesContainer).toContainText('Queued message 1');
-    await expect(messagesContainer).toContainText('已排队');
+    const queuePanel = webviewPage.getByTestId('queued-message-list');
+    await expect(queuePanel).toBeVisible();
+    await expect(queuePanel).toContainText('Queued message 1');
+    await expect(queuePanel).toContainText('消息队列');
 
     // 7. End streaming
     await webviewPage.evaluate(() => {
@@ -60,10 +61,10 @@ test.describe('Message Queuing', () => {
     });
 
     // 8. Verify queue is empty in UI
-    await expect(messagesContainer).not.toContainText('已排队');
+    await expect(queuePanel).not.toBeVisible();
   });
 
-  test('should clear queue when aborting', async ({ webviewPage }) => {
+  test('should NOT clear queue when aborting', async ({ webviewPage }) => {
     const input = webviewPage.getByTestId('message-input');
     await input.focus();
 
@@ -78,8 +79,8 @@ test.describe('Message Queuing', () => {
       });
     });
 
-    const messagesContainer = webviewPage.getByTestId('messages-container');
-    await expect(messagesContainer).toContainText('已排队');
+    const queuePanel = webviewPage.getByTestId('queued-message-list');
+    await expect(queuePanel).toBeVisible();
 
     // 2. Click abort button
     const abortBtn = webviewPage.getByTestId('abort-btn');
@@ -92,22 +93,12 @@ test.describe('Message Queuing', () => {
     });
     expect(abortMessageSent).toBe(true);
 
-    // 4. Simulate queue cleared by extension
-    await webviewPage.evaluate(() => {
-      (window as any).simulateExtensionMessage({
-        command: 'updateQueue',
-        queue: []
-      });
-      (window as any).simulateExtensionMessage({
-        command: 'endStreaming'
-      });
-    });
-
-    // 5. Verify queue is empty in UI
-    await expect(messagesContainer).not.toContainText('已排队');
+    // 4. Verify queue is STILL there in UI (new logic: abort doesn't clear queue)
+    await expect(queuePanel).toBeVisible();
+    await expect(queuePanel).toContainText('Queued message 1');
   });
 
-  test('should clear queue when pressing Escape', async ({ webviewPage }) => {
+  test('should NOT clear queue when pressing Escape', async ({ webviewPage }) => {
     const input = webviewPage.getByTestId('message-input');
     await input.focus();
 
@@ -122,8 +113,8 @@ test.describe('Message Queuing', () => {
       });
     });
 
-    const messagesContainer = webviewPage.getByTestId('messages-container');
-    await expect(messagesContainer).toContainText('已排队');
+    const queuePanel = webviewPage.getByTestId('queued-message-list');
+    await expect(queuePanel).toBeVisible();
 
     // 2. Press Escape
     await webviewPage.keyboard.press('Escape');
@@ -135,19 +126,9 @@ test.describe('Message Queuing', () => {
     });
     expect(abortMessageSent).toBe(true);
 
-    // 4. Simulate queue cleared by extension
-    await webviewPage.evaluate(() => {
-      (window as any).simulateExtensionMessage({
-        command: 'updateQueue',
-        queue: []
-      });
-      (window as any).simulateExtensionMessage({
-        command: 'endStreaming'
-      });
-    });
-
-    // 5. Verify queue is empty in UI
-    await expect(messagesContainer).not.toContainText('已排队');
+    // 4. Verify queue is STILL there in UI
+    await expect(queuePanel).toBeVisible();
+    await expect(queuePanel).toContainText('Queued message 1');
   });
 
   test('should delete a specific queued message when clicking the delete icon', async ({ webviewPage }) => {
@@ -165,12 +146,13 @@ test.describe('Message Queuing', () => {
       });
     });
 
-    const messagesContainer = webviewPage.getByTestId('messages-container');
-    await expect(messagesContainer).toContainText('Queued message 1');
-    await expect(messagesContainer).toContainText('Queued message 2');
+    const queuePanel = webviewPage.getByTestId('queued-message-list');
+    await expect(queuePanel).toBeVisible();
+    await expect(queuePanel).toContainText('Queued message 1');
+    await expect(queuePanel).toContainText('Queued message 2');
 
     // 2. Find and click the delete button for the first queued message
-    const deleteButtons = webviewPage.locator('.delete-queued-button');
+    const deleteButtons = queuePanel.locator('.action-button.delete-queued');
     await expect(deleteButtons).toHaveCount(2);
     await deleteButtons.first().click();
 
@@ -182,8 +164,8 @@ test.describe('Message Queuing', () => {
     expect(deleteMessageSent).toBe(true);
 
     // 4. Verify local state update (the message should be gone from UI immediately)
-    await expect(messagesContainer).not.toContainText('Queued message 1');
-    await expect(messagesContainer).toContainText('Queued message 2');
+    await expect(queuePanel).not.toContainText('Queued message 1');
+    await expect(queuePanel).toContainText('Queued message 2');
     await expect(deleteButtons).toHaveCount(1);
   });
 });

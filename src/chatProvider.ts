@@ -73,8 +73,7 @@ export class ChatProvider implements vscode.WebviewViewProvider {
                     this.sidebarSession.updateConfig(config, this.context.extensionMode);
                     this.tabSession.updateConfig(config, this.context.extensionMode);
                     this.windowSessions.forEach(session => session.updateConfig(config, this.context.extensionMode));
-                },
-                getSelection: () => this.selectionService.getSelection()
+                }
             }
         );
 

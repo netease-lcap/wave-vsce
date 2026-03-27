@@ -1,6 +1,5 @@
 import * as vscode from 'vscode';
 import { Agent, Message, PermissionDecision, ToolPermissionContext, AgentCallbacks, PermissionMode, Task } from 'wave-agent-sdk';
-import { SelectionInfo } from '../services/selectionService';
 import { ConfigurationData } from '../services/configurationService';
 import { VscodeLspAdapter } from '../services/lspAdapter';
 
@@ -18,7 +17,6 @@ export interface ChatSessionCallbacks {
 export interface QueuedMessage {
     text: string;
     images?: Array<{ data: string; mediaType: string; }>;
-    selection?: SelectionInfo;
 }
 
 export class ChatSession {
@@ -118,14 +116,33 @@ export class ChatSession {
         }
     }
 
-    public async sendMessage(text: string, images?: Array<{ data: string; mediaType: string; }>, selection?: SelectionInfo) {
+    public async sendMessage(text: string, images?: Array<{ data: string; mediaType: string; }>, force: boolean = false) {
         if (!this.agent) {
             throw new Error('智能体未初始化');
         }
 
         if (this.isStreaming) {
-            this.messageQueue.push({ text, images, selection });
+            if (force) {
+                this.agent.abortMessage();
+                this.messageQueue.unshift({ text, images });
+            } else {
+                this.messageQueue.push({ text, images });
+            }
             this.callbacks.onQueueChange(this.messageQueue);
+            return;
+        }
+
+        // If not streaming but queue is not empty, and this is a new message (not from queue processing)
+        // we should unshift it to the front of the queue to prioritize it.
+        // Note: nextMessage shift happens in finally block, so we unshift here and then let the queue process.
+        if (this.messageQueue.length > 0 && !force) {
+            this.messageQueue.unshift({ text, images });
+            this.callbacks.onQueueChange(this.messageQueue);
+            
+            // Trigger the queue processing by sending the first message
+            const nextMessage = this.messageQueue.shift()!;
+            this.callbacks.onQueueChange(this.messageQueue);
+            await this.sendMessage(nextMessage.text, nextMessage.images, true);
             return;
         }
 
@@ -141,15 +158,7 @@ export class ChatSession {
                 }));
             }
             
-            let fullText = text;
-            /*
-            if (selection && !text.trim().startsWith('/clear')) {
-                const selectionHeader = `\n\n[Selection: ${selection.fileName}#${selection.startLine}-${selection.endLine}]`;
-                fullText += selectionHeader;
-            }
-            */
-            
-            await this.agent.sendMessage(fullText, processedImages);
+            await this.agent.sendMessage(text, processedImages);
             
         } catch (error) {
             throw error;
@@ -163,7 +172,7 @@ export class ChatSession {
                 this.callbacks.onQueueChange(this.messageQueue);
                 // Use setTimeout to avoid deep recursion and allow UI to update
                 setTimeout(() => {
-                    this.sendMessage(nextMessage.text, nextMessage.images, nextMessage.selection).catch(err => {
+                    this.sendMessage(nextMessage.text, nextMessage.images, true).catch(err => {
                         console.error('Error processing queued message:', err);
                         this.callbacks.onError(err);
                     });
@@ -183,7 +192,6 @@ export class ChatSession {
         if (this.agent) {
             this.agent.abortMessage();
         }
-        this.clearQueue();
     }
 
     public async clearChat() {

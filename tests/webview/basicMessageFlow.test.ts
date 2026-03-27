@@ -27,7 +27,7 @@ test.describe('Basic Message Flow', () => {
             command: 'sendMessage',
             text: 'Hello, can you help me?',
             images: undefined,
-            selection: undefined
+            force: false
         });
 
         // Verify input field is cleared but enabled (can send more messages while streaming)

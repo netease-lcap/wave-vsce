@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { ChatSession } from './chatSession';
-import { SelectionInfo } from '../services/selectionService';
 import { ConfigurationService } from '../services/configurationService';
 import { FileService } from '../services/fileService';
 import { SessionService } from '../services/sessionService';
@@ -14,7 +13,6 @@ export interface MessageHandlerContext {
     initializeAgent: (viewType: 'sidebar' | 'tab' | 'window', windowId?: string, restoreSessionId?: string) => Promise<void>;
     listSessions: (viewType?: 'sidebar' | 'tab' | 'window', windowId?: string) => Promise<void>;
     updateAllSessionsConfig: (config: any) => void;
-    getSelection: () => SelectionInfo | undefined;
 }
 
 export class MessageHandler {
@@ -41,7 +39,7 @@ export class MessageHandler {
     public async handleMessage(message: any, viewType: 'sidebar' | 'tab' | 'window', windowId?: string) {
         switch (message.command) {
             case 'sendMessage':
-                await this.sendMessageToAgent(message.text, message.images, message.selection, viewType, windowId);
+                await this.sendMessageToAgent(message.text, message.images, message.force, viewType, windowId);
                 break;
             case 'clearChat':
                 await this.clearChat(viewType, windowId);
@@ -333,10 +331,10 @@ export class MessageHandler {
         }
     }
 
-    private async sendMessageToAgent(text: string, images?: Array<{ data: string; mediaType: string; }>, selection?: SelectionInfo, viewType?: 'sidebar' | 'tab' | 'window', windowId?: string) {
+    private async sendMessageToAgent(text: string, images?: Array<{ data: string; mediaType: string; }>, force?: boolean, viewType?: 'sidebar' | 'tab' | 'window', windowId?: string) {
         const session = this.context.getChatSession(viewType || 'tab', windowId);
         try {
-            await session.sendMessage(text, images, selection);
+            await session.sendMessage(text, images, force);
         } catch (error) {
             console.error(`发送消息给 ${viewType} 智能体时出错:`, error);
             vscode.window.showErrorMessage('发送消息失败: ' + error);

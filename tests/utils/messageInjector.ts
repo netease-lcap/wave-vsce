@@ -73,6 +73,13 @@ export class MessageInjector {
 
 
     /**
+     * Update the message queue
+     */
+    async updateQueue(queue: any[]) {
+        await this.simulateExtensionMessage('updateQueue', { queue });
+    }
+
+    /**
      * Clear all messages
      */
     async clearMessages() {

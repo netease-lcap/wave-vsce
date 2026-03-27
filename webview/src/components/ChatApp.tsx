@@ -3,6 +3,7 @@ import { MessageList } from './MessageList';
 import { MessageInput } from './MessageInput';
 import { ChatHeader } from './ChatHeader';
 import { TaskList } from './TaskList';
+import { QueuedMessageList } from './QueuedMessageList';
 import { ConfirmationDialog } from './ConfirmationDialog';
 import ConfigurationDialog from './ConfigurationDialog';
 import type {
@@ -20,6 +21,7 @@ const initialState: ChatState = {
   tasks: [],
   isTaskListVisible: false,
   isTaskListCollapsed: false,
+  isQueueCollapsed: false,
   isStreaming: false,
   inputDisabled: false,
   shouldClearInput: false,
@@ -65,6 +67,11 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
       return {
         ...state,
         isTaskListCollapsed: action.payload
+      };
+    case 'TOGGLE_QUEUE_COLLAPSE':
+      return {
+        ...state,
+        isQueueCollapsed: !state.isQueueCollapsed
       };
     case 'START_STREAMING':
       return {
@@ -311,7 +318,7 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
     return () => window.removeEventListener('message', handleMessage);
   }, []);
 
-  const handleSendMessage = useCallback((text: string, images?: Array<{ data: string; mediaType: string; }>, selection?: any) => {
+  const handleSendMessage = useCallback((text: string, images?: Array<{ data: string; mediaType: string; }>, force: boolean = false) => {
     const trimmedText = text.trim();
     if (!trimmedText && (!images || images.length === 0)) return;
 
@@ -320,7 +327,7 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
       command: 'sendMessage',
       text: trimmedText,
       images: images,
-      selection: selection
+      force: force
     });
   }, [vscode]);
 
@@ -353,6 +360,17 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
       index: index
     });
   }, [state.queuedMessages, vscode]);
+
+  const handleSendQueuedMessage = useCallback((index: number) => {
+    const qm = state.queuedMessages[index];
+    if (!qm) return;
+
+    // Send the queued message immediately (backend will handle priority/abort)
+    handleSendMessage(qm.text, qm.images, true);
+
+    // Remove from queue
+    handleDeleteQueuedMessage(index);
+  }, [state.queuedMessages, handleSendMessage, handleDeleteQueuedMessage]);
 
   // Configuration handlers
   const handleConfigurationOpen = useCallback(() => {
@@ -457,6 +475,7 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
         streamingMessageIndex={streamingMessageIndex}
         vscode={vscode}
         onDeleteQueuedMessage={handleDeleteQueuedMessage}
+        onSendQueuedMessage={handleSendQueuedMessage}
       />
 
       <div className="input-area-container">
@@ -466,6 +485,14 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
           isCollapsed={state.isTaskListCollapsed}
           onToggleCollapse={() => dispatch({ type: 'TOGGLE_TASK_LIST_COLLAPSE' })}
         />
+
+        <QueuedMessageList
+          queuedMessages={state.queuedMessages}
+          isCollapsed={state.isQueueCollapsed}
+          onToggleCollapse={() => dispatch({ type: 'TOGGLE_QUEUE_COLLAPSE' })}
+          onDelete={handleDeleteQueuedMessage}
+          onSend={handleSendQueuedMessage}
+        />
         
         {state.pendingConfirmations.length === 0 && (
           <MessageInput
@@ -474,6 +501,7 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
             disabled={state.inputDisabled}
             isStreaming={state.isStreaming}
             onAbortMessage={handleAbortMessage}
+            onSendQueuedMessage={state.queuedMessages.length > 0 ? () => handleSendQueuedMessage(0) : undefined}
             shouldClearInput={state.shouldClearInput}
             onInputCleared={handleInputCleared}
             vscode={vscode}

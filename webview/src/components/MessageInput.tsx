@@ -29,6 +29,7 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
     disabled,
     isStreaming,
     onAbortMessage,
+    onSendQueuedMessage,
     shouldClearInput,
     onInputCleared,
     vscode,
@@ -810,9 +811,16 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
     // Normal behavior for Enter key
     if (event.key === 'Enter' && !event.shiftKey && !isComposing) {
       event.preventDefault();
-      handleSend();
+      
+      // Check if input is empty
+      const { markdown, images } = convertToMarkdown(textareaRef.current!);
+      if (!markdown.trim() && images.length === 0 && onSendQueuedMessage) {
+        onSendQueuedMessage();
+      } else {
+        handleSend();
+      }
     }
-  }, [slashCommand.isActive, slashCommands, selectedSlashIndex, handleSlashCommandSelect, closeSlashCommandPopup, atMention.isActive, atMention.filterText, suggestions, selectedIndex, handleFileSelect, handleFileUpload, closeDropdown, handleSend, isComposing, permissionMode, vscode]);
+  }, [slashCommand.isActive, slashCommands, selectedSlashIndex, handleSlashCommandSelect, closeSlashCommandPopup, atMention.isActive, atMention.filterText, suggestions, selectedIndex, handleFileSelect, handleFileUpload, closeDropdown, handleSend, isComposing, permissionMode, vscode, onSendQueuedMessage]);
 
   // Handle cursor position changes
   const handleSelectionChange = useCallback(() => {

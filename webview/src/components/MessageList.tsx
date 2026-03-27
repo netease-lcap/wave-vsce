@@ -12,7 +12,7 @@ const welcomeMessage = {
   }]
 };
 
-export const MessageList: React.FC<MessageListProps> = ({ messages, queuedMessages, streamingMessageIndex, vscode, onDeleteQueuedMessage }) => {
+export const MessageList: React.FC<MessageListProps> = ({ messages, queuedMessages, streamingMessageIndex, vscode, onDeleteQueuedMessage, onSendQueuedMessage }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -82,29 +82,6 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, queuedMessag
             message={message}
             isStreaming={isStreaming}
             vscode={vscode}
-          />
-        );
-      })}
-
-      {/* Queued messages */}
-      {(queuedMessages || []).map((qm, index) => {
-        const message = {
-          id: `queued-${index}`,
-          role: 'user' as const,
-          blocks: [
-            { type: 'text' as const, content: qm.text },
-            ...(qm.images || []).map(img => ({ type: 'image' as const, imageUrls: [img.data] })),
-            ...(qm.selection ? [{ type: 'text' as const, content: `\n\n[Selection: ${qm.selection.fileName}#${qm.selection.startLine}-${qm.selection.endLine}]` }] : [])
-          ]
-        };
-
-        return (
-          <Message
-            key={`queued-${index}`}
-            message={message as any}
-            isQueued={true}
-            vscode={vscode}
-            onDeleteQueuedMessage={() => onDeleteQueuedMessage?.(index)}
           />
         );
       })}

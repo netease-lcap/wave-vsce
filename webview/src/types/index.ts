@@ -109,6 +109,7 @@ export interface MessageListProps {
   streamingMessageIndex?: number;
   vscode: any;
   onDeleteQueuedMessage?: (index: number) => void;
+  onSendQueuedMessage?: (index: number) => void;
 }
 
 export interface MessageProps {
@@ -117,6 +118,7 @@ export interface MessageProps {
   isQueued?: boolean;
   vscode: any;
   onDeleteQueuedMessage?: () => void;
+  onSendQueuedMessage?: () => void;
 }
 
 // Image attachment types (uses base64 data directly)
@@ -134,10 +136,11 @@ export interface AttachedImage {
 }
 
 export interface MessageInputProps {
-  onSendMessage: (text: string, images?: Array<{ data: string; mediaType: string; }>, selection?: SelectionInfo) => void;
+  onSendMessage: (text: string, images?: Array<{ data: string; mediaType: string; }>) => void;
   disabled: boolean;
   isStreaming: boolean;
   onAbortMessage: () => void;
+  onSendQueuedMessage?: () => void;
   shouldClearInput?: boolean;
   onInputCleared?: () => void;
   vscode: any;
@@ -203,7 +206,6 @@ export interface SessionSelectorProps {
 export interface QueuedMessage {
   text: string;
   images?: Array<{ data: string; mediaType: string; }>;
-  selection?: SelectionInfo;
 }
 
 // Chat state management
@@ -212,6 +214,7 @@ export interface ChatState {
   tasks: Task[];
   isTaskListVisible: boolean;
   isTaskListCollapsed: boolean;
+  isQueueCollapsed: boolean;
   isStreaming: boolean;
   inputDisabled: boolean;
   shouldClearInput: boolean;
@@ -326,6 +329,7 @@ export type ChatAction =
   | { type: 'SET_TASKS'; payload: Task[] }
   | { type: 'TOGGLE_TASK_LIST_COLLAPSE' }
   | { type: 'SET_TASK_LIST_COLLAPSED'; payload: boolean }
+  | { type: 'TOGGLE_QUEUE_COLLAPSE' }
   | { type: 'START_STREAMING' }
   | { type: 'END_STREAMING' }
   | { type: 'SET_INPUT_DISABLED'; payload: boolean }
