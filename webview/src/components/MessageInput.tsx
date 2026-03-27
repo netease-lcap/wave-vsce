@@ -725,6 +725,22 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
   }, [message, attachedImages, disabled, isStreaming, onSendMessage, closeDropdown]);
 
   const handleKeyDown = useCallback((event: KeyboardEvent<HTMLDivElement>) => {
+    // Handle Shift+Tab to cycle permission mode
+    if (event.key === 'Tab' && event.shiftKey && !isComposing) {
+      event.preventDefault();
+      const modes: PermissionMode[] = ['default', 'acceptEdits', 'plan'];
+      const currentMode = permissionMode || 'default';
+      const currentIndex = modes.indexOf(currentMode);
+      const nextIndex = (currentIndex + 1) % modes.length;
+      const nextMode = modes[nextIndex];
+      
+      vscode.postMessage({
+        command: 'setPermissionMode',
+        mode: nextMode
+      });
+      return;
+    }
+
     // Handle 指令 navigation
     if (slashCommand.isActive && slashCommands.length > 0) {
       switch (event.key) {
@@ -796,7 +812,7 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
       event.preventDefault();
       handleSend();
     }
-  }, [slashCommand.isActive, slashCommands, selectedSlashIndex, handleSlashCommandSelect, closeSlashCommandPopup, atMention.isActive, atMention.filterText, suggestions, selectedIndex, handleFileSelect, handleFileUpload, closeDropdown, handleSend, isComposing]);
+  }, [slashCommand.isActive, slashCommands, selectedSlashIndex, handleSlashCommandSelect, closeSlashCommandPopup, atMention.isActive, atMention.filterText, suggestions, selectedIndex, handleFileSelect, handleFileUpload, closeDropdown, handleSend, isComposing, permissionMode, vscode]);
 
   // Handle cursor position changes
   const handleSelectionChange = useCallback(() => {
