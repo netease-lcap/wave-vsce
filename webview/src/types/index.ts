@@ -244,6 +244,7 @@ export interface ConfirmationRequest {
   toolName: string;
   confirmationType: string;
   toolInput?: any;
+  planContent?: string;
   suggestedPrefix?: string;
   hidePersistentOption?: boolean;
 }

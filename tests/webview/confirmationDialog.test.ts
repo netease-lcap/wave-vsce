@@ -1,9 +1,37 @@
 import { test, expect } from '../utils/webviewTestHarness.js';
 import { MessageInjector } from '../utils/messageInjector.js';
 import { UIStateVerifier } from '../utils/uiStateVerifier.js';
-import { EDIT_TOOL_NAME, BASH_TOOL_NAME, WRITE_TOOL_NAME, Message } from 'wave-agent-sdk';
+import { EDIT_TOOL_NAME, BASH_TOOL_NAME, WRITE_TOOL_NAME, EXIT_PLAN_MODE_TOOL_NAME, Message } from 'wave-agent-sdk';
 
 test.describe('Confirmation Dialog', () => {
+    test('should show confirmation dialog for ExitPlanMode with planContent', async ({ webviewPage }) => {
+        const injector = new MessageInjector(webviewPage);
+
+        const planContent = '## Test Plan\n- Step 1\n- Step 2';
+        
+        // Simulate a confirmation request for ExitPlanMode tool
+        await injector.simulateExtensionMessage('showConfirmation', {
+            confirmationId: 'test_plan_confirmation',
+            toolName: EXIT_PLAN_MODE_TOOL_NAME,
+            confirmationType: '计划待确认',
+            planContent: planContent
+        });
+
+        // Verify confirmation dialog is visible
+        const confirmationDialog = webviewPage.locator('.confirmation-dialog');
+        await expect(confirmationDialog).toBeVisible();
+
+        // Verify plan content is rendered
+        const planPreview = webviewPage.locator('.plan-content-preview');
+        await expect(planPreview).toBeVisible();
+        await expect(planPreview.locator('h2')).toHaveText('Test Plan');
+        await expect(planPreview.locator('li')).toHaveCount(2);
+
+        // Verify buttons
+        await expect(webviewPage.locator('.confirmation-btn-apply')).toHaveText('批准并继续');
+        await expect(webviewPage.locator('.confirmation-btn-auto')).toHaveText('批准并自动接受后续修改');
+    });
+
     test('should show confirmation dialog for code modification tools', async ({ webviewPage }) => {
         const injector = new MessageInjector(webviewPage);
         const ui = new UIStateVerifier(webviewPage);

@@ -62,7 +62,7 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
   }, [confirmation]);
 
   useEffect(() => {
-    if (confirmation.toolName === EXIT_PLAN_MODE_TOOL_NAME && confirmation.toolInput?.plan_content) {
+    if (confirmation.toolName === EXIT_PLAN_MODE_TOOL_NAME && (confirmation.planContent || confirmation.toolInput?.plan_content)) {
       planContentRef.current?.focus();
     } else {
       // Focus on the first available button
@@ -74,7 +74,7 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
         }
       }
     }
-  }, [confirmation.confirmationId, currentQuestionIndex, confirmation.toolName, confirmation.toolInput?.plan_content]);
+  }, [confirmation.confirmationId, currentQuestionIndex, confirmation.toolName, confirmation.planContent, confirmation.toolInput?.plan_content]);
 
   const handleCompositionStart = useCallback(() => {
     setIsComposing(true);
@@ -196,11 +196,12 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
   };
 
   const renderPlanContent = () => {
-    if (confirmation.toolName !== EXIT_PLAN_MODE_TOOL_NAME || !confirmation.toolInput?.plan_content) {
+    const planContent = confirmation.planContent || confirmation.toolInput?.plan_content;
+    if (confirmation.toolName !== EXIT_PLAN_MODE_TOOL_NAME || !planContent) {
       return null;
     }
 
-    const html = DOMPurify.sanitize(marked.parse(confirmation.toolInput.plan_content) as string);
+    const html = DOMPurify.sanitize(marked.parse(planContent) as string);
     return (
       <div className="plan-content-preview" ref={planContentRef} tabIndex={0}>
         <h3>计划内容：</h3>

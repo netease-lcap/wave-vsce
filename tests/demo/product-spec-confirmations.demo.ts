@@ -137,8 +137,7 @@ test.describe('Product Specification Screenshots - Confirmations', () => {
             confirmationId: 'plan-confirm-001',
             confirmationType: '计划执行确认',
             toolName: EXIT_PLAN_MODE_TOOL_NAME, // "ExitPlanMode"
-            toolInput: {
-                plan_content: `## 项目重构计划
+            planContent: `## 项目重构计划
 
 ### 第一步：代码分析
 - 分析现有代码结构
@@ -154,7 +153,6 @@ test.describe('Product Specification Screenshots - Confirmations', () => {
 - 运行完整测试套件
 - 性能基准测试
 - 用户验收测试`
-            }
         });
         const planConfirmDialog = webviewPage.locator('.confirmation-dialog');
         await planConfirmDialog.waitFor({ state: 'visible' });

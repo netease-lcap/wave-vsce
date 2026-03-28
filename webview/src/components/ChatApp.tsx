@@ -259,6 +259,7 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
               toolName: message.toolName,
               confirmationType: message.confirmationType,
               toolInput: message.toolInput,
+              planContent: message.planContent,
               suggestedPrefix: message.suggestedPrefix,
               hidePersistentOption: message.hidePersistentOption
             }

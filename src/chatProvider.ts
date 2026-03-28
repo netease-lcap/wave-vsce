@@ -357,6 +357,7 @@ export class ChatProvider implements vscode.WebviewViewProvider {
                 toolName: context.toolName,
                 confirmationType: confirmationType,
                 toolInput: context.toolInput,
+                planContent: (context as any).planContent,
                 suggestedPrefix: context.suggestedPrefix,
                 hidePersistentOption: context.hidePersistentOption
             });
@@ -367,6 +368,7 @@ export class ChatProvider implements vscode.WebviewViewProvider {
                 toolName: context.toolName,
                 confirmationType: confirmationType,
                 toolInput: context.toolInput,
+                planContent: (context as any).planContent,
                 suggestedPrefix: context.suggestedPrefix,
                 hidePersistentOption: context.hidePersistentOption
             }, viewType, windowId);
