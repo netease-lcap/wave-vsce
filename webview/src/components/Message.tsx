@@ -198,16 +198,10 @@ export const Message: React.FC<MessageProps> = (props) => {
 
     // Only render bash-specific content if we have a valid command and appropriate stage
     if ((stage === 'running' || stage === 'end') && hasValidCommand) {
-      if (stage === 'running') {
-        // Show only input during execution
-        return (
-          <div className="bash-command-input">
-            <span className="bash-prompt">$</span>
-            <span className="bash-command">{command}</span>
-          </div>
-        );
-      } else if (stage === 'end') {
-        // Show both input and output after execution in a unified block
+      const result = (toolBlock.result || toolBlock.shortResult || '').trim();
+      
+      if (result) {
+        // Show both input and output if result is present (even if running)
         return (
           <div className="bash-command-unified">
             <div className="bash-command-input">
@@ -215,8 +209,16 @@ export const Message: React.FC<MessageProps> = (props) => {
               <span className="bash-command">{command}</span>
             </div>
             <div className="bash-command-output">
-              {(toolBlock.result || '').trim()}
+              {result}
             </div>
+          </div>
+        );
+      } else {
+        // Show only input if no result yet
+        return (
+          <div className="bash-command-input">
+            <span className="bash-prompt">$</span>
+            <span className="bash-command">{command}</span>
           </div>
         );
       }
@@ -263,7 +265,7 @@ export const Message: React.FC<MessageProps> = (props) => {
           {toolHeader}
           {!errorContent && (
             <div className="lsp-output">
-              {(toolBlock.result || '').trim()}
+              {(toolBlock.shortResult || toolBlock.result || '').trim()}
             </div>
           )}
           {errorContent}
@@ -287,7 +289,7 @@ export const Message: React.FC<MessageProps> = (props) => {
       let answers: Record<string, any> = {};
       let isParsed = false;
       try {
-        const result = toolBlock.result;
+        const result = toolBlock.shortResult || toolBlock.result;
         if (typeof result === 'string') {
           const trimmed = result.trim();
           if (trimmed.startsWith('{')) {
@@ -325,10 +327,11 @@ export const Message: React.FC<MessageProps> = (props) => {
         // Fallback to raw result
       }
 
+      const result = toolBlock.shortResult || toolBlock.result;
       return (
         <div key={index} className="tool-container">
           {toolHeader}
-          {!errorContent && toolBlock.result && (
+          {!errorContent && result && (
             <div className="tool-result-block">
               {isParsed ? (
                 Object.entries(answers).map(([question, answer], aIndex) => (
@@ -346,7 +349,7 @@ export const Message: React.FC<MessageProps> = (props) => {
                   </div>
                 ))
               ) : (
-                <div className="result-raw">{String(toolBlock.result)}</div>
+                <div className="result-raw">{String(result)}</div>
               )}
             </div>
           )}
@@ -357,9 +360,10 @@ export const Message: React.FC<MessageProps> = (props) => {
 
     // For ExitPlanMode tools, show the decision
     if (toolBlock.name === EXIT_PLAN_MODE_TOOL_NAME) {
-      const resultText = typeof toolBlock.result === 'string' 
-        ? toolBlock.result 
-        : (toolBlock.result ? JSON.stringify(toolBlock.result) : '');
+      const result = toolBlock.shortResult || toolBlock.result;
+      const resultText = typeof result === 'string' 
+        ? result 
+        : (result ? JSON.stringify(result) : '');
 
       return (
         <div key={index} className="tool-container">
