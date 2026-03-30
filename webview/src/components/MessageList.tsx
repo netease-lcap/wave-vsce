@@ -33,11 +33,15 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, queuedMessag
     const scrollToBottom = (behavior: ScrollBehavior = 'smooth', force = false) => {
       const isNearBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 200;
       
+      const isUserMessage = messages.length > 0 && messages[messages.length - 1].role === 'user';
+      // Force scroll if it's a new message AND (it's from user OR user is already at bottom)
+      const shouldForce = force && (isUserMessage || !userScrolledUpRef.current);
+
       // Always scroll if:
-      // 1. It's a brand new message (force)
+      // 1. It's a brand new message that should be forced
       // 2. We are currently streaming content AND user hasn't scrolled up
       // 3. The user is already near the bottom AND hasn't scrolled up
-      if (force || ((streamingMessageIndex !== undefined || isNearBottom) && !userScrolledUpRef.current)) {
+      if (shouldForce || ((streamingMessageIndex !== undefined || isNearBottom) && !userScrolledUpRef.current)) {
         messagesEnd.scrollIntoView({ behavior });
       }
     };

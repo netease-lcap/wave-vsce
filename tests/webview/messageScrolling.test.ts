@@ -97,6 +97,29 @@ test.describe('Message List Scrolling', () => {
             expect(scrollTop + clientHeight).toBeGreaterThanOrEqual(scrollHeight - 10);
         }).toPass();
 
+        // 8. Add a NEW assistant message and verify it DOES NOT force scroll to bottom if user scrolled up
+        await container.evaluate(el => el.scrollTop = 0);
+        await webviewPage.waitForTimeout(100);
+
+        await injector.updateMessages([...messages, {
+            id: 'streaming_msg',
+            role: 'assistant',
+            blocks: [{ type: 'text', content: accumulated }]
+        }, {
+            id: 'new_msg',
+            role: 'user',
+            blocks: [{ type: 'text', content: 'New message' }]
+        }, {
+            id: 'new_assistant_msg',
+            role: 'assistant',
+            blocks: [{ type: 'text', content: 'New assistant message' }]
+        }]);
+
+        // Wait a bit and verify we are still at the top
+        await webviewPage.waitForTimeout(200);
+        const scrollTopAfterAssistantMsg = await container.evaluate(el => el.scrollTop);
+        expect(scrollTopAfterAssistantMsg).toBe(0);
+
         await injector.endStreaming();
     });
 });
