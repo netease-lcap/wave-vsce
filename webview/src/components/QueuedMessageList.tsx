@@ -1,4 +1,5 @@
 import React from 'react';
+import { Tooltip } from './Tooltip';
 import type { QueuedMessage } from '../types';
 import '../styles/QueuedMessageList.css';
 
@@ -23,15 +24,17 @@ export const QueuedMessageList: React.FC<QueuedMessageListProps> = ({
 
   return (
     <div className={`queued-message-list-container ${isCollapsed ? 'collapsed' : ''}`} data-testid="queued-message-list">
-      <div className="queued-message-list-header" onClick={onToggleCollapse} title={isCollapsed ? "展开消息队列" : "折叠消息队列"}>
-        <div className="queued-message-list-title">
-          <span className={`codicon codicon-chevron-${isCollapsed ? 'right' : 'down'}`}></span>
-          消息队列
+      <Tooltip text={isCollapsed ? "展开消息队列" : "折叠消息队列"} position="top">
+        <div className="queued-message-list-header" onClick={onToggleCollapse} aria-label={isCollapsed ? "展开消息队列" : "折叠消息队列"}>
+          <div className="queued-message-list-title">
+            <span className={`codicon codicon-chevron-${isCollapsed ? 'right' : 'down'}`}></span>
+            消息队列
+          </div>
+          <div className="queued-count">
+            {queuedMessages.length} 条消息
+          </div>
         </div>
-        <div className="queued-count">
-          {queuedMessages.length} 条消息
-        </div>
-      </div>
+      </Tooltip>
       {!isCollapsed && (
         <div className="queued-items">
           {queuedMessages.map((qm, index) => (
@@ -42,27 +45,31 @@ export const QueuedMessageList: React.FC<QueuedMessageListProps> = ({
                 </div>
                 <div className="queued-item-actions">
                   {index === 0 && (
+                    <Tooltip text="立即发送" position="top">
+                      <button 
+                        className="action-button send-now" 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onSend(index);
+                        }}
+                        aria-label="立即发送"
+                      >
+                        <i className="codicon codicon-play"></i>
+                      </button>
+                    </Tooltip>
+                  )}
+                  <Tooltip text="删除" position="top">
                     <button 
-                      className="action-button send-now" 
+                      className="action-button delete-queued" 
                       onClick={(e) => {
                         e.stopPropagation();
-                        onSend(index);
+                        onDelete(index);
                       }}
-                      title="立即发送"
+                      aria-label="删除"
                     >
-                      <i className="codicon codicon-play"></i>
+                      <i className="codicon codicon-trash"></i>
                     </button>
-                  )}
-                  <button 
-                    className="action-button delete-queued" 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onDelete(index);
-                    }}
-                    title="删除"
-                  >
-                    <i className="codicon codicon-trash"></i>
-                  </button>
+                  </Tooltip>
                 </div>
               </div>
             </div>

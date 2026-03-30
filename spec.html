@@ -101,6 +101,7 @@
           <li><a href="#welcome-interface">1.1 欢迎界面</a></li>
           <li><a href="#basic-chat">1.2 基础对话</a></li>
           <li><a href="#message-queuing">1.3 消息队列</a></li>
+          <li><a href="#tooltips">1.4 工具提示 (Tooltips)</a></li>
         </ul>
       </li>
       <li><a href="#intelligent-input-context">2. 智能输入与上下文</a>
@@ -193,6 +194,20 @@
 </figure>
 <figure>
 <img src="./screenshots/spec-queued-message.png" alt="" /><figcaption>已排队的消息</figcaption>
+</figure>
+<h3 id="tooltips">1.4 工具提示 (Tooltips)</h3>
+<p>为了提供一致且可靠的用户体验，Wave 实现了自定义的工具提示组件。当用户将鼠标悬停在图标或特定元素上时，会显示功能说明文案。</p>
+<p><strong>主要特性：</strong></p>
+<ul>
+<li><strong>智能定位</strong>：工具提示会根据元素在屏幕上的位置自动选择最佳显示方向（如 <code>top-left</code>, <code>bottom-left</code> 等），确保文案始终在 Webview 边界内显示，避免被遮挡。</li>
+<li><strong>视觉一致性</strong>：使用 VS Code 官方主题变量，完美适配深色和浅色模式。</li>
+<li><strong>覆盖全面</strong>：涵盖了发送、停止、清除聊天、权限模式切换、设置以及文件标签等所有核心交互元素。</li>
+</ul>
+<figure>
+<img src="./screenshots/tooltip-send.png" alt="" /><figcaption>发送按钮工具提示</figcaption>
+</figure>
+<figure>
+<img src="./screenshots/tooltip-stop.png" alt="" /><figcaption>停止按钮工具提示</figcaption>
 </figure>
 <hr />
     <h2 id="intelligent-input-context">2. 智能输入与上下文</h2>

@@ -17,6 +17,7 @@
 .header-buttons {
     display: flex;
     gap: 8px;
+    align-items: center;
 }
 
 .header-button {

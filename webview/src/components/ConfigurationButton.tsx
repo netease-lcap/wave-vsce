@@ -7,6 +7,7 @@
 
 import React from 'react';
 import { ConfigurationButtonProps } from '../types';
+import { Tooltip } from './Tooltip';
 import '../styles/ConfigurationButton.css';
 
 const ConfigurationButton: React.FC<ConfigurationButtonProps> = ({
@@ -14,15 +15,17 @@ const ConfigurationButton: React.FC<ConfigurationButtonProps> = ({
   disabled = false
 }) => {
   return (
-    <button
-      className="configuration-button"
-      onClick={onClick}
-      disabled={disabled}
-      type="button"
-      title="配置 AI 设置"
-    >
-      <i className="codicon codicon-settings"></i>
-    </button>
+    <Tooltip text="配置 AI 设置" position="top">
+      <button
+        className="configuration-button"
+        onClick={onClick}
+        disabled={disabled}
+        type="button"
+        aria-label="配置 AI 设置"
+      >
+        <i className="codicon codicon-settings"></i>
+      </button>
+    </Tooltip>
   );
 };
 

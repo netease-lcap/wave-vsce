@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef, useImperativeHandle, forwardRef, KeyboardEvent } from 'react';
 import { convertToMarkdown } from '../utils/messageUtils';
 import { ContextTag } from './ContextTag';
+import { Tooltip } from './Tooltip';
 import ReactDOM from 'react-dom/client';
 import type { MessageInputProps, FileItem, SlashCommand, AttachedImage, PermissionMode } from '../types';
 import { FileSuggestionDropdown } from './FileSuggestionDropdown';
@@ -1055,16 +1056,18 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
         <div className="input-buttons-row">
           {/* Left side - Permission Mode Select */}
           <div className="permission-mode-container">
-            <select 
-              className={`permission-mode-select mode-${permissionMode || 'default'}`}
-              value={permissionMode || 'default'}
-              onChange={handlePermissionModeSelect}
-              title="权限模式"
-            >
-              <option value="default">修改前询问</option>
-              <option value="acceptEdits">自动接受修改</option>
-              <option value="plan">计划模式</option>
-            </select>
+            <Tooltip text="权限模式" position="top">
+              <select 
+                className={`permission-mode-select mode-${permissionMode || 'default'}`}
+                value={permissionMode || 'default'}
+                onChange={handlePermissionModeSelect}
+                aria-label="权限模式"
+              >
+                <option value="default">修改前询问</option>
+                <option value="acceptEdits">自动接受修改</option>
+                <option value="plan">计划模式</option>
+              </select>
+            </Tooltip>
           </div>
 
           <div ref={configButtonRef}>
@@ -1076,27 +1079,31 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
 
           <div className="button-spacer" />
 
-          <button
-            className="abort-button"
-            id="abortButton"
-            onClick={onAbortMessage}
-            style={{ display: isStreaming ? 'block' : 'none' }}
-            data-testid="abort-btn"
-            title="停止"
-          >
-            <i className="codicon codicon-stop-circle"></i>
-          </button>
+          <Tooltip text="停止" position="top">
+            <button
+              className="abort-button"
+              id="abortButton"
+              onClick={onAbortMessage}
+              style={{ display: isStreaming ? 'block' : 'none' }}
+              data-testid="abort-btn"
+              aria-label="停止"
+            >
+              <i className="codicon codicon-stop-circle"></i>
+            </button>
+          </Tooltip>
 
-          <button
-            id="sendButton"
-            className="send-button"
-            onClick={handleSend}
-            disabled={disabled || (!message.trim() && attachedImages.length === 0)}
-            data-testid="send-btn"
-            title={isStreaming ? "加入队列" : "发送"}
-          >
-            <i className={`codicon ${isStreaming ? 'codicon-list-ordered' : 'codicon-arrow-up'}`}></i>
-          </button>
+          <Tooltip text={isStreaming ? "加入队列" : "发送"} position="top-left">
+            <button
+              id="sendButton"
+              className="send-button"
+              onClick={handleSend}
+              disabled={disabled || (!message.trim() && attachedImages.length === 0)}
+              data-testid="send-btn"
+              aria-label={isStreaming ? "加入队列" : "发送"}
+            >
+              <i className={`codicon ${isStreaming ? 'codicon-list-ordered' : 'codicon-arrow-up'}`}></i>
+            </button>
+          </Tooltip>
         </div>
 
         {/* File Suggestion Dropdown */}
