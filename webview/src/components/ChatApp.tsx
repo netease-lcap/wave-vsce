@@ -201,6 +201,7 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
 export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
   const [state, dispatch] = useReducer(chatReducer, initialState);
   const messageInputRef = useRef<{ focus: () => void }>(null);
+  const messageListRef = useRef<{ scrollToBottom: (behavior?: ScrollBehavior) => void }>(null);
   const stateRef = useRef(state);
 
   // Keep stateRef in sync with state
@@ -310,6 +311,12 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
           // Focus the message input
           if (messageInputRef.current && typeof messageInputRef.current.focus === 'function') {
             messageInputRef.current.focus();
+          }
+          break;
+        case 'scrollToBottom':
+          // Scroll the message list to bottom
+          if (messageListRef.current && typeof messageListRef.current.scrollToBottom === 'function') {
+            messageListRef.current.scrollToBottom('smooth');
           }
           break;
       }
@@ -446,6 +453,13 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
       decision
     });
     dispatch({ type: 'HIDE_CONFIRMATION', payload: confirmationId });
+    
+    // Scroll to bottom after confirmation is hidden and input is shown
+    setTimeout(() => {
+      if (messageListRef.current) {
+        messageListRef.current.scrollToBottom('smooth');
+      }
+    }, 0);
   }, [vscode]);
 
   const handleRejection = useCallback((confirmationId: string) => {
@@ -455,6 +469,13 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
       approved: false
     });
     dispatch({ type: 'HIDE_CONFIRMATION', payload: confirmationId });
+
+    // Scroll to bottom after confirmation is hidden and input is shown
+    setTimeout(() => {
+      if (messageListRef.current) {
+        messageListRef.current.scrollToBottom('smooth');
+      }
+    }, 0);
   }, [vscode]);
 
   const handleRewindToMessage = useCallback((messageId: string) => {
@@ -480,6 +501,7 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
       />
       
       <MessageList 
+        ref={messageListRef}
         messages={state.messages} 
         queuedMessages={state.queuedMessages}
         streamingMessageIndex={streamingMessageIndex}

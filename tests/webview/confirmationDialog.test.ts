@@ -456,4 +456,40 @@ test.describe('Confirmation Dialog', () => {
         await expect(webviewPage.getByTestId('message-input')).toBeVisible();
         await expect(webviewPage.locator('.confirmation-dialog')).not.toBeVisible();
     });
+
+    test('should focus input and scroll to bottom after confirmation is completed', async ({ webviewPage }) => {
+        const injector = new MessageInjector(webviewPage);
+
+        // Simulate confirmation request
+        await injector.simulateExtensionMessage('showConfirmation', {
+            confirmationId: 'test_focus_scroll',
+            toolName: EDIT_TOOL_NAME,
+            confirmationType: '代码修改待确认',
+            toolInput: {}
+        });
+
+        // Verify input is hidden
+        await expect(webviewPage.getByTestId('message-input')).not.toBeVisible();
+
+        // Approve confirmation
+        await webviewPage.locator('.confirmation-btn-apply').click();
+
+        // Verify input is visible again
+        const input = webviewPage.getByTestId('message-input');
+        await expect(input).toBeVisible();
+
+        // Simulate focusInput and scrollToBottom commands from extension
+        await injector.simulateExtensionMessage('focusInput', {});
+        await injector.simulateExtensionMessage('scrollToBottom', {});
+
+        // Verify input is focused
+        await expect(input).toBeFocused();
+
+        // Verify message list is scrolled to bottom
+        const container = webviewPage.locator('.messages-container');
+        const isAtBottom = await container.evaluate(el => {
+            return Math.abs(el.scrollTop + el.clientHeight - el.scrollHeight) < 5;
+        });
+        expect(isAtBottom).toBe(true);
+    });
 });

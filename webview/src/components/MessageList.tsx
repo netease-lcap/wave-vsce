@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
 import { Message } from './Message';
 import type { MessageListProps } from '../types';
 import '../styles/MessageList.css';
@@ -12,7 +12,7 @@ const welcomeMessage = {
   }]
 };
 
-export const MessageList: React.FC<MessageListProps> = ({ messages, queuedMessages, streamingMessageIndex, vscode, onDeleteQueuedMessage, onSendQueuedMessage, onRewindToMessage }) => {
+export const MessageList = forwardRef<{ scrollToBottom: (behavior?: ScrollBehavior) => void }, MessageListProps>(({ messages, queuedMessages, streamingMessageIndex, vscode, onDeleteQueuedMessage, onSendQueuedMessage, onRewindToMessage }, ref) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -20,31 +20,44 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, queuedMessag
   const prevQueuedLengthRef = useRef(queuedMessages?.length || 0);
   const userScrolledUpRef = useRef(false);
 
-  // Auto-scroll to bottom when messages change, streaming updates, or subagent messages update
-  useEffect(() => {
+  const scrollToBottom = (behavior: ScrollBehavior = 'smooth', force = false) => {
     const container = containerRef.current;
     const messagesEnd = messagesEndRef.current;
     if (!container || !messagesEnd) return;
 
+    const isNearBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 200;
+    
+    const isUserMessage = messages.length > 0 && messages[messages.length - 1].role === 'user';
+    // Force scroll if it's a new message AND (it's from user OR user is already at bottom)
+    const shouldForce = force && (isUserMessage || !userScrolledUpRef.current);
+
+    // Always scroll if:
+    // 1. It's a brand new message that should be forced
+    // 2. We are currently streaming content AND user hasn't scrolled up
+    // 3. The user is already near the bottom AND hasn't scrolled up
+    if (shouldForce || ((streamingMessageIndex !== undefined || isNearBottom) && !userScrolledUpRef.current)) {
+      messagesEnd.scrollIntoView({ behavior });
+    }
+  };
+
+  // Expose scrollToBottom method to parent component
+  useImperativeHandle(ref, () => ({
+    scrollToBottom: (behavior: ScrollBehavior = 'smooth') => {
+      const messagesEnd = messagesEndRef.current;
+      if (messagesEnd) {
+        messagesEnd.scrollIntoView({ behavior });
+      }
+    }
+  }));
+
+  // Auto-scroll to bottom when messages change, streaming updates, or subagent messages update
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
     const isNewMessage = messages.length > prevMessagesLengthRef.current || (queuedMessages?.length || 0) > prevQueuedLengthRef.current;
     prevMessagesLengthRef.current = messages.length;
     prevQueuedLengthRef.current = queuedMessages?.length || 0;
-
-    const scrollToBottom = (behavior: ScrollBehavior = 'smooth', force = false) => {
-      const isNearBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 200;
-      
-      const isUserMessage = messages.length > 0 && messages[messages.length - 1].role === 'user';
-      // Force scroll if it's a new message AND (it's from user OR user is already at bottom)
-      const shouldForce = force && (isUserMessage || !userScrolledUpRef.current);
-
-      // Always scroll if:
-      // 1. It's a brand new message that should be forced
-      // 2. We are currently streaming content AND user hasn't scrolled up
-      // 3. The user is already near the bottom AND hasn't scrolled up
-      if (shouldForce || ((streamingMessageIndex !== undefined || isNearBottom) && !userScrolledUpRef.current)) {
-        messagesEnd.scrollIntoView({ behavior });
-      }
-    };
 
     const handleScroll = () => {
       const isNearBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 200;
@@ -108,4 +121,4 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, queuedMessag
       <div ref={messagesEndRef} />
     </div>
   );
-};
+});

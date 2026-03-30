@@ -187,6 +187,8 @@ export class MessageHandler {
                 await session.rewindToMessage(messageId);
                 // Notify frontend to update state (including inputContent)
                 await this.handleWebviewReady(viewType, windowId);
+                this.context.postMessage({ command: 'focusInput' }, viewType, windowId);
+                this.context.postMessage({ command: 'scrollToBottom' }, viewType, windowId);
             } catch (error) {
                 console.error(`回滚 ${viewType} 会话失败:`, error);
                 vscode.window.showErrorMessage('回滚失败: ' + error);
@@ -501,6 +503,8 @@ export class MessageHandler {
             pending.resolve({ behavior: 'deny', message: '用户拒绝了操作' });
             session.abortMessage();
         }
+        this.context.postMessage({ command: 'focusInput' }, viewType, windowId);
+        this.context.postMessage({ command: 'scrollToBottom' }, viewType, windowId);
     }
 
     private async handleGetConfiguration(viewType?: 'sidebar' | 'tab' | 'window', windowId?: string): Promise<void> {
@@ -527,6 +531,8 @@ export class MessageHandler {
             this.context.updateAllSessionsConfig(config);
 
             this.context.postMessage({ command: 'configurationUpdated' }, viewType, windowId);
+            this.context.postMessage({ command: 'focusInput' }, viewType, windowId);
+            this.context.postMessage({ command: 'scrollToBottom' }, viewType, windowId);
         } catch (error) {
             console.error(`Failed to update ${viewType} configuration:`, error);
             this.context.postMessage({
