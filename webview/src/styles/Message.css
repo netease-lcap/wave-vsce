@@ -171,7 +171,6 @@
 .reasoning-block {
     margin: 8px 0;
     padding: 8px 12px;
-    background-color: var(--vscode-textBlockQuote-background);
     border-left: 4px solid var(--vscode-textBlockQuote-border);
     color: var(--vscode-descriptionForeground);
     font-size: 0.9em;
