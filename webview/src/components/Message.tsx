@@ -475,6 +475,17 @@ export const Message: React.FC<MessageProps> = (props) => {
               <div className="message-content user-content">
                 {parts.map((part, pIndex) => {
                   if (part.type === 'mention') {
+                    const onClick = part.isImage ? () => {
+                      if (part.imageData) {
+                        handleImagePreview(part.imageData, part.path || 'image');
+                      } else {
+                        props.vscode.postMessage({
+                          command: 'openFile',
+                          path: part.path
+                        });
+                      }
+                    } : undefined;
+
                     return (
                       <ContextTag 
                         key={pIndex}
@@ -482,16 +493,7 @@ export const Message: React.FC<MessageProps> = (props) => {
                         path={part.path || ''}
                         isImage={part.isImage}
                         icon={part.isImage ? 'codicon-file-media' : 'codicon-file-code'}
-                        onClick={() => {
-                          if (part.isImage && part.imageData) {
-                            handleImagePreview(part.imageData, part.path || 'image');
-                          } else {
-                            props.vscode.postMessage({
-                              command: 'openFile',
-                              path: part.path
-                            });
-                          }
-                        }}
+                        onClick={onClick}
                       />
                     );
                   } else if (part.type === 'selection') {
