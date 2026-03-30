@@ -2,6 +2,7 @@ import { ContextTag } from './ContextTag';
 import { parseMentions } from '../utils/messageUtils';
 import { marked } from 'marked';
 import { BangBlock } from './BangBlock';
+import { Tooltip } from './Tooltip';
 
 // ... (existing imports)
 import DOMPurify from 'dompurify';
@@ -552,13 +553,14 @@ export const Message: React.FC<MessageProps> = (props) => {
       {message.blocks?.map((block, index) => renderBlock(block, index))}
       {message.role === 'user' && !isQueued && message.id && !message.blocks?.some(b => b.type === 'bang') && (
         <div className="message-actions">
-          <button 
-            className="message-action-btn" 
-            onClick={() => onRewindToMessage?.(message.id!)}
-            title="回滚到此消息"
-          >
-            <i className="codicon codicon-history"></i>
-          </button>
+          <Tooltip text="回滚到此消息" position="top">
+            <button 
+              className="message-action-btn" 
+              onClick={() => onRewindToMessage?.(message.id!)}
+            >
+              <i className="codicon codicon-history"></i>
+            </button>
+          </Tooltip>
         </div>
       )}
     </div>
