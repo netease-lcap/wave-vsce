@@ -495,7 +495,7 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
           onSend={handleSendQueuedMessage}
         />
         
-        {state.pendingConfirmations.length === 0 && (
+        <div style={{ display: state.pendingConfirmations.length === 0 ? 'block' : 'none' }}>
           <MessageInput
             ref={messageInputRef}
             onSendMessage={handleSendMessage}
@@ -519,7 +519,7 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
             initialAttachedImages={state.attachedImages}
             isTaskListVisible={state.isTaskListVisible && state.tasks.length > 0}
           />
-        )}
+        </div>
 
         {state.pendingConfirmations.length > 0 && (
           <ConfirmationDialog
