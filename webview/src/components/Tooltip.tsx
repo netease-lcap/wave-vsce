@@ -7,6 +7,7 @@ interface TooltipProps {
   position?: 'top' | 'bottom' | 'left' | 'right' | 'bottom-left' | 'bottom-right' | 'top-left' | 'top-right';
   offset?: number;
   disabled?: boolean;
+  className?: string;
 }
 
 export const Tooltip: React.FC<TooltipProps> = ({ 
@@ -14,7 +15,8 @@ export const Tooltip: React.FC<TooltipProps> = ({
   children, 
   position = 'top',
   offset = 8,
-  disabled = false
+  disabled = false,
+  className = ''
 }) => {
   const [isVisible, setIsVisible] = useState(false);
   const id = useId();
@@ -27,7 +29,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
 
   return (
     <span 
-      className="tooltip-container"
+      className={`tooltip-container ${className}`}
       onMouseEnter={handleShow}
       onMouseLeave={handleHide}
       onFocus={handleShow}

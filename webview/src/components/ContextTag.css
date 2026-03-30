@@ -14,10 +14,16 @@
     white-space: nowrap;
 }
 
-.context-tag .tag-at {
+.context-tag .tag-at,
+.context-tag .tag-icon {
     font-weight: bold;
     font-size: 14px;
     opacity: 0.9;
+    margin-right: 4px;
+}
+
+.context-tag .tag-icon {
+    font-size: 12px;
 }
 
 .context-tag.clickable {

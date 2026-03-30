@@ -168,4 +168,71 @@ test.describe('Message Queuing', () => {
     await expect(queuePanel).toContainText('Queued message 2');
     await expect(deleteButtons).toHaveCount(1);
   });
+
+  test('should render mention tags and image tags in queued messages', async ({ webviewPage }) => {
+    // 1. Start streaming to enable queuing
+    await webviewPage.evaluate(() => {
+      (window as any).simulateExtensionMessage({
+        command: 'startStreaming'
+      });
+    });
+
+    // 2. Simulate queue update with a message containing a mention tag and an image tag
+    await webviewPage.evaluate(() => {
+      (window as any).simulateExtensionMessage({
+        command: 'updateQueue',
+        queue: [
+          { 
+            text: 'Check this file [@file:src/main.ts] and this image [image1]',
+            images: [{ data: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==', mediaType: 'image/png' }]
+          }
+        ]
+      });
+    });
+
+    // 3. Verify the queue panel is visible
+    const queuePanel = webviewPage.getByTestId('queued-message-list');
+    await expect(queuePanel).toBeVisible();
+
+    // 4. Verify the mention tag is rendered as a ContextTag
+    const mentionTag = queuePanel.locator('.context-tag').filter({ hasText: 'main.ts' });
+    await expect(mentionTag).toBeVisible();
+    await expect(mentionTag.locator('.codicon-file-code')).toBeVisible();
+
+    // 5. Verify the image tag is rendered as a ContextTag with image icon
+    const imageTag = queuePanel.locator('.context-tag').filter({ hasText: '图片 1' });
+    await expect(imageTag).toBeVisible();
+    await expect(imageTag.locator('.codicon-file-media')).toBeVisible();
+
+    // 6. Verify the text around tags is also rendered
+    await expect(queuePanel).toContainText('Check this file');
+    await expect(queuePanel).toContainText('and this image');
+  });
+
+  test('should render selection tags in queued messages', async ({ webviewPage }) => {
+    // 1. Start streaming
+    await webviewPage.evaluate(() => {
+      (window as any).simulateExtensionMessage({
+        command: 'startStreaming'
+      });
+    });
+
+    // 2. Simulate queue update with a selection tag
+    await webviewPage.evaluate(() => {
+      (window as any).simulateExtensionMessage({
+        command: 'updateQueue',
+        queue: [
+          { 
+            text: 'Look at this selection: [Selection: src/utils.ts|utils.ts#10-20]',
+          }
+        ]
+      });
+    });
+
+    // 3. Verify the selection tag is rendered as a ContextTag
+    const queuePanel = webviewPage.getByTestId('queued-message-list');
+    const selectionTag = queuePanel.locator('.context-tag').filter({ hasText: 'utils.ts#10-20' });
+    await expect(selectionTag).toBeVisible();
+    await expect(selectionTag.locator('.codicon-code')).toBeVisible();
+  });
 });

@@ -503,6 +503,7 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
           onToggleCollapse={() => dispatch({ type: 'TOGGLE_QUEUE_COLLAPSE' })}
           onDelete={handleDeleteQueuedMessage}
           onSend={handleSendQueuedMessage}
+          vscode={vscode}
         />
         
         <div style={{ display: state.pendingConfirmations.length === 0 ? 'block' : 'none' }}>

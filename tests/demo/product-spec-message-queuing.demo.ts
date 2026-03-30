@@ -40,19 +40,23 @@ test.describe('Product Specification Screenshots - Message Queuing', () => {
         // Take screenshot of the input area with "Add to Queue" button
         await webviewPage.locator('.input-container').screenshot({ path: 'screenshots/spec-queue-button.png' });
 
-        // 2. Show queued message in the list
+        // 2. Show queued message in the list with tags
         await injector.simulateExtensionMessage('updateQueue', {
             queue: [
-                { text: '顺便帮我写个测试用例' }
+                { 
+                    text: '顺便帮我写个测试用例，参考 [@file:src/utils.ts] 和 [image1]',
+                    images: [{ data: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==', mediaType: 'image/png' }]
+                }
             ]
         });
 
         // Wait for the queued message to appear in the queue panel
         const queuePanel = webviewPage.getByTestId('queued-message-list');
         await expect(queuePanel).toBeVisible();
-        await expect(queuePanel).toContainText('顺便帮我写个测试用例');
+        await expect(queuePanel).toContainText('utils.ts');
+        await expect(queuePanel).toContainText('图片 1');
         
-        // Take screenshot of the message list showing the queued message
+        // Take screenshot of the message list showing the queued message with tags
         await webviewPage.screenshot({ path: 'screenshots/spec-queued-message.png' });
     });
 });

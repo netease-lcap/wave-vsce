@@ -20,6 +20,13 @@
   z-index: 1;
   cursor: pointer;
   user-select: none;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.queued-message-list-tooltip {
+  display: block;
+  width: 100%;
 }
 
 .queued-message-list-header:hover {
@@ -65,10 +72,8 @@
 .queued-item-content {
   flex-grow: 1;
   color: var(--vscode-descriptionForeground);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
   font-size: 11px;
+  min-width: 0;
 }
 
 .queued-item-actions {

@@ -28,6 +28,32 @@
     position: relative;
 }
 
+.message.user.queued {
+    background-color: transparent;
+    padding: 0;
+    margin-bottom: 0;
+    border-radius: 0;
+}
+
+.message.user.queued:hover {
+    background-color: transparent;
+}
+
+.message.user.queued .user-message-wrapper {
+    padding: 0;
+}
+
+.message.user.queued .message-content.user-content {
+    font-size: 11px;
+    color: var(--vscode-descriptionForeground);
+}
+
+.message.user.queued .context-tag {
+    padding: 1px 4px;
+    font-size: 10px;
+    margin: 0 2px;
+}
+
 .message-actions {
     position: absolute;
     top: -12px;

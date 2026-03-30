@@ -1,5 +1,6 @@
 import React from 'react';
 import { Tooltip } from './Tooltip';
+import { Message } from './Message';
 import type { QueuedMessage } from '../types';
 import '../styles/QueuedMessageList.css';
 
@@ -9,6 +10,7 @@ interface QueuedMessageListProps {
   onToggleCollapse: () => void;
   onDelete: (index: number) => void;
   onSend: (index: number) => void;
+  vscode: any;
 }
 
 export const QueuedMessageList: React.FC<QueuedMessageListProps> = ({
@@ -16,7 +18,8 @@ export const QueuedMessageList: React.FC<QueuedMessageListProps> = ({
   isCollapsed,
   onToggleCollapse,
   onDelete,
-  onSend
+  onSend,
+  vscode
 }) => {
   if (queuedMessages.length === 0) {
     return null;
@@ -24,7 +27,7 @@ export const QueuedMessageList: React.FC<QueuedMessageListProps> = ({
 
   return (
     <div className={`queued-message-list-container ${isCollapsed ? 'collapsed' : ''}`} data-testid="queued-message-list">
-      <Tooltip text={isCollapsed ? "展开消息队列" : "折叠消息队列"} position="top">
+      <Tooltip text={isCollapsed ? "展开消息队列" : "折叠消息队列"} position="top" className="queued-message-list-tooltip">
         <div className="queued-message-list-header" onClick={onToggleCollapse} aria-label={isCollapsed ? "展开消息队列" : "折叠消息队列"}>
           <div className="queued-message-list-title">
             <span className={`codicon codicon-chevron-${isCollapsed ? 'right' : 'down'}`}></span>
@@ -41,7 +44,21 @@ export const QueuedMessageList: React.FC<QueuedMessageListProps> = ({
             <div key={index} className="queued-item">
               <div className="queued-item-main">
                 <div className="queued-item-content">
-                  {qm.text || (qm.images && qm.images.length > 0 ? "[图片]" : "无内容")}
+                  <Message 
+                    message={{
+                      id: `queued-${index}`,
+                      role: 'user',
+                      blocks: [
+                        { type: 'text', content: qm.text },
+                        ...(qm.images || []).map(img => ({
+                          type: 'image' as const,
+                          imageUrls: [img.data]
+                        }))
+                      ]
+                    }}
+                    isQueued={true}
+                    vscode={vscode}
+                  />
                 </div>
                 <div className="queued-item-actions">
                   {index === 0 && (
