@@ -345,8 +345,8 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps & { vscode: any }> 
                   ) : (
                     // Plugin list view
                     <div className="plugin-list">
-                      {plugins.filter(p => !p.installed || (p.installed && !p.scope)).length > 0 ? (
-                        plugins.filter(p => !p.installed || (p.installed && !p.scope)).map(plugin => (
+                      {plugins.length > 0 ? (
+                        plugins.map(plugin => (
                           <div 
                             key={plugin.id} 
                             className="plugin-item clickable"
@@ -355,7 +355,7 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps & { vscode: any }> 
                             <div className="plugin-info">
                               <div className="plugin-name">
                                 {plugin.name} <span className="plugin-version">{plugin.version}</span>
-                                {plugin.installed && <span className="plugin-status-tag">已安装</span>}
+                                {plugin.installed && plugin.scope && <span className="plugin-scope">[{plugin.scope}]</span>}
                               </div>
                               <div className="plugin-desc">{plugin.description}</div>
                               <div className="plugin-market">来自: {plugin.marketplace}</div>
