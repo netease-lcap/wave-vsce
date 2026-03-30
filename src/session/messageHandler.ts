@@ -140,9 +140,7 @@ export class MessageHandler {
 
     private async handleRequestHistory(viewType?: 'sidebar' | 'tab' | 'window', windowId?: string) {
         try {
-            const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
-            const workdir = workspaceFolder?.uri.fsPath;
-            const history = await PromptHistoryManager.getHistory({ workdir });
+            const history = await PromptHistoryManager.getHistory();
             this.context.postMessage({
                 command: 'historyResponse',
                 history: history
@@ -158,9 +156,7 @@ export class MessageHandler {
 
     private async handleSearchHistory(query: string, viewType?: 'sidebar' | 'tab' | 'window', windowId?: string) {
         try {
-            const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
-            const workdir = workspaceFolder?.uri.fsPath;
-            const history = await PromptHistoryManager.searchHistory(query, { workdir });
+            const history = await PromptHistoryManager.searchHistory(query);
             this.context.postMessage({
                 command: 'historyResponse',
                 history: history

@@ -102,6 +102,7 @@ export interface UploadFileInfo {
 export interface HistoryItem {
   prompt: string;
   timestamp: number;
+  workdir?: string;
 }
 
 export interface HistorySearchState {
