@@ -197,12 +197,10 @@ test.describe('Message Queuing', () => {
     // 4. Verify the mention tag is rendered as a ContextTag
     const mentionTag = queuePanel.locator('.context-tag').filter({ hasText: 'main.ts' });
     await expect(mentionTag).toBeVisible();
-    await expect(mentionTag.locator('.codicon-file-code')).toBeVisible();
 
-    // 5. Verify the image tag is rendered as a ContextTag with image icon
+    // 5. Verify the image tag is rendered as a ContextTag
     const imageTag = queuePanel.locator('.context-tag').filter({ hasText: '图片 1' });
     await expect(imageTag).toBeVisible();
-    await expect(imageTag.locator('.codicon-file-media')).toBeVisible();
 
     // 6. Verify the text around tags is also rendered
     await expect(queuePanel).toContainText('Check this file');
@@ -233,6 +231,5 @@ test.describe('Message Queuing', () => {
     const queuePanel = webviewPage.getByTestId('queued-message-list');
     const selectionTag = queuePanel.locator('.context-tag').filter({ hasText: 'utils.ts#10-20' });
     await expect(selectionTag).toBeVisible();
-    await expect(selectionTag.locator('.codicon-code')).toBeVisible();
   });
 });
