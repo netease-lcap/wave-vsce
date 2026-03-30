@@ -112,6 +112,7 @@
           <li><a href="#slash-commands">2.2 指令系统 (Slash Commands)</a></li>
           <li><a href="#file-suggestions">2.3 文件建议与预览 (@ 提及)</a></li>
           <li><a href="#permission-modes">2.4 权限模式管理</a></li>
+          <li><a href="#bang-shell-command">2.5 快捷终端命令 (Bang Command)</a></li>
         </ul>
       </li>
       <li><a href="#enhanced-agent-capabilities">3. 增强型 Agent 能力</a>
@@ -282,7 +283,22 @@
 <img src="./screenshots/spec-permission-mode-plan.png" alt="" /><figcaption>权限模式 - 计划模式</figcaption>
 </figure>
 <p>计划模式是一种特殊的工作模式，AI 只能修改计划文件（通常是 <code>.wave/plans/</code> 目录下的文件），用于协作制定和完善开发计划，而不会直接修改项目代码。这种模式特别适合项目规划阶段。</p>
-<p><strong>特点</strong>： - 下拉切换：点击输入框左下角的权限模式按钮即可弹出下拉菜单切换三种模式 - 视觉区分：每种模式都有不同的图标和颜色标识 - 实时生效：切换后立即应用到当前会话中</p>
+<p><strong>特点</strong>： - 下拉切换：点击输入框左下角的权限模式按钮即可弹出下拉菜单切换三种模式 - 视觉区分：每种模式都有不同的图标 and 颜色标识 - 实时生效：切换后立即应用到当前会话中</p>
+<h3 id="bang-shell-command">2.5 快捷终端命令 (Bang Command)</h3>
+<p>用户可以通过在输入框中以 <code>!</code> 开头直接执行终端命令。这允许用户在不离开聊天界面的情况下快速执行系统操作、运行脚本或检查环境。</p>
+<p><strong>主要特性：</strong></p>
+<ul>
+<li><strong>快速触发</strong>：只需在命令前加上 <code>!</code> 即可触发，如 <code>!ls -la</code>。</li>
+<li><strong>实时输出</strong>：命令执行过程中的输出会实时显示在专用的 Bang 块中，风格与 AI 触发的终端工具保持一致。</li>
+<li><strong>状态反馈</strong>：通过图标直观展示命令的运行状态（运行中、退出代码等）。</li>
+<li><strong>可中止性</strong>：对于长时间运行的命令，用户可以点击“停止”按钮随时中止执行。</li>
+</ul>
+<figure>
+<img src="./screenshots/bang-command-success.png" alt="" /><figcaption>Bang 命令执行成功</figcaption>
+</figure>
+<figure>
+<img src="./screenshots/bang-command-long-output.png" alt="" /><figcaption>长输出展示</figcaption>
+</figure>
 <hr />
 <h2 id="enhanced-agent-capabilities">3. 增强型 Agent 能力</h2>
 <h3 id="bash-tool">3.1 终端工具 (Bash Tool)</h3>

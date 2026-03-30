@@ -1,6 +1,7 @@
 import { ContextTag } from './ContextTag';
 import { parseMentions } from '../utils/messageUtils';
 import { marked } from 'marked';
+import { BangBlock } from './BangBlock';
 
 // ... (existing imports)
 import DOMPurify from 'dompurify';
@@ -531,6 +532,8 @@ export const Message: React.FC<MessageProps> = (props) => {
         );
       case 'tool':
         return renderToolBlock(block as ToolBlock, index);
+      case 'bang':
+        return <BangBlock key={index} block={block} />;
       case 'image':
         return renderImageBlock(block as ImageBlock, index);
       case 'reasoning':

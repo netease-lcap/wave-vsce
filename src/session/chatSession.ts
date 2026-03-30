@@ -168,7 +168,11 @@ export class ChatSession {
                 console.error('Failed to save prompt to history:', error);
             }
             
-            await this.agent.sendMessage(text, processedImages);
+            if (text.startsWith('!')) {
+                await this.agent.executeBashCommand(text.slice(1));
+            } else {
+                await this.agent.sendMessage(text, processedImages);
+            }
             
         } catch (error) {
             throw error;

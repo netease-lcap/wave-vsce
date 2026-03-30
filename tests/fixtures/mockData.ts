@@ -213,6 +213,23 @@ export class MockDataGenerator {
             blocks: blocks
         };
     }
+    /**
+     * Create a bang message
+     */
+    static createBangMessage(command: string, output: string, isRunning: boolean = false, exitCode: number | null = 0): Message {
+        return {
+            id: `msg_${Math.random().toString(36).substring(2, 9)}`,
+            role: "user",
+            blocks: [{
+                type: "bang",
+                command,
+                output,
+                isRunning,
+                exitCode
+            } as any]
+        };
+    }
+
     static createSampleConversation(): Message[] {
         return [
             this.createUserMessage("Hello, can you help me with my project?"),

@@ -6,10 +6,10 @@
  */
 
 // Import message structures and session types from wave-agent-sdk
-import type { Message, MessageBlock, TextBlock, ErrorBlock, ToolBlock, ImageBlock, CompressBlock, PermissionMode, AskUserQuestion, AskUserQuestionInput, AskUserQuestionOption, Task, TaskStatus } from 'wave-agent-sdk/dist/types/index.js';
+import type { Message, MessageBlock, TextBlock, ErrorBlock, ToolBlock, ImageBlock, BangBlock, CompressBlock, PermissionMode, AskUserQuestion, AskUserQuestionInput, AskUserQuestionOption, Task, TaskStatus } from 'wave-agent-sdk/dist/types/index.js';
 import type { SessionMetadata, SessionData } from 'wave-agent-sdk/dist/services/session.js';
 
-export type { Message, MessageBlock, TextBlock, ErrorBlock, ToolBlock, ImageBlock, CompressBlock, SessionData, SessionMetadata, PermissionMode, AskUserQuestion, AskUserQuestionInput, AskUserQuestionOption, Task, TaskStatus };
+export type { Message, MessageBlock, TextBlock, ErrorBlock, ToolBlock, ImageBlock, BangBlock, CompressBlock, SessionData, SessionMetadata, PermissionMode, AskUserQuestion, AskUserQuestionInput, AskUserQuestionOption, Task, TaskStatus };
 
 // Slash command types
 export interface SlashCommand {
