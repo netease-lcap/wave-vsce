@@ -42,7 +42,7 @@ test.describe('Product Specification Screenshots - UI Basic', () => {
             }
         });
         await webviewPage.waitForSelector('.context-tag-container[data-is-selection="true"]');
-        await webviewPage.locator('.context-tag-container[data-is-selection="true"]').screenshot({ path: 'screenshots/spec-selection-inline-tag.png' });
+        await webviewPage.locator('.input-container').screenshot({ path: 'screenshots/spec-selection-inline-tag.png' });
         
         // Clear input for next steps
         await webviewPage.focus('[data-testid="message-input"]');

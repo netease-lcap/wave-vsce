@@ -47,8 +47,10 @@ test.describe('Product Specification Screenshots - Message Queuing', () => {
             ]
         });
 
-        // Wait for the queued message to appear
-        await webviewPage.waitForSelector('.message.user.queued');
+        // Wait for the queued message to appear in the queue panel
+        const queuePanel = webviewPage.getByTestId('queued-message-list');
+        await expect(queuePanel).toBeVisible();
+        await expect(queuePanel).toContainText('顺便帮我写个测试用例');
         
         // Take screenshot of the message list showing the queued message
         await webviewPage.screenshot({ path: 'screenshots/spec-queued-message.png' });

@@ -26,3 +26,25 @@ check:
     paths:
       - playwright-report/
     expire_in: 1 week
+
+test:demo:
+  stage: check
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+  cache:
+    key:
+      files:
+        - package-lock.json
+    paths:
+      - node_modules/
+      - $PLAYWRIGHT_BROWSERS_PATH
+  script:
+    - npm install
+    - npx playwright install chromium --only-shell
+    - npm run test:demo
+  artifacts:
+    when: on_failure
+    paths:
+      - playwright-report/
+      - screenshots/
+    expire_in: 1 week
