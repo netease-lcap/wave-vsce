@@ -18,7 +18,7 @@ test.describe('Message Queuing', () => {
 
     // 2. Verify send button shows "加入队列" and has list-ordered icon
     const sendBtn = webviewPage.getByTestId('send-btn');
-    await expect(sendBtn).toHaveAttribute('title', '加入队列');
+    await expect(sendBtn).toHaveAttribute('aria-label', '加入队列');
     const icon = sendBtn.locator('i');
     await expect(icon).toHaveClass(/codicon-list-ordered/);
 

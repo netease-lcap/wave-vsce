@@ -35,7 +35,7 @@ test.describe('Product Specification Screenshots - Message Queuing', () => {
         
         // Wait for the button to update
         const sendBtn = webviewPage.getByTestId('send-btn');
-        await expect(sendBtn).toHaveAttribute('title', '加入队列');
+        await expect(sendBtn).toHaveAttribute('aria-label', '加入队列');
         
         // Take screenshot of the input area with "Add to Queue" button
         await webviewPage.locator('.input-container').screenshot({ path: 'screenshots/spec-queue-button.png' });
