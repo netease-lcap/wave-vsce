@@ -99,7 +99,7 @@ const parseMarkdownWithMermaid = (content: string): ParsedMarkdownContent => {
 
 
 export const Message: React.FC<MessageProps> = (props) => {
-  const { message, isStreaming = false, isQueued = false } = props;
+  const { message, isStreaming = false, isQueued = false, onRewindToMessage } = props;
   const getMessageClassName = () => {
     const classes = ['message'];
     
@@ -543,6 +543,17 @@ export const Message: React.FC<MessageProps> = (props) => {
   return (
     <div className={getMessageClassName()}>
       {message.blocks?.map((block, index) => renderBlock(block, index))}
+      {message.role === 'user' && !isQueued && message.id && (
+        <div className="message-actions">
+          <button 
+            className="message-action-btn" 
+            onClick={() => onRewindToMessage?.(message.id!)}
+            title="回滚到此消息"
+          >
+            <i className="codicon codicon-history"></i>
+          </button>
+        </div>
+      )}
     </div>
   );
 };

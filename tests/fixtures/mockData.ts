@@ -15,14 +15,14 @@ export class MockDataGenerator {
     /**
      * Create a basic user message
      */
-    static createUserMessage(content: string): Message {
+    static createUserMessage(content: string, id?: string): Message {
         const textBlock: TextBlock = {
             type: "text",
             content: content
         };
 
         return {
-            id: `msg_${Math.random().toString(36).substring(2, 9)}`,
+            id: id || `msg_${Math.random().toString(36).substring(2, 9)}`,
             role: "user",
             blocks: [textBlock]
         };
@@ -31,14 +31,14 @@ export class MockDataGenerator {
     /**
      * Create a basic assistant message with text content
      */
-    static createAssistantMessage(content: string): Message {
+    static createAssistantMessage(content: string, id?: string): Message {
         const textBlock: TextBlock = {
             type: "text",
             content: content
         };
 
         return {
-            id: `msg_${Math.random().toString(36).substring(2, 9)}`,
+            id: id || `msg_${Math.random().toString(36).substring(2, 9)}`,
             role: "assistant", 
             blocks: [textBlock]
         };

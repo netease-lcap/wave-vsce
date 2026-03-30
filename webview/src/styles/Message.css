@@ -24,6 +24,40 @@
     background-color: var(--vscode-chat-requestBubbleHoverBackground);
 }
 
+.message.user {
+    position: relative;
+}
+
+.message-actions {
+    position: absolute;
+    top: -12px;
+    right: 8px;
+    display: none;
+    gap: 4px;
+    z-index: 10;
+}
+
+.message.user:hover .message-actions {
+    display: flex;
+}
+
+.message-action-btn {
+    background-color: var(--vscode-button-secondaryBackground);
+    color: var(--vscode-button-secondaryForeground);
+    border: 1px solid var(--vscode-panel-border);
+    border-radius: 4px;
+    padding: 2px 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+}
+
+.message-action-btn:hover {
+    background-color: var(--vscode-button-secondaryHoverBackground);
+}
+
 .message.assistant .error {
     color: var(--vscode-descriptionForeground);
     font-style: italic;

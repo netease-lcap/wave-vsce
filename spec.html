@@ -101,7 +101,8 @@
           <li><a href="#welcome-interface">1.1 欢迎界面</a></li>
           <li><a href="#basic-chat">1.2 基础对话</a></li>
           <li><a href="#message-queuing">1.3 消息队列</a></li>
-          <li><a href="#tooltips">1.4 工具提示 (Tooltips)</a></li>
+          <li><a href="#rewind-feature">1.4 对话回滚 (Rewind)</a></li>
+          <li><a href="#tooltips">1.5 工具提示 (Tooltips)</a></li>
         </ul>
       </li>
       <li><a href="#intelligent-input-context">2. 智能输入与上下文</a>
@@ -195,7 +196,19 @@
 <figure>
 <img src="./screenshots/spec-queued-message.png" alt="" /><figcaption>已排队的消息</figcaption>
 </figure>
-<h3 id="tooltips">1.4 工具提示 (Tooltips)</h3>
+<h3 id="rewind-feature">1.4 对话回滚 (Rewind)</h3>
+<p>Wave 支持将对话回滚到之前的任意用户消息状态。这不仅会删除该消息之后的所有对话记录，还会自动撤销 AI 在这些回合中所做的所有文件更改。</p>
+<p><strong>主要特性：</strong></p>
+<ul>
+<li><strong>悬停触发</strong>：当鼠标悬停在历史记录中的用户消息上时，右上方会出现“回滚”图标。</li>
+<li><strong>一键回滚</strong>：点击图标并确认后，系统会自动清理后续消息并恢复文件状态。</li>
+<li><strong>安全确认</strong>：执行回滚前会弹出二次确认对话框，防止误操作导致数据丢失。</li>
+<li><strong>状态同步</strong>：回滚后，任务列表和会话元数据会自动同步到回滚后的状态。</li>
+</ul>
+<figure>
+<img src="./screenshots/spec-rewind-button.png" alt="" /><figcaption>用户消息上的回滚按钮</figcaption>
+</figure>
+<h3 id="tooltips">1.5 工具提示 (Tooltips)</h3>
 <p>为了提供一致且可靠的用户体验，Wave 实现了自定义的工具提示组件。当用户将鼠标悬停在图标或特定元素上时，会显示功能说明文案。</p>
 <p><strong>主要特性：</strong></p>
 <ul>

@@ -295,6 +295,22 @@ export class ChatSession {
         }
     }
 
+    public async rewindToMessage(messageId: string) {
+        if (!this.agent) {
+            throw new Error('智能体未初始化');
+        }
+
+        const { messages } = await this.agent.getFullMessageThread();
+        const index = messages.findIndex(m => m.id === messageId);
+        
+        if (index === -1) {
+            throw new Error(`未找到 ID 为 ${messageId} 的消息`);
+        }
+
+        // Truncate starting from the next message to keep the selected message
+        await this.agent.truncateHistory(index + 1);
+    }
+
     public async destroy() {
         if (this.updateTimer) {
             clearTimeout(this.updateTimer);

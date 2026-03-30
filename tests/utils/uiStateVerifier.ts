@@ -228,6 +228,16 @@ export class UIStateVerifier {
     }
 
     /**
+     * Click rewind button on a user message at specific index
+     */
+    async clickRewind(index: number) {
+        const userMessage = this.userMessages.nth(index);
+        await userMessage.hover();
+        const rewindBtn = userMessage.locator('.message-action-btn');
+        await rewindBtn.click();
+    }
+
+    /**
      * Verify clear chat button state
      */
     async verifyClearChatButtonEnabled(shouldBeEnabled: boolean = true) {

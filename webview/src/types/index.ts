@@ -110,6 +110,7 @@ export interface MessageListProps {
   vscode: any;
   onDeleteQueuedMessage?: (index: number) => void;
   onSendQueuedMessage?: (index: number) => void;
+  onRewindToMessage?: (messageId: string) => void;
 }
 
 export interface MessageProps {
@@ -119,6 +120,7 @@ export interface MessageProps {
   vscode: any;
   onDeleteQueuedMessage?: () => void;
   onSendQueuedMessage?: () => void;
+  onRewindToMessage?: (messageId: string) => void;
 }
 
 // Image attachment types (uses base64 data directly)

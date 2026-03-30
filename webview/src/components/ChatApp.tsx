@@ -457,6 +457,15 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
     dispatch({ type: 'HIDE_CONFIRMATION', payload: confirmationId });
   }, [vscode]);
 
+  const handleRewindToMessage = useCallback((messageId: string) => {
+    if (state.isStreaming) return;
+    
+    vscode.postMessage({
+      command: 'rewindToMessage',
+      messageId
+    });
+  }, [state.isStreaming, vscode]);
+
   return (
     <div className="chat-container" data-testid="chat-container">
       <ChatHeader
@@ -477,6 +486,7 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
         vscode={vscode}
         onDeleteQueuedMessage={handleDeleteQueuedMessage}
         onSendQueuedMessage={handleSendQueuedMessage}
+        onRewindToMessage={handleRewindToMessage}
       />
 
       <div className="input-area-container">
