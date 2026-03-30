@@ -18,6 +18,7 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, queuedMessag
 
   const prevMessagesLengthRef = useRef(messages.length);
   const prevQueuedLengthRef = useRef(queuedMessages?.length || 0);
+  const userScrolledUpRef = useRef(false);
 
   // Auto-scroll to bottom when messages change, streaming updates, or subagent messages update
   useEffect(() => {
@@ -33,13 +34,24 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, queuedMessag
       const isNearBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 200;
       
       // Always scroll if:
-      // 1. It's a brand new message
-      // 2. We are currently streaming content
-      // 3. The user is already near the bottom
-      if (force || streamingMessageIndex !== undefined || isNearBottom) {
+      // 1. It's a brand new message (force)
+      // 2. We are currently streaming content AND user hasn't scrolled up
+      // 3. The user is already near the bottom AND hasn't scrolled up
+      if (force || ((streamingMessageIndex !== undefined || isNearBottom) && !userScrolledUpRef.current)) {
         messagesEnd.scrollIntoView({ behavior });
       }
     };
+
+    const handleScroll = () => {
+      const isNearBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 200;
+      if (isNearBottom) {
+        userScrolledUpRef.current = false;
+      } else {
+        userScrolledUpRef.current = true;
+      }
+    };
+
+    container.addEventListener('scroll', handleScroll);
 
     // Use ResizeObserver to handle content height changes (images, diffs, etc.)
     const resizeObserver = new ResizeObserver(() => {
@@ -55,6 +67,7 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, queuedMessag
 
     return () => {
       resizeObserver.disconnect();
+      container.removeEventListener('scroll', handleScroll);
     };
   }, [messages, queuedMessages, streamingMessageIndex]);
 
