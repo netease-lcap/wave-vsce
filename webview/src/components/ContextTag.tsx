@@ -5,12 +5,11 @@ import './ContextTag.css';
 interface ContextTagProps {
   name: string;
   path: string;
-  icon?: string;
   isImage?: boolean;
   onClick?: () => void;
 }
 
-export const ContextTag: React.FC<ContextTagProps> = ({ name, path, icon, isImage, onClick }) => {
+export const ContextTag: React.FC<ContextTagProps> = ({ name, path, isImage, onClick }) => {
   const isClickable = onClick !== undefined;
 
   const handlePreview = (e: React.MouseEvent) => {
@@ -30,7 +29,6 @@ export const ContextTag: React.FC<ContextTagProps> = ({ name, path, icon, isImag
         data-path={path}
       >
         <span className="tag-at">@</span>
-        {icon && <i className={`tag-icon codicon ${icon}`}></i>}
         <span className="tag-name">{name}</span>
       </span>
     </Tooltip>

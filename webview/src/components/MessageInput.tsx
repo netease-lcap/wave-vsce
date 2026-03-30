@@ -385,7 +385,6 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
             <ContextTag 
               name={fileName} 
               path={filePath} 
-              icon={isImage ? 'codicon-file-media' : 'codicon-file-code'} 
               isImage={isImage}
             />
           );
@@ -444,7 +443,6 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
       <ContextTag 
         name={displayName} 
         path={selection.filePath} 
-        icon="codicon-code"
         onClick={() => {
           vscode.postMessage({
             command: 'openFile',
@@ -578,7 +576,6 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
       <ContextTag 
         name={file.name} 
         path={file.relativePath} 
-        icon={file.icon} 
         isImage={isImage}
         onClick={isImage ? () => {
           vscode.postMessage({
@@ -995,7 +992,6 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
           <ContextTag 
             name={displayName} 
             path={`pasted-image-${Date.now()}.png`} 
-            icon="codicon-file-media"
             isImage={true}
             onClick={() => handleImagePreview(dataUrl, displayName)}
           />

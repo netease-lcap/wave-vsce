@@ -496,7 +496,6 @@ export const Message: React.FC<MessageProps> = (props) => {
                         name={part.path?.replace(/[/\\]$/, '').split(/[/\\]/).pop() || ''}
                         path={part.path || ''}
                         isImage={part.isImage}
-                        icon={part.isImage ? 'codicon-file-media' : 'codicon-file-code'}
                         onClick={onClick}
                       />
                     );
@@ -508,7 +507,6 @@ export const Message: React.FC<MessageProps> = (props) => {
                         key={pIndex}
                         name={displayName}
                         path={filePath}
-                        icon="codicon-code"
                         onClick={() => {
                           props.vscode.postMessage({
                             command: 'openFile',
