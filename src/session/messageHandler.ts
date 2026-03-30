@@ -185,6 +185,8 @@ export class MessageHandler {
         if (result === '确定') {
             try {
                 await session.rewindToMessage(messageId);
+                // Notify frontend to update state (including inputContent)
+                await this.handleWebviewReady(viewType, windowId);
             } catch (error) {
                 console.error(`回滚 ${viewType} 会话失败:`, error);
                 vscode.window.showErrorMessage('回滚失败: ' + error);

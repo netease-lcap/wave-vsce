@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { Agent, Message, PermissionDecision, ToolPermissionContext, AgentCallbacks, PermissionMode, Task, PromptHistoryManager } from 'wave-agent-sdk';
+import { Agent, Message, PermissionDecision, ToolPermissionContext, AgentCallbacks, PermissionMode, Task, PromptHistoryManager, TextBlock } from 'wave-agent-sdk';
 import { ConfigurationData } from '../services/configurationService';
 import { VscodeLspAdapter } from '../services/lspAdapter';
 
@@ -316,8 +316,16 @@ export class ChatSession {
             throw new Error(`未找到 ID 为 ${messageId} 的消息`);
         }
 
-        // Truncate starting from the next message to keep the selected message
-        await this.agent.truncateHistory(index + 1);
+        const messageToRevert = messages[index];
+        const textBlock = messageToRevert.blocks.find(b => b.type === 'text') as TextBlock | undefined;
+        this.inputContent = textBlock?.content || '';
+
+        // Truncate starting from the selected message to remove it
+        await this.agent.truncateHistory(index);
+
+        // Update local messages and notify frontend
+        const { messages: updatedMessages } = await this.agent.getFullMessageThread();
+        this.throttledUpdateChatMessages(updatedMessages);
     }
 
     public async destroy() {

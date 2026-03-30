@@ -115,6 +115,9 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
   useEffect(() => {
     if (inputContent !== undefined && inputContent !== message) {
       setMessage(inputContent);
+      if (textareaRef.current) {
+        textareaRef.current.innerText = inputContent;
+      }
       
       // Adjust textarea height after setting message
       setTimeout(() => {
