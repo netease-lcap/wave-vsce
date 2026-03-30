@@ -191,7 +191,7 @@ test.describe('Product Specification Screenshots - Rich Content', () => {
                 id: 'msg_demo_vision_user',
                 role: 'user',
                 blocks: [
-                    { type: 'text', content: '这张图片里有什么？' },
+                    { type: 'text', content: '这张图片里有什么？ [image1]' },
                     { type: 'image', imageUrls: ['data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='] }
                 ]
             },

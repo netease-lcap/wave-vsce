@@ -1,5 +1,5 @@
-import { test, expect } from './utils/webviewTestHarness.js';
-import { MessageInjector } from './utils/messageInjector.js';
+import { test, expect } from '../utils/webviewTestHarness.js';
+import { MessageInjector } from '../utils/messageInjector.js';
 import { BASH_TOOL_NAME } from 'wave-agent-sdk';
 
 test.describe('Bash Permission Fix', () => {

@@ -44,6 +44,9 @@ This file provides guidance to Wave Code when working with code in this reposito
 ## 测试策略 (Testing Strategy)
 - **强制性 TDD**: 任何代码变更（包括 Bug 修复、新功能开发、重构等）都必须遵循测试驱动开发 (TDD) 方法。
 - **必须编写测试**: 在提交任何更改之前，必须编写并验证相应的测试用例（如 Playwright E2E 测试）。
+- **测试目录规范**:
+  - **功能/集成测试**: 放置在 `tests/webview/` 目录下，文件名以 `.test.ts` 结尾。
+  - **演示/截图测试**: 放置在 `tests/demo/` 目录下，文件名以 `.demo.ts` 结尾。
 - **UI 验证**: 对于 UI 更改，使用 `tests/demo/` 编写 Playwright 脚本，模拟扩展消息并捕获截图，以便进行手动或自动验证。
 - **LSP 探索**: 使用 `LSP` 工具探索第三方库（如 `wave-agent-sdk`），因为源代码可能不在 `src` 文件夹中。
 

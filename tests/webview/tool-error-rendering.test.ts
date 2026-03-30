@@ -1,6 +1,6 @@
-import { test, expect } from './utils/webviewTestHarness.js';
-import { MessageInjector } from './utils/messageInjector.js';
-import { MockDataGenerator } from './fixtures/mockData.js';
+import { test, expect } from '../utils/webviewTestHarness.js';
+import { MessageInjector } from '../utils/messageInjector.js';
+import { MockDataGenerator } from '../fixtures/mockData.js';
 import { READ_TOOL_NAME, BASH_TOOL_NAME, WRITE_TOOL_NAME } from 'wave-agent-sdk';
 
 /**

@@ -1,4 +1,4 @@
-import { test, expect } from './utils/webviewTestHarness.js';
+import { test, expect } from '../utils/webviewTestHarness.js';
 
 /**
  * Test message queuing functionality

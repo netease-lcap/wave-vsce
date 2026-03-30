@@ -43,7 +43,7 @@ export default defineConfig({
         ...devices['Desktop Chrome'],
         viewport: { width: 400, height: 800 }
       },
-      testIgnore: '**/demo/**',
+      testMatch: ['**/*.test.ts', '**/*.demo.ts'],
     },
     {
       name: 'demo',
