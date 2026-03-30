@@ -103,6 +103,7 @@
           <li><a href="#message-queuing">1.3 消息队列</a></li>
           <li><a href="#rewind-feature">1.4 对话回滚 (Rewind)</a></li>
           <li><a href="#tooltips">1.5 工具提示 (Tooltips)</a></li>
+          <li><a href="#history-search">1.6 历史记录搜索 (History Search)</a></li>
         </ul>
       </li>
       <li><a href="#intelligent-input-context">2. 智能输入与上下文</a>
@@ -221,6 +222,18 @@
 </figure>
 <figure>
 <img src="./screenshots/tooltip-stop.png" alt="" /><figcaption>停止按钮工具提示</figcaption>
+</figure>
+<h3 id="history-search">1.6 历史记录搜索 (History Search)</h3>
+<p>Wave 支持通过快捷键快速搜索并重用之前的 Prompt，提高交互效率。</p>
+<p><strong>主要特性：</strong></p>
+<ul>
+<li><strong>快捷键触发</strong>：在输入框中按下 <code>Ctrl+R</code> (或 <code>Cmd+R</code>) 即可弹出历史记录搜索界面。</li>
+<li><strong>实时过滤</strong>：支持按关键词实时搜索历史记录，结果按时间倒序排列。</li>
+<li><strong>键盘导航</strong>：支持使用上下箭头键选择记录，按下 <code>Enter</code> 键将选中的 Prompt 填入输入框。</li>
+<li><strong>智能拦截</strong>：当焦点在聊天输入框时，<code>Ctrl+R</code> 和 <code>Ctrl+T</code> 等快捷键会被 Webview 优先拦截，防止触发 VS Code 的默认行为（如“打开最近项目”），确保流畅的聊天体验。</li>
+</ul>
+<figure>
+<img src="./screenshots/spec-history-search.png" alt="" /><figcaption>历史记录搜索弹窗</figcaption>
 </figure>
 <hr />
     <h2 id="intelligent-input-context">2. 智能输入与上下文</h2>

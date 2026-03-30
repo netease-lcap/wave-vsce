@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { Agent, Message, PermissionDecision, ToolPermissionContext, AgentCallbacks, PermissionMode, Task } from 'wave-agent-sdk';
+import { Agent, Message, PermissionDecision, ToolPermissionContext, AgentCallbacks, PermissionMode, Task, PromptHistoryManager } from 'wave-agent-sdk';
 import { ConfigurationData } from '../services/configurationService';
 import { VscodeLspAdapter } from '../services/lspAdapter';
 
@@ -157,6 +157,15 @@ export class ChatSession {
                     path: image.data,
                     mimeType: image.mediaType
                 }));
+            }
+            
+            // Save prompt to history
+            try {
+                const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+                const workdir = workspaceFolder?.uri.fsPath;
+                await PromptHistoryManager.addEntry(text, this.sessionId, {}, workdir);
+            } catch (error) {
+                console.error('Failed to save prompt to history:', error);
             }
             
             await this.agent.sendMessage(text, processedImages);

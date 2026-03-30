@@ -98,6 +98,21 @@ export interface UploadFileInfo {
   type: string;
 }
 
+// History types
+export interface HistoryItem {
+  prompt: string;
+  timestamp: number;
+}
+
+export interface HistorySearchState {
+  isActive: boolean;
+  items: HistoryItem[];
+  selectedIndex: number;
+  filterText: string;
+  position: { top: number; left: number };
+  isLoading: boolean;
+}
+
 // Component props
 export interface ChatAppProps {
   vscode: any;

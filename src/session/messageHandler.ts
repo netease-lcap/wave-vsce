@@ -5,7 +5,7 @@ import { ConfigurationService } from '../services/configurationService';
 import { FileService } from '../services/fileService';
 import { SessionService } from '../services/sessionService';
 import { PluginService } from '../services/pluginService';
-import { SessionMetadata } from 'wave-agent-sdk';
+import { SessionMetadata, PromptHistoryManager } from 'wave-agent-sdk';
 
 export interface MessageHandlerContext {
     getChatSession: (viewType: 'sidebar' | 'tab' | 'window', windowId?: string) => ChatSession;
@@ -129,6 +129,48 @@ export class MessageHandler {
             case 'rewindToMessage':
                 await this.handleRewindToMessage(message.messageId, viewType, windowId);
                 break;
+            case 'requestHistory':
+                await this.handleRequestHistory(viewType, windowId);
+                break;
+            case 'searchHistory':
+                await this.handleSearchHistory(message.query, viewType, windowId);
+                break;
+        }
+    }
+
+    private async handleRequestHistory(viewType?: 'sidebar' | 'tab' | 'window', windowId?: string) {
+        try {
+            const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+            const workdir = workspaceFolder?.uri.fsPath;
+            const history = await PromptHistoryManager.getHistory({ workdir });
+            this.context.postMessage({
+                command: 'historyResponse',
+                history: history
+            }, viewType, windowId);
+        } catch (error) {
+            console.error(`获取 ${viewType} 历史记录失败:`, error);
+            this.context.postMessage({
+                command: 'historyError',
+                error: '获取历史记录失败: ' + error
+            }, viewType, windowId);
+        }
+    }
+
+    private async handleSearchHistory(query: string, viewType?: 'sidebar' | 'tab' | 'window', windowId?: string) {
+        try {
+            const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+            const workdir = workspaceFolder?.uri.fsPath;
+            const history = await PromptHistoryManager.searchHistory(query, { workdir });
+            this.context.postMessage({
+                command: 'historyResponse',
+                history: history
+            }, viewType, windowId);
+        } catch (error) {
+            console.error(`搜索 ${viewType} 历史记录失败:`, error);
+            this.context.postMessage({
+                command: 'historyError',
+                error: '搜索历史记录失败: ' + error
+            }, viewType, windowId);
         }
     }
 

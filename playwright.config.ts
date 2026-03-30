@@ -49,7 +49,7 @@ export default defineConfig({
       name: 'demo',
       use: {
         ...devices['Desktop Chrome'],
-        viewport: { width: 400, height: 800 },
+        viewport: { width: 400, height: 600 },
         screenshot: 'on',
       },
       testMatch: '**/demo/**/*.demo.ts',

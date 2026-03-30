@@ -6,9 +6,11 @@ import ReactDOM from 'react-dom/client';
 import type { MessageInputProps, FileItem, SlashCommand, AttachedImage, PermissionMode } from '../types';
 import { FileSuggestionDropdown } from './FileSuggestionDropdown';
 import { SlashCommandsPopup } from './SlashCommandsPopup';
+import { HistorySearchPopup } from './HistorySearchPopup';
 import { AttachedImages } from './AttachedImages';
 import ConfigurationButton from './ConfigurationButton';
 import '../styles/MessageInput.css';
+import '../styles/HistorySearchPopup.css';
 
 interface AtMentionState {
   isActive: boolean;
@@ -76,6 +78,8 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
   const [slashPopupPosition, setSlashPopupPosition] = useState({ top: 0, left: 0 });
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
   const [isLoadingSlashCommands, setIsLoadingSlashCommands] = useState(false);
+  const [isHistorySearchVisible, setIsHistorySearchVisible] = useState(false);
+  const [historyPopupPosition, setHistoryPopupPosition] = useState({ top: 0, left: 0 });
   const [isComposing, setIsComposing] = useState(false);
   const [attachedImages, setAttachedImages] = useState<AttachedImage[]>(initialAttachedImages || []);
   
@@ -144,6 +148,39 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
     setSelectedSlashIndex(0);
     setIsLoadingSlashCommands(false);
   }, []);
+
+  const closeHistorySearch = useCallback(() => {
+    setIsHistorySearchVisible(false);
+  }, []);
+
+  const handleHistorySelect = useCallback((prompt: string) => {
+    if (!textareaRef.current) return;
+    
+    // Set the prompt as the new message
+    textareaRef.current.innerText = prompt;
+    setMessage(prompt);
+    
+    // Update extension state
+    vscode.postMessage({
+      command: 'updateInputContent',
+      content: prompt
+    });
+    
+    // Adjust textarea height
+    textareaRef.current.style.height = 'auto';
+    textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px';
+    
+    // Focus and move cursor to end
+    textareaRef.current.focus();
+    const range = document.createRange();
+    const selection = window.getSelection();
+    range.selectNodeContents(textareaRef.current);
+    range.collapse(false);
+    selection?.removeAllRanges();
+    selection?.addRange(range);
+    
+    closeHistorySearch();
+  }, [vscode, closeHistorySearch]);
 
   // Detect 指令 in text
   const detectSlashCommand = useCallback((text: string, cursorPos: number): SlashCommandState => {
@@ -743,6 +780,22 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
       return;
     }
 
+    // Handle Ctrl+R for history search
+    if (event.key === 'r' && (event.ctrlKey || event.metaKey) && !isComposing) {
+      event.preventDefault();
+      event.stopPropagation();
+      setHistoryPopupPosition(calculateDropdownPosition());
+      setIsHistorySearchVisible(true);
+      return;
+    }
+
+    // Handle Ctrl+T (noop to prevent VS Code default)
+    if (event.key === 't' && (event.ctrlKey || event.metaKey) && !isComposing) {
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
+
     // Handle 指令 navigation
     if (slashCommand.isActive && slashCommands.length > 0) {
       switch (event.key) {
@@ -1127,6 +1180,15 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
           onClose={closeSlashCommandPopup}
           position={slashPopupPosition}
           isLoading={isLoadingSlashCommands}
+        />
+
+        {/* 历史记录搜索弹窗 */}
+        <HistorySearchPopup
+          isVisible={isHistorySearchVisible}
+          onSelect={handleHistorySelect}
+          onClose={closeHistorySearch}
+          position={historyPopupPosition}
+          vscode={vscode}
         />
       </div>
     </div>
