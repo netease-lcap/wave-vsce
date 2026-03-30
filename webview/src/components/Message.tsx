@@ -104,8 +104,12 @@ export const Message: React.FC<MessageProps> = (props) => {
   const getMessageClassName = () => {
     const classes = ['message'];
     
+    const hasBangBlock = message.blocks?.some(b => b.type === 'bang');
+
     if (message.role === 'user') {
-      classes.push('user');
+      if (!hasBangBlock) {
+        classes.push('user');
+      }
       if (isQueued) {
         classes.push('queued');
       }
@@ -548,7 +552,7 @@ export const Message: React.FC<MessageProps> = (props) => {
   return (
     <div className={getMessageClassName()}>
       {message.blocks?.map((block, index) => renderBlock(block, index))}
-      {message.role === 'user' && !isQueued && message.id && (
+      {message.role === 'user' && !isQueued && message.id && !message.blocks?.some(b => b.type === 'bang') && (
         <div className="message-actions">
           <button 
             className="message-action-btn" 
