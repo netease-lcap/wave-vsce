@@ -60,7 +60,8 @@ export const MessageList = forwardRef<{ scrollToBottom: (behavior?: ScrollBehavi
     prevQueuedLengthRef.current = queuedMessages?.length || 0;
 
     const handleScroll = () => {
-      const isNearBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 200;
+      const threshold = 100;
+      const isNearBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - threshold;
       if (isNearBottom) {
         userScrolledUpRef.current = false;
       } else {
