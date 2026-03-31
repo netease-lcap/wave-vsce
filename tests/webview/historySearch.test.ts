@@ -38,6 +38,8 @@ test.describe('History Search Feature', () => {
 
     // 6. Verify popup is closed and input is populated
     await expect(popup).not.toBeVisible();
+    // Verify focus is returned to message input
+    await expect(messageInput).toBeFocused();
     // In contenteditable, we check innerText
     const inputValue = await messageInput.innerText();
     expect(inputValue.trim()).toBe('Second prompt');
@@ -93,5 +95,31 @@ test.describe('History Search Feature', () => {
 
     // 3. Verify popup is closed
     await expect(popup).not.toBeVisible();
+
+    // 4. Verify focus is returned to message input
+    await expect(messageInput).toBeFocused();
+  });
+
+  test('should return focus to message input after closing history search by clicking outside', async ({ webviewPage }) => {
+    const injector = new MessageInjector(webviewPage);
+    await injector.clearMessageLog();
+
+    const messageInput = webviewPage.getByTestId('message-input');
+    await messageInput.focus();
+    await expect(messageInput).toBeFocused();
+
+    // 1. Press Ctrl+R to open history search
+    await webviewPage.keyboard.press('Control+r');
+    const popup = webviewPage.getByTestId('history-search-popup');
+    await expect(popup).toBeVisible();
+
+    // 2. Click outside the popup (e.g., on the message list)
+    await webviewPage.getByTestId('messages-container').click();
+
+    // 3. Verify popup is closed
+    await expect(popup).not.toBeVisible();
+
+    // 4. Verify focus is returned to message input
+    await expect(messageInput).toBeFocused();
   });
 });

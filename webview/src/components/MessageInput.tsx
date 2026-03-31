@@ -154,6 +154,13 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
 
   const closeHistorySearch = useCallback(() => {
     setIsHistorySearchVisible(false);
+    if (textareaRef.current) {
+      // Use setTimeout to ensure focus is returned after any other click events are processed
+      const textarea = textareaRef.current;
+      setTimeout(() => {
+        textarea.focus();
+      }, 0);
+    }
   }, []);
 
   const handleHistorySelect = useCallback((prompt: string) => {
