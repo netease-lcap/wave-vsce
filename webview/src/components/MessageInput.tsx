@@ -43,9 +43,11 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
     onConfigurationOpen,
     onConfigurationSave,
     onConfigurationCancel,
+    selection,
     inputContent,
     permissionMode,
-    initialAttachedImages
+    initialAttachedImages,
+    onToggleTaskList
   } = props;
   const [message, setMessage] = useState('');
   const lastSelectionRef = useRef<any>(null);
@@ -796,10 +798,11 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
       return;
     }
 
-    // Handle Ctrl+T (noop to prevent VS Code default)
+    // Handle Ctrl+T to toggle task list
     if (event.key === 't' && (event.ctrlKey || event.metaKey) && !isComposing) {
       event.preventDefault();
       event.stopPropagation();
+      onToggleTaskList?.();
       return;
     }
 
@@ -881,7 +884,7 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
         handleSend();
       }
     }
-  }, [slashCommand.isActive, slashCommands, selectedSlashIndex, handleSlashCommandSelect, closeSlashCommandPopup, atMention.isActive, atMention.filterText, suggestions, selectedIndex, handleFileSelect, handleFileUpload, closeDropdown, handleSend, isComposing, permissionMode, vscode, onSendQueuedMessage]);
+  }, [slashCommand.isActive, slashCommands, selectedSlashIndex, handleSlashCommandSelect, closeSlashCommandPopup, atMention.isActive, atMention.filterText, suggestions, selectedIndex, handleFileSelect, handleFileUpload, closeDropdown, handleSend, isComposing, permissionMode, vscode, onSendQueuedMessage, onToggleTaskList]);
 
   // Handle cursor position changes
   const handleSelectionChange = useCallback(() => {

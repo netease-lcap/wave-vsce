@@ -176,6 +176,7 @@ export interface MessageInputProps {
   permissionMode?: PermissionMode;
   initialAttachedImages?: AttachedImage[];
   isTaskListVisible?: boolean;
+  onToggleTaskList?: () => void;
 }
 
 /**

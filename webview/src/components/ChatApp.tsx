@@ -412,6 +412,7 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 't') {
         e.preventDefault();
+        e.stopPropagation();
         handleToggleTaskList();
       }
     };
@@ -551,6 +552,7 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
             permissionMode={state.permissionMode}
             initialAttachedImages={state.attachedImages}
             isTaskListVisible={state.isTaskListVisible && state.tasks.length > 0}
+            onToggleTaskList={handleToggleTaskList}
           />
         </div>
 
