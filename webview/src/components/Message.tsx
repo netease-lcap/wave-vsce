@@ -553,7 +553,7 @@ export const Message: React.FC<MessageProps> = (props) => {
       {message.blocks?.map((block, index) => renderBlock(block, index))}
       {message.role === 'user' && !isQueued && message.id && !message.blocks?.some(b => b.type === 'bang') && (
         <div className="message-actions">
-          <Tooltip text="回滚到此消息" position="top">
+          <Tooltip text="回滚到此消息" position="left">
             <button 
               className="message-action-btn" 
               onClick={() => onRewindToMessage?.(message.id!)}
