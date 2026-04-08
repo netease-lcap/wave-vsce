@@ -56,10 +56,10 @@ export class ChatSession {
         this.isInitializing = true;
         try {
             console.log(`正在初始化 ${this.viewType} 视图的智能体...`, this.windowId ? `窗口ID: ${this.windowId}` : '');
-            
+
             const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
             const workdir = workspaceFolder?.uri.fsPath;
-            
+
             if (workdir) {
                 console.log(`设置智能体工作目录为: ${workdir}`);
             }
@@ -106,7 +106,14 @@ export class ChatSession {
                     return await this.callbacks.onToolPermissionRequest(context);
                 }
             });
-            
+
+            // 同步 sessionId 从 agent 到 ChatSession
+            // 因为 MessageManager 构造函数中设置 sessionId 不会触发 onSessionIdChange 回调
+            if (this.agent && this.sessionId !== this.agent.sessionId) {
+                this.sessionId = this.agent.sessionId;
+                this.callbacks.onSessionIdChange(this.sessionId);
+            }
+
             console.log(`${this.viewType} 智能体初始化成功`);
             
         } catch (error) {
@@ -237,18 +244,25 @@ export class ChatSession {
     public async updateConfig(config: ConfigurationData, extensionMode: vscode.ExtensionMode) {
         if (this.agent) {
             const currentSessionId = this.sessionId;
-            console.log(`正在重新创建 ${this.viewType} 智能体以更新配置...`);
-            
+            console.log(`[updateConfig] ${this.viewType} 开始更新配置，sessionId: ${currentSessionId}`);
+
+            // 重置 streaming 状态
+            if (this.isStreaming) {
+                this.isStreaming = false;
+                this.callbacks.onStreamingChange(false);
+            }
+
             // 销毁当前 agent，但不清除消息和会话 ID，因为我们要恢复它们
             try {
                 await this.agent.destroy();
             } catch (error) {
-                console.error(`销毁旧 agent 时出错:`, error);
+                console.error(`[updateConfig] 销毁旧 agent 时出错:`, error);
             }
             this.agent = undefined;
 
-            // 重新初始化
+            // 重新初始化并恢复会话
             await this.initialize(config, extensionMode, currentSessionId);
+            console.log(`[updateConfig] ${this.viewType} 配置更新完成，sessionId: ${this.sessionId}`);
         }
         this.clearQueue();
     }
