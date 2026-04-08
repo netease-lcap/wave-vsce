@@ -176,7 +176,7 @@ export class ChatSession {
             }
             
             if (text.startsWith('!')) {
-                await this.agent.executeBashCommand(text.slice(1));
+                await this.agent.bang(text.slice(1));
             } else {
                 await this.agent.sendMessage(text, processedImages);
             }
