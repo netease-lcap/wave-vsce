@@ -457,6 +457,54 @@ test.describe('Confirmation Dialog', () => {
         await expect(webviewPage.locator('.confirmation-dialog')).not.toBeVisible();
     });
 
+    test('should scroll to bottom when confirmation dialog is shown', async ({ webviewPage }) => {
+        const injector = new MessageInjector(webviewPage);
+
+        // Add multiple messages to create scrollable content
+        const manyMessages: Message[] = Array.from({ length: 10 }, (_, i) => ({
+            id: `msg_scroll_${i}`,
+            role: i % 2 === 0 ? 'user' : 'assistant',
+            blocks: [{ type: 'text', content: `Message ${i + 1} with enough content to make the message list scrollable and ensure we need to scroll down` }]
+        }));
+        await injector.updateMessages(manyMessages);
+
+        // Wait for initial render and scroll to bottom to complete
+        await webviewPage.waitForTimeout(500);
+
+        const container = webviewPage.locator('.messages-container');
+
+        // Verify content is scrollable
+        const dimsBefore = await container.evaluate(el => el.scrollHeight - el.clientHeight);
+        expect(dimsBefore).toBeGreaterThan(0);
+
+        // Scroll away from bottom to simulate user reading history
+        await container.evaluate(el => {
+            el.scrollTop = 0;
+            el.dispatchEvent(new Event('scroll', { bubbles: true }));
+        });
+
+        // Capture scroll position before confirmation
+        const scrollTopBefore = await container.evaluate(el => el.scrollTop);
+        expect(scrollTopBefore).toBe(0);
+
+        // Show confirmation dialog
+        await injector.simulateExtensionMessage('showConfirmation', {
+            confirmationId: 'test_scroll_on_show',
+            toolName: EDIT_TOOL_NAME,
+            confirmationType: '代码修改待确认',
+            toolInput: {}
+        });
+
+        // Wait for confirmation to be visible
+        await expect(webviewPage.locator('.confirmation-dialog')).toBeVisible();
+
+        // Wait for scroll position to change (proving scrollToBottom was triggered)
+        await expect(async () => {
+            const currentScrollTop = await container.evaluate(el => el.scrollTop);
+            expect(currentScrollTop).toBeGreaterThan(scrollTopBefore);
+        }).toPass({ timeout: 2000 });
+    });
+
     test('should focus input and scroll to bottom after confirmation is completed', async ({ webviewPage }) => {
         const injector = new MessageInjector(webviewPage);
 

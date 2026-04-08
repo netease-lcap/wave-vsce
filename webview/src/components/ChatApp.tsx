@@ -265,6 +265,12 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
               hidePersistentOption: message.hidePersistentOption
             }
           });
+          // Scroll to bottom when confirmation is shown
+          setTimeout(() => {
+            if (messageListRef.current && typeof messageListRef.current.scrollToBottom === 'function') {
+              messageListRef.current.scrollToBottom('smooth');
+            }
+          }, 0);
           break;
         case 'configurationResponse':
           dispatch({
