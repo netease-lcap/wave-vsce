@@ -75,12 +75,10 @@ for f in glob.glob(os.path.join(target, '*.vsix')):
 
 # semver 排序（降序）
 def semver_key(v):
-    parts = v['version'].split('.')
-    result = []
-    for p in parts:
-        num = int(p) if p.isdigit() else 0
-        result.append(num)
-    return tuple(result)
+    # Extract numeric major.minor.patch, ignore pre-release suffixes
+    ver = v['version'].split('-')[0]
+    parts = ver.split('.')
+    return tuple(int(p) for p in parts)
 versions.sort(key=semver_key, reverse=True)
 
 with open(os.path.join('$TARGET_DIR', 'versions.json'), 'w') as out:
