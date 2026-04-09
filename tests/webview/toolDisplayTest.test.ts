@@ -223,4 +223,41 @@ test.describe('Tool Display Visual Test', () => {
         expect(compactParamStyle.fontWeight).toBe('400'); // 400 = normal
     });
 
+    test('should show last 30 chars of parameters when tool stage is streaming', async ({ webviewPage }) => {
+        const messageInjector = new MessageInjector(webviewPage);
+
+        // Create a tool with a long parameters string and stage="streaming"
+        const longParams = '{"command": "grep -r \\"some_function\\" /home/user/project/src --include=\\\"*.ts\\\"", "timeout": 30000}';
+
+        const messages = [
+            MockDataGenerator.createUserMessage("Search for this function"),
+            MockDataGenerator.createAssistantMessageWithTool(
+                "Searching...",
+                BASH_TOOL_NAME,
+                longParams,
+                undefined // no result yet
+            ),
+        ];
+
+        // Override the tool block to set stage="streaming" and remove compactParams
+        const toolMsg = messages[1];
+        if (toolMsg.blocks && toolMsg.blocks.length > 1) {
+            const toolBlock = toolMsg.blocks[1] as any;
+            toolBlock.stage = 'streaming';
+            delete toolBlock.compactParams;
+        }
+
+        await messageInjector.updateMessages(messages);
+        await webviewPage.waitForTimeout(300);
+
+        const toolBlocks = webviewPage.locator('.tool-block');
+        await expect(toolBlocks).toHaveCount(1);
+
+        // Should show last 30 chars of parameters
+        const expected = longParams.slice(-30);
+        const compactParam = webviewPage.locator('.compact-params');
+        await expect(compactParam).toBeVisible();
+        await expect(compactParam).toContainText(expected);
+    });
+
 });

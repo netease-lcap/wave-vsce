@@ -304,27 +304,17 @@ export class ChatSession {
             return;
         }
 
-        // 第一次更新立即触发，后续更新进行节流
+        // leading edge: first call fires immediately
         if (!this.pendingUpdate && !this.updateTimer) {
             this.callbacks.onMessagesChange(this.messages);
             this.pendingUpdate = true;
+            // trailing edge: fire the last update after 100ms cooldown
             this.updateTimer = setTimeout(() => {
+                this.callbacks.onMessagesChange(this.messages);
                 this.pendingUpdate = false;
                 this.updateTimer = undefined;
             }, 100);
-            return;
         }
-
-        if (this.pendingUpdate) {
-            return;
-        }
-
-        this.pendingUpdate = true;
-        this.updateTimer = setTimeout(() => {
-            this.callbacks.onMessagesChange(this.messages);
-            this.pendingUpdate = false;
-            this.updateTimer = undefined;
-        }, 100);
     }
 
     public async setPermissionMode(mode: PermissionMode) {

@@ -236,7 +236,9 @@ export const Message: React.FC<MessageProps> = (props) => {
 
   const renderToolBlock = (toolBlock: ToolBlock, index: number) => {
     // Default tool rendering for all tools (including Bash)
-    const compactInfo = toolBlock.compactParams || '';
+    const compactInfo = toolBlock.stage === 'streaming'
+      ? (toolBlock.parameters ? String(toolBlock.parameters).slice(-30) : '')
+      : (toolBlock.compactParams || '');
     const toolHeader = (
       <div key={index} className="tool-block">
         🛠️ {toolBlock.name || 'Tool'}{compactInfo ? <span className="compact-params"> {compactInfo}</span> : ''}
