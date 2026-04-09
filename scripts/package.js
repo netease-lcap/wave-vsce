@@ -34,12 +34,27 @@ async function main() {
         process.exit(1);
     }
 
+    // Ensure releases directory exists
+    const releasesDir = path.join(rootDir, 'releases');
+    if (!fs.existsSync(releasesDir)) {
+        fs.mkdirSync(releasesDir, { recursive: true });
+    }
+
+    // Clean up old .vsix files in root directory
+    for (const f of fs.readdirSync(rootDir)) {
+        if (f.endsWith('.vsix')) {
+            fs.unlinkSync(path.join(rootDir, f));
+            console.log(`Cleaned up old vsix: ${f}`);
+        }
+    }
+
     console.log(`\n=== Packaging extension ===`);
     const version = require('./../package.json').version;
     const vsixName = `wave-vscode-chat-${version}.vsix`;
-    execSync(`npx vsce package --out ${vsixName} ${vsceArgs}`, { stdio: 'inherit' });
+    const vsixPath = path.join(releasesDir, vsixName);
+    execSync(`npx vsce package --out ${vsixPath} ${vsceArgs}`, { stdio: 'inherit' });
     
-    console.log(`\nCreated ${vsixName}`);
+    console.log(`\nCreated releases/${vsixName}`);
     console.log('\nAll targets processed successfully!');
 }
 

@@ -45,16 +45,21 @@ if [ -f "$SOURCE_DIR/package.json" ]; then
     cp "$SOURCE_DIR/package.json" "$TARGET_DIR/"
 fi
 
-# 复制 vsix 文件
-echo "Copying .vsix files..."
-cp "$SOURCE_DIR"/*.vsix "$TARGET_DIR/" 2>/dev/null || echo "No .vsix files found to copy"
+# 复制 releases 目录到目标
+echo "Deploying releases/ directory..."
+if [ -d "$SOURCE_DIR/releases" ]; then
+    mkdir -p "$TARGET_DIR/releases"
+    cp "$SOURCE_DIR/releases"/*.vsix "$TARGET_DIR/releases/" 2>/dev/null || echo "No .vsix files found in releases/"
+else
+    echo "Warning: releases/ directory not found in $SOURCE_DIR"
+fi
 
-# 扫描目标目录中的 .vsix 文件，生成 versions.json
-echo "Generating versions.json from $TARGET_DIR..."
+# 扫描目标目录 releases/ 中的 .vsix 文件，生成 versions.json
+echo "Generating versions.json from $TARGET_DIR/releases/..."
 python3 -c "
 import os, json, glob, re
 
-target = '$TARGET_DIR'
+target = os.path.join('$TARGET_DIR', 'releases')
 versions = []
 for f in glob.glob(os.path.join(target, '*.vsix')):
     basename = os.path.basename(f)
@@ -63,17 +68,22 @@ for f in glob.glob(os.path.join(target, '*.vsix')):
         stat = os.stat(f)
         versions.append({
             'version': m.group(1),
-            'filename': basename,
+            'filename': 'releases/' + basename,
             'size': stat.st_size,
             'time': stat.st_mtime
         })
 
 # semver 排序（降序）
 def semver_key(v):
-    return tuple(int(x) for x in v['version'].split('.'))
+    parts = v['version'].split('.')
+    result = []
+    for p in parts:
+        num = int(p) if p.isdigit() else 0
+        result.append(num)
+    return tuple(result)
 versions.sort(key=semver_key, reverse=True)
 
-with open(os.path.join(target, 'versions.json'), 'w') as out:
+with open(os.path.join('$TARGET_DIR', 'versions.json'), 'w') as out:
     json.dump(versions, out, indent=2)
 print(f'Generated versions.json with {len(versions)} versions')
 "
