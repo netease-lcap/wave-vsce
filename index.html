@@ -49,6 +49,113 @@
     .nav-links a:hover {
       text-decoration: underline;
     }
+    /* History section */
+    .history-section {
+      margin: 30px 0;
+      border: 1px solid #eee;
+      border-radius: 8px;
+      background-color: #fcfcfc;
+      overflow: hidden;
+    }
+    .history-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 20px;
+      cursor: pointer;
+      user-select: none;
+      background: #f9f9f9;
+      border-bottom: 1px solid #eee;
+      font-weight: 600;
+      color: #555;
+      transition: background-color 0.2s;
+    }
+    .history-toggle:hover {
+      background: #f0f0f0;
+    }
+    .history-toggle .chevron {
+      display: inline-block;
+      transition: transform 0.2s;
+      margin-right: 8px;
+      font-size: 12px;
+    }
+    .history-toggle .chevron.open {
+      transform: rotate(90deg);
+    }
+    .history-count {
+      font-size: 13px;
+      font-weight: 400;
+      color: #999;
+    }
+    .history-list {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+    }
+    .history-list.open {
+      max-height: 600px;
+      overflow-y: auto;
+    }
+    .history-item {
+      display: flex;
+      align-items: center;
+      padding: 10px 20px;
+      border-bottom: 1px solid #f0f0f0;
+      transition: background-color 0.15s;
+    }
+    .history-item:last-child {
+      border-bottom: none;
+    }
+    .history-item:hover {
+      background: #f5f9ff;
+    }
+    .history-item.latest {
+      background: #f0f7ff;
+    }
+    .history-item.latest:hover {
+      background: #e8f2ff;
+    }
+    .history-version {
+      font-weight: 600;
+      color: #007acc;
+      min-width: 70px;
+      font-family: monospace;
+      font-size: 14px;
+    }
+    .history-size {
+      color: #888;
+      min-width: 80px;
+      font-size: 14px;
+    }
+    .history-date {
+      color: #888;
+      flex: 1;
+      font-size: 14px;
+    }
+    .history-download {
+      color: #007acc;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      padding: 4px 12px;
+      border-radius: 4px;
+      transition: background-color 0.15s;
+    }
+    .history-download:hover {
+      background: #e8f2ff;
+      text-decoration: none;
+    }
+    .history-badge {
+      display: inline-block;
+      background: #007acc;
+      color: white;
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: 3px;
+      margin-left: 8px;
+      font-weight: 500;
+      vertical-align: middle;
+    }
   </style>
 </head>
 <body>
@@ -59,6 +166,13 @@
 
     <div id="download-container">
       <p>正在获取最新版本...</p>
+    </div>
+
+    <div id="history-section" class="history-section" style="display: none;">
+      <div class="history-toggle" onclick="toggleHistory()">
+        <span><span class="chevron" id="history-chevron">▶</span>历史版本 <span class="history-count" id="history-count"></span></span>
+      </div>
+      <div class="history-list" id="history-list"></div>
     </div>
 
     <div class="auth-section" style="text-align: left; margin-top: 30px; padding: 20px; border: 1px solid #eee; border-radius: 8px; background-color: #fff;">
@@ -81,50 +195,114 @@
   </div>
 
   <script>
+    function formatSize(bytes) {
+      if (bytes < 1024) return bytes + ' B';
+      if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+      return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    }
+
+    function formatDate(timestamp) {
+      const d = new Date(timestamp * 1000);
+      return d.getFullYear() + '-' +
+        String(d.getMonth() + 1).padStart(2, '0') + '-' +
+        String(d.getDate()).padStart(2, '0');
+    }
+
+    function toggleHistory() {
+      const list = document.getElementById('history-list');
+      const chevron = document.getElementById('history-chevron');
+      list.classList.toggle('open');
+      chevron.classList.toggle('open');
+    }
+
+    let latestVersion = '';
+
+    function renderHistory(versions) {
+      const section = document.getElementById('history-section');
+      const list = document.getElementById('history-list');
+      const count = document.getElementById('history-count');
+
+      if (!versions || versions.length === 0) {
+        section.style.display = 'none';
+        return;
+      }
+
+      section.style.display = 'block';
+      count.textContent = '(' + versions.length + ')';
+
+      let html = '';
+      versions.forEach(function(v) {
+        const isLatest = v.version === latestVersion;
+        html += '<div class="history-item' + (isLatest ? ' latest' : '') + '">' +
+          '<span class="history-version">' + v.version +
+            (isLatest ? '<span class="history-badge">最新</span>' : '') +
+          '</span>' +
+          '<span class="history-size">' + formatSize(v.size) + '</span>' +
+          '<span class="history-date">' + formatDate(v.time) + '</span>' +
+          '<a class="history-download" href="./' + v.filename + '">下载</a>' +
+        '</div>';
+      });
+      list.innerHTML = html;
+    }
+
+    // Load latest version
     fetch('./package.json')
       .then(response => response.json())
       .then(data => {
         const version = data.version;
-        const vsixName = `wave-vscode-chat-${version}.vsix`;
+        latestVersion = version;
+        const vsixName = 'wave-vscode-chat-' + version + '.vsix';
         const container = document.getElementById('download-container');
-        container.innerHTML = `
-          <p style="margin-top: 0; font-size: 18px;"><strong>最新版本: v${version}</strong></p>
-          <div style="display: flex; justify-content: center; gap: 15px; margin-top: 10px;">
-            <button onclick="window.location.href='./${vsixName}'" style="
-              padding: 12px 28px;
-              background-color: #007acc;
-              color: white;
-              border: none;
-              border-radius: 6px;
-              cursor: pointer;
-              font-size: 18px;
-              font-weight: bold;
-              transition: background-color 0.2s;
-            " onmouseover="this.style.backgroundColor='#005a9e'" onmouseout="this.style.backgroundColor='#007acc'">
-              下载 VSIX 插件
-            </button>
-            <button onclick="window.location.href='./spec.html'" style="
-              padding: 12px 28px;
-              background-color: white;
-              color: #007acc;
-              border: 1px solid #007acc;
-              border-radius: 6px;
-              cursor: pointer;
-              font-size: 18px;
-              font-weight: bold;
-              transition: all 0.2s;
-            " onmouseover="this.style.backgroundColor='#f0f7ff'" onmouseout="this.style.backgroundColor='white'">
-              查看产品规格
-            </button>
-          </div>
-          <p style="margin-bottom: 0; font-size: 14px; color: #666; margin-top: 15px;">
-            下载后在 VS Code 中通过 "Install from VSIX..." 安装
-          </p>
-        `;
+        container.innerHTML =
+          '<p style="margin-top: 0; font-size: 18px;"><strong>最新版本: v' + version + '</strong></p>' +
+          '<div style="display: flex; justify-content: center; gap: 15px; margin-top: 10px;">' +
+            '<button onclick="window.location.href=\'./' + vsixName + '\'" style="' +
+              'padding: 12px 28px;' +
+              'background-color: #007acc;' +
+              'color: white;' +
+              'border: none;' +
+              'border-radius: 6px;' +
+              'cursor: pointer;' +
+              'font-size: 18px;' +
+              'font-weight: bold;' +
+              'transition: background-color 0.2s;' +
+            '" onmouseover="this.style.backgroundColor=\'#005a9e\'" onmouseout="this.style.backgroundColor=\'#007acc\'">' +
+              '下载 VSIX 插件' +
+            '</button>' +
+            '<button onclick="window.location.href=\'./spec.html\'" style="' +
+              'padding: 12px 28px;' +
+              'background-color: white;' +
+              'color: #007acc;' +
+              'border: 1px solid #007acc;' +
+              'border-radius: 6px;' +
+              'cursor: pointer;' +
+              'font-size: 18px;' +
+              'font-weight: bold;' +
+              'transition: all 0.2s;' +
+            '" onmouseover="this.style.backgroundColor=\'#f0f7ff\'" onmouseout="this.style.backgroundColor=\'white\'">' +
+              '查看产品规格' +
+            '</button>' +
+          '</div>' +
+          '<p style="margin-bottom: 0; font-size: 14px; color: #666; margin-top: 15px;">' +
+            '下载后在 VS Code 中通过 "Install from VSIX..." 安装' +
+          '</p>';
       })
       .catch(err => {
         console.error('Failed to load package.json', err);
         document.getElementById('download-container').innerHTML = '<p style="color: red;">无法获取版本信息，请确保 package.json 已部署。</p>';
+      });
+
+    // Load version history
+    fetch('./versions.json')
+      .then(function(res) {
+        if (!res.ok) throw new Error('versions.json not found');
+        return res.json();
+      })
+      .then(function(versions) {
+        renderHistory(versions);
+      })
+      .catch(function(err) {
+        console.log('No versions.json available:', err.message);
       });
   </script>
 </body>

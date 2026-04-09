@@ -49,4 +49,33 @@ fi
 echo "Copying .vsix files..."
 cp "$SOURCE_DIR"/*.vsix "$TARGET_DIR/" 2>/dev/null || echo "No .vsix files found to copy"
 
+# 扫描目标目录中的 .vsix 文件，生成 versions.json
+echo "Generating versions.json from $TARGET_DIR..."
+python3 -c "
+import os, json, glob, re
+
+target = '$TARGET_DIR'
+versions = []
+for f in glob.glob(os.path.join(target, '*.vsix')):
+    basename = os.path.basename(f)
+    m = re.search(r'wave-vscode-chat-(.+)\.vsix', basename)
+    if m:
+        stat = os.stat(f)
+        versions.append({
+            'version': m.group(1),
+            'filename': basename,
+            'size': stat.st_size,
+            'time': stat.st_mtime
+        })
+
+# semver 排序（降序）
+def semver_key(v):
+    return tuple(int(x) for x in v['version'].split('.'))
+versions.sort(key=semver_key, reverse=True)
+
+with open(os.path.join(target, 'versions.json'), 'w') as out:
+    json.dump(versions, out, indent=2)
+print(f'Generated versions.json with {len(versions)} versions')
+"
+
 echo "Deployment completed successfully to $TARGET_DIR"
