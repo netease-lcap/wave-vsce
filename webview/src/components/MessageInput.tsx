@@ -817,6 +817,7 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
           event.preventDefault();
           setSelectedSlashIndex((prev: number) => Math.min(slashCommands.length - 1, prev + 1));
           return;
+        case 'Tab':
         case 'Enter':
           event.preventDefault();
           if (slashCommands[selectedSlashIndex]) {

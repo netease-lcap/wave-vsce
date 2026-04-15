@@ -96,6 +96,58 @@ test.describe('Slash Commands', () => {
     expect(rawContent).toBe('hello /init ');
   });
 
+  test('should insert slash command with Tab key', async ({ webviewPage }) => {
+    const input = webviewPage.getByTestId('message-input');
+    await input.focus();
+
+    const slashCommandPromise = webviewPage.evaluate(() => {
+      return new Promise((resolve) => {
+        const messages = (window as any).getTestMessages();
+        if (messages.some((m: any) => m.command === 'requestSlashCommands')) {
+          resolve(true);
+          return;
+        }
+
+        window.addEventListener('vscode-message', (event: any) => {
+          if (event.detail.command === 'requestSlashCommands') {
+            resolve(true);
+          }
+        });
+      });
+    });
+
+    await input.press('/');
+
+    await slashCommandPromise;
+    await webviewPage.evaluate(() => {
+      (window as any).simulateExtensionMessage({
+        command: 'slashCommandsResponse',
+        commands: [
+          { id: 'init', name: 'init', description: 'Initialize repository' },
+          { id: 'help', name: 'help', description: 'Show help' }
+        ]
+      });
+    });
+
+    const popup = webviewPage.getByTestId('slash-commands-popup');
+    await expect(popup).toBeVisible();
+
+    // Press Tab to select the first command
+    await webviewPage.keyboard.press('Tab');
+
+    // Verify popup is closed
+    await expect(popup).not.toBeVisible();
+
+    // Verify input content (should be "/init" + space)
+    await expect(async () => {
+      const content = await input.innerText();
+      expect(content.trim()).toBe('/init');
+    }).toPass();
+
+    const rawContent = await input.evaluate(el => el.textContent);
+    expect(rawContent).toBe('/init ');
+  });
+
   test('should filter slash commands as user types', async ({ webviewPage }) => {
     const input = webviewPage.getByTestId('message-input');
     await input.focus();
