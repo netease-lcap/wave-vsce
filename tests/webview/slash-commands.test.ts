@@ -53,15 +53,14 @@ test.describe('Slash Commands', () => {
     // 7. Verify popup is closed
     await expect(popup).not.toBeVisible();
 
-    // 8. Verify input content (should be "/init" + non-breaking space)
-    // Note: In innerText, \u00A0 is often rendered as a normal space
+    // 8. Verify input content (should be "/init" + space)
     await expect(async () => {
       const content = await input.innerText();
       expect(content.trim()).toBe('/init');
     }).toPass();
     
     const rawContent = await input.evaluate(el => el.textContent);
-    expect(rawContent).toBe('/init\u00A0');
+    expect(rawContent).toBe('/init ');
   });
 
   test('should insert slash command correctly after existing text', async ({ webviewPage }) => {
@@ -94,7 +93,7 @@ test.describe('Slash Commands', () => {
     }).toPass();
     
     const rawContent = await input.evaluate(el => el.textContent);
-    expect(rawContent).toBe('hello /init\u00A0');
+    expect(rawContent).toBe('hello /init ');
   });
 
   test('should filter slash commands as user types', async ({ webviewPage }) => {

@@ -245,7 +245,7 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
         break;
       }
       // Stop if we hit whitespace or newline
-      if (text[i] === ' ' || text[i] === '\n' || text[i] === '\u00A0') {
+      if (text[i] === ' ' || text[i] === '\n') {
         break;
       }
     }
@@ -256,7 +256,7 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
 
     // Check if @ is at start of line or preceded by whitespace
     const charBefore = text[atPos - 1];
-    const isValidPosition = atPos === 0 || /\s/.test(charBefore) || charBefore === '\u00A0';
+    const isValidPosition = atPos === 0 || /\s/.test(charBefore);
     if (!isValidPosition) {
       return { isActive: false, filterText: '', startPos: 0, endPos: 0 };
     }
@@ -402,15 +402,15 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
           range.setStartAfter(tagSpan);
           
           // Add space after each tag
-          const space = document.createTextNode('\u00A0');
+          const space = document.createTextNode(' ');
           range.insertNode(space);
           range.setStartAfter(space);
         });
-        
+
         range.collapse(true);
         selection.removeAllRanges();
         selection.addRange(range);
-        
+
         // Trigger input event to update message state
         const inputEvent = new Event('input', { bubbles: true });
         textareaRef.current?.dispatchEvent(inputEvent);
@@ -468,14 +468,14 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
     range.setStartAfter(tagSpan);
     
     // Add space after the tag
-    const space = document.createTextNode('\u00A0');
+    const space = document.createTextNode(' ');
     range.insertNode(space);
     range.setStartAfter(space);
-    
+
     range.collapse(true);
     windowSelection.removeAllRanges();
     windowSelection.addRange(range);
-    
+
     // Trigger input event to update message state
     const inputEvent = new Event('input', { bubbles: true });
     textareaRef.current?.dispatchEvent(inputEvent);
@@ -610,8 +610,7 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
         range.insertNode(tagSpan);
         
         // Insert a space after the tag
-        // Use a non-breaking space to ensure it's not collapsed by the browser
-        const space = document.createTextNode('\u00A0');
+        const space = document.createTextNode(' ');
         range.setStartAfter(tagSpan);
         range.insertNode(space);
         
@@ -716,7 +715,7 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
       if (lastSlashIndex !== -1) {
         // Check if it's a valid position (start of line or preceded by whitespace)
         const charBefore = text[lastSlashIndex - 1];
-        const isValidPosition = lastSlashIndex === 0 || /\s/.test(charBefore) || charBefore === '\u00A0';
+        const isValidPosition = lastSlashIndex === 0 || /\s/.test(charBefore);
 
         if (isValidPosition) {
           // Set range to cover the '/' and any filter text
@@ -724,7 +723,7 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
           range.deleteContents();
 
           // Insert the command text
-          const commandText = `/${command.name}\u00A0`;
+          const commandText = `/${command.name} `;
           const newNode = document.createTextNode(commandText);
           range.insertNode(newNode);
 
@@ -747,7 +746,8 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
   const handleSend = useCallback(() => {
     if (!textareaRef.current) return;
     
-    const { markdown, images: extractedImages } = convertToMarkdown(textareaRef.current);
+    const { markdown: rawMarkdown, images: extractedImages } = convertToMarkdown(textareaRef.current);
+    const markdown = rawMarkdown.replace(/\u00A0/g, ' ');
     const allImages = [...attachedImages, ...extractedImages];
 
     if ((markdown.trim() || allImages.length > 0) && !disabled) {

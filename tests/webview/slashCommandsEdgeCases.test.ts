@@ -2,6 +2,56 @@ import { test, expect } from '../utils/webviewTestHarness.js';
 import { MessageInjector } from '../utils/messageInjector.js';
 
 test.describe('Slash Commands Edge Cases', () => {
+  test('should use regular spaces after slash command and file mentions when sending', async ({ webviewPage }) => {
+    const input = webviewPage.getByTestId('message-input');
+    const sendButton = webviewPage.getByTestId('send-btn');
+    await input.focus();
+
+    // Simulate selecting a slash command followed by a file mention tag.
+    await webviewPage.evaluate(() => {
+      const el = document.getElementById('messageInput') as HTMLDivElement;
+      if (!el) return;
+
+      const tagSpan = document.createElement('span');
+      tagSpan.className = 'context-tag-container';
+      tagSpan.contentEditable = 'false';
+      tagSpan.setAttribute('data-path', 'src/test.md');
+      tagSpan.setAttribute('data-name', 'test.md');
+      tagSpan.setAttribute('data-is-image', 'false');
+      tagSpan.innerText = '[@file:src/test.md]';
+
+      // Build: "/speckit" + space + file tag
+      el.textContent = '';
+      el.appendChild(document.createTextNode('/speckit '));
+      el.appendChild(tagSpan);
+
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+
+    // Verify the raw contenteditable has a regular space
+    const rawContent = await input.evaluate(el => el.textContent);
+    expect(rawContent).toContain('/speckit ');
+    expect(rawContent).not.toContain('\u00A0');
+
+    // Clear any previously sent messages
+    await webviewPage.evaluate(() => {
+      (window as any).clearTestMessages();
+    });
+
+    // Click send
+    await sendButton.click();
+
+    // Verify the sendMessage payload is correctly formatted
+    const messages = await webviewPage.evaluate(() => {
+      return (window as any).getTestMessages();
+    });
+
+    const sendMessage = messages.find((m: any) => m.command === 'sendMessage');
+    expect(sendMessage).toBeDefined();
+    expect(sendMessage.text).toContain('/speckit ');
+    expect(sendMessage.text).toContain('[@file:src/test.md]');
+  });
+
   test('should only trigger slash commands at valid positions', async ({ webviewPage }) => {
     const input = webviewPage.getByTestId('message-input');
     await input.focus();
