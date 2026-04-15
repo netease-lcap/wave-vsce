@@ -134,6 +134,7 @@
           <li><a href="#mcp-integration">3.15 MCP 协议集成</a></li>
           <li><a href="#ai-reasoning">3.16 AI 思考过程</a></li>
           <li><a href="#error-message-display">3.17 错误消息展示</a></li>
+          <li><a href="#enter-plan-mode">3.18 进入计划模式确认 (Enter Plan Mode Confirmation)</a></li>
         </ul>
       </li>
       <li><a href="#session-config-management">4. 会话与配置管理</a>
@@ -343,7 +344,7 @@
 <img src="./screenshots/ask-user-question-vertical.png" alt="" /><figcaption>交互式提问结果（垂直布局）</figcaption>
 </figure>
 <h3 id="plan-confirmation">3.7 计划执行确认 (Plan Confirmation)</h3>
-<p>当 AI 制定了详细的执行计划时，会向用户展示计划内容并请求确认。用户可以选择批准执行或提供反馈意见。</p>
+<p>当 AI 制定了详细的执行计划并准备退出计划模式时，会向用户展示计划内容并请求确认。用户可以选择批准执行、自动接受后续修改，或提供反馈意见。</p>
 <p><strong>主要特性：</strong> - 清晰显示完整的执行计划内容 - 支持 Markdown 格式的计划展示 - 提供“批准并继续”和“批准并自动接受后续修改”选项 - 支持用户反馈和计划修改建议</p>
 <figure>
 <img src="./screenshots/spec-plan-confirm.png" alt="" /><figcaption>计划执行确认</figcaption>
@@ -399,6 +400,20 @@
 <p>当工具执行出错或 AI 返回错误信息时，Wave 会以醒目的方式展示错误内容。为了防止过长的错误消息占据过多屏幕空间，错误消息区域设置了最大高度，并支持内部滚动。</p>
 <p><strong>主要特性：</strong> - 醒目的错误样式标识 - 自动限制最大高度（200px） - 支持内部垂直滚动，方便查看完整错误信息 - 保持原始格式（如换行和空格）</p>
 <p><img src="./screenshots/tool-error-scrollable.png" alt="工具执行错误" /> <img src="./screenshots/error-block-scrollable.png" alt="通用错误消息" /></p>
+<h3 id="enter-plan-mode">3.18 进入计划模式确认 (Enter Plan Mode Confirmation)</h3>
+<p>当 AI 判断当前任务较为复杂时，会主动请求用户确认是否进入计划模式。与计划执行确认不同，进入计划模式确认仅提供两个选项：批准进入计划模式，或拒绝并直接开始实现。</p>
+<p><strong>主要特性：</strong></p>
+<ul>
+<li><strong>简洁选项</strong>：仅显示"批准并继续"和"不，现在开始实现"两个按钮，匹配 Claude Code 的交互风格。</li>
+<li><strong>无"不再询问"选项</strong>：不会显示持久化权限选项，确保每次计划模式转换都需要用户明确确认。</li>
+<li><strong>无反馈输入</strong>：不提供反馈输入框，用户只能选择批准或拒绝。</li>
+<li><strong>无计划预览</strong>：此确认不展示计划内容（计划内容仅在退出计划模式时展示）。</li>
+<li><strong>权限模式切换</strong>：批准后，会话权限模式自动切换为 <code>plan</code> 模式。</li>
+<li><strong>拒绝处理</strong>：拒绝后，AI 收到"不，现在开始实现"的反馈消息，直接开始执行任务。</li>
+</ul>
+<figure>
+<img src="./screenshots/spec-enter-plan-mode.png" alt="" /><figcaption>进入计划模式确认</figcaption>
+</figure>
 <hr />
 <h2 id="session-config-management">4. 会话与配置管理</h2>
 <h3 id="session-management">4.1 会话管理</h3>

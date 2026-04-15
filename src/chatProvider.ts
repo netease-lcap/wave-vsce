@@ -4,6 +4,7 @@ import {
     EDIT_TOOL_NAME, 
     WRITE_TOOL_NAME, 
     BASH_TOOL_NAME, 
+    ENTER_PLAN_MODE_TOOL_NAME,
     EXIT_PLAN_MODE_TOOL_NAME, 
     ASK_USER_QUESTION_TOOL_NAME 
 } from 'wave-agent-sdk';
@@ -344,7 +345,7 @@ export class ChatProvider implements vscode.WebviewViewProvider {
                 confirmationType = '代码修改待确认';
             } else if (context.toolName === BASH_TOOL_NAME) {
                 confirmationType = '命令执行待确认';
-            } else if (context.toolName === EXIT_PLAN_MODE_TOOL_NAME) {
+            } else if (context.toolName === EXIT_PLAN_MODE_TOOL_NAME || context.toolName === ENTER_PLAN_MODE_TOOL_NAME) {
                 confirmationType = '计划待确认';
             } else if (context.toolName === ASK_USER_QUESTION_TOOL_NAME) {
                 confirmationType = '问题待回答';

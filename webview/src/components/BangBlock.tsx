@@ -6,7 +6,8 @@ interface BangBlockProps {
 }
 
 export const BangBlock: React.FC<BangBlockProps> = ({ block }) => {
-  const { command, output, isRunning, exitCode } = block;
+  const { command, output, stage, exitCode } = block;
+  const isRunning = stage === 'running';
 
   return (
     <div className="bash-command-unified">

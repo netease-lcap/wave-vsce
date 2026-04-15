@@ -5,6 +5,7 @@ import {
     EDIT_TOOL_NAME, 
     BASH_TOOL_NAME,
     ASK_USER_QUESTION_TOOL_NAME,
+    ENTER_PLAN_MODE_TOOL_NAME,
     EXIT_PLAN_MODE_TOOL_NAME,
     type Message
 } from 'wave-agent-sdk';
@@ -161,6 +162,22 @@ test.describe('Product Specification Screenshots - Confirmations', () => {
         // 关闭当前确认对话框
         await webviewPage.click('.confirmation-close-btn');
         await planConfirmDialog.waitFor({ state: 'detached' });
+
+        // 15.1 EnterPlanMode 确认对话框 - 简洁选项（仅批准/拒绝）
+        await injector.simulateExtensionMessage('showConfirmation', {
+            confirmationId: 'enter-plan-mode-001',
+            confirmationType: '进入计划模式确认',
+            toolName: ENTER_PLAN_MODE_TOOL_NAME, // "EnterPlanMode"
+            toolInput: {},
+            hidePersistentOption: true
+        });
+        const enterPlanDialog = webviewPage.locator('.confirmation-dialog');
+        await enterPlanDialog.waitFor({ state: 'visible' });
+        await enterPlanDialog.screenshot({ path: 'screenshots/spec-enter-plan-mode.png' });
+
+        // 关闭当前确认对话框
+        await webviewPage.click('.confirmation-close-btn');
+        await enterPlanDialog.waitFor({ state: 'detached' });
 
         // 16. 代码修改确认对话框 - 只显示确认对话框组件
         await injector.simulateExtensionMessage('showConfirmation', {

@@ -224,7 +224,7 @@ export class MockDataGenerator {
                 type: "bang",
                 command,
                 output,
-                isRunning,
+                stage: isRunning ? 'running' : 'end',
                 exitCode
             } as any]
         };
