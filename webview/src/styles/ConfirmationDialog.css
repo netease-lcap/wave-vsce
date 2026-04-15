@@ -71,6 +71,12 @@
   color: var(--vscode-descriptionForeground);
 }
 
+.confirmation-file-path {
+  font-size: 11px;
+  color: var(--vscode-descriptionForeground);
+  word-break: break-all;
+}
+
 /* Ask User Questions Styles */
 .ask-user-questions {
   display: flex;

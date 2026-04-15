@@ -540,4 +540,35 @@ test.describe('Confirmation Dialog', () => {
         });
         expect(isAtBottom).toBe(true);
     });
+
+    test('should show file path for write and edit tool confirmations', async ({ webviewPage }) => {
+        const injector = new MessageInjector(webviewPage);
+
+        // Test Write tool
+        await injector.simulateExtensionMessage('showConfirmation', {
+            confirmationId: 'test_write_file_path',
+            toolName: WRITE_TOOL_NAME,
+            confirmationType: '代码修改待确认',
+            toolInput: { file_path: 'src/utils/helper.ts', content: 'export const x = 1;' }
+        });
+
+        const confirmationDialog = webviewPage.locator('.confirmation-dialog');
+        await expect(confirmationDialog).toBeVisible();
+        await expect(webviewPage.locator('.confirmation-file-path')).toContainText('src/utils/helper.ts');
+
+        // Approve to dismiss
+        await webviewPage.locator('.confirmation-btn-apply').click();
+        await expect(confirmationDialog).not.toBeVisible();
+
+        // Test Edit tool
+        await injector.simulateExtensionMessage('showConfirmation', {
+            confirmationId: 'test_edit_file_path',
+            toolName: EDIT_TOOL_NAME,
+            confirmationType: '代码修改待确认',
+            toolInput: { file_path: 'src/components/App.tsx', old_string: 'old', new_string: 'new' }
+        });
+
+        await expect(confirmationDialog).toBeVisible();
+        await expect(webviewPage.locator('.confirmation-file-path')).toContainText('src/components/App.tsx');
+    });
 });

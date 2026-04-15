@@ -446,6 +446,11 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
           <div className="confirmation-details">
             <strong>工具:</strong> {confirmation.toolName}
           </div>
+          {[WRITE_TOOL_NAME, EDIT_TOOL_NAME].includes(confirmation.toolName) && confirmation.toolInput?.file_path && (
+            <div className="confirmation-file-path">
+              <strong>文件:</strong> {confirmation.toolInput.file_path}
+            </div>
+          )}
         </div>
 
         {renderPlanContent()}
