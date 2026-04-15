@@ -93,6 +93,17 @@
     word-break: break-word;
 }
 
+.message.assistant .error pre {
+    margin: 0;
+    font-family: inherit;
+    font-style: inherit;
+    background: none;
+    border: none;
+    color: inherit;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
 .message.streaming::after {
     content: "▋";
     animation: blink 1s ease-in-out infinite;
@@ -163,6 +174,17 @@
     margin-top: 4px;
     max-height: 200px;
     overflow-y: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.tool-error pre {
+    margin: 0;
+    font-family: inherit;
+    font-style: inherit;
+    background: none;
+    border: none;
+    color: inherit;
     white-space: pre-wrap;
     word-break: break-word;
 }

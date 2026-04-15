@@ -248,7 +248,7 @@ export const Message: React.FC<MessageProps> = (props) => {
     // Render tool error if it exists (with same style as error blocks)
     const errorContent = (toolBlock as any).error ? (
       <div className="tool-error">
-        {escapeHtml((toolBlock as any).error)}
+        <pre>{(toolBlock as any).error}</pre>
       </div>
     ) : null;
 
@@ -534,7 +534,7 @@ export const Message: React.FC<MessageProps> = (props) => {
       case 'error':
         return (
           <div key={index} className="message-content error">
-            {escapeHtml(block.content || '')}
+            <pre>{block.content || ''}</pre>
           </div>
         );
       case 'tool':
