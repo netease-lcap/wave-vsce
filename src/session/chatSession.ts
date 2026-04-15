@@ -85,27 +85,41 @@ export class ChatSession {
                 }
             };
 
-            this.agent = await Agent.create({
-                logger: extensionMode === vscode.ExtensionMode.Development ? console : {
-                    info: (...args: any[]) => console.info(...args),
-                    warn: (...args: any[]) => console.warn(...args),
-                    error: (...args: any[]) => console.error(...args),
-                    debug: () => {},
-                },
-                callbacks: agentCallbacks,
-                workdir,
-                restoreSessionId,
-                apiKey: config.apiKey || undefined,
-                defaultHeaders: this.parseHeaders(config.headers),
-                baseURL: config.baseURL || undefined,
-                model: config.model,
-                fastModel: config.fastModel,
-                language: config.language,
-                lspManager: new VscodeLspAdapter(),
-                canUseTool: async (context: ToolPermissionContext): Promise<PermissionDecision> => {
-                    return await this.callbacks.onToolPermissionRequest(context);
+            const createAgent = async (restoreId?: string) => {
+                return await Agent.create({
+                    logger: extensionMode === vscode.ExtensionMode.Development ? console : {
+                        info: (...args: any[]) => console.info(...args),
+                        warn: (...args: any[]) => console.warn(...args),
+                        error: (...args: any[]) => console.error(...args),
+                        debug: () => {},
+                    },
+                    callbacks: agentCallbacks,
+                    workdir,
+                    restoreSessionId: restoreId,
+                    apiKey: config.apiKey || undefined,
+                    defaultHeaders: this.parseHeaders(config.headers),
+                    baseURL: config.baseURL || undefined,
+                    model: config.model,
+                    fastModel: config.fastModel,
+                    language: config.language,
+                    lspManager: new VscodeLspAdapter(),
+                    canUseTool: async (context: ToolPermissionContext): Promise<PermissionDecision> => {
+                        return await this.callbacks.onToolPermissionRequest(context);
+                    }
+                });
+            };
+
+            try {
+                this.agent = await createAgent(restoreSessionId);
+            } catch (createError) {
+                // If session not found, retry without restoreSessionId (new session)
+                if (createError instanceof Error && createError.message.startsWith('Session not found:')) {
+                    console.log(`${this.viewType} 会话文件不存在，以新会话模式重新初始化`);
+                    this.agent = await createAgent(undefined);
+                } else {
+                    throw createError;
                 }
-            });
+            }
 
             // 同步 sessionId 从 agent 到 ChatSession
             // 因为 MessageManager 构造函数中设置 sessionId 不会触发 onSessionIdChange 回调
@@ -244,7 +258,10 @@ export class ChatSession {
     public async updateConfig(config: ConfigurationData, extensionMode: vscode.ExtensionMode) {
         if (this.agent) {
             const currentSessionId = this.sessionId;
-            console.log(`[updateConfig] ${this.viewType} 开始更新配置，sessionId: ${currentSessionId}`);
+            const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+            const workdir = workspaceFolder?.uri.fsPath;
+            console.log(`[updateConfig] ${this.viewType} 开始更新配置，sessionId: ${currentSessionId}, workdir: ${workdir}`);
+            console.log(`[updateConfig] ${this.viewType} 当前 agent.sessionId: ${this.agent.sessionId}`);
 
             // 重置 streaming 状态
             if (this.isStreaming) {
@@ -260,9 +277,11 @@ export class ChatSession {
             }
             this.agent = undefined;
 
-            // 重新初始化并恢复会话
+            // 重新初始化（如果会话文件不存在会自动以新会话模式初始化）
             await this.initialize(config, extensionMode, currentSessionId);
             console.log(`[updateConfig] ${this.viewType} 配置更新完成，sessionId: ${this.sessionId}`);
+        } else {
+            console.log(`[updateConfig] ${this.viewType} agent 为 undefined，跳过更新`);
         }
         this.clearQueue();
     }
