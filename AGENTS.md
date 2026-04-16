@@ -41,6 +41,13 @@ This file provides guidance to Wave Code when working with code in this reposito
 ### 关键集成：`wave-agent-sdk`
 该扩展严重依赖 `wave-agent-sdk` 来实现 AI 能力。智能体使用项目特定的工具（Bash、文件操作、LSP）进行初始化，并处理复杂的推理和工具执行逻辑。
 
+**升级 SDK 并查看 changelog**：
+- 升级：`npm install wave-agent-sdk@^<version>`
+- 查看 changelog（GitHub 的 tag message）：
+  ```bash
+  gh api repos/netease-lcap/wave-agent/git/tags/$(gh api repos/netease-lcap/wave-agent/git/ref/tags/v<version> --jq '.object.sha') --jq '.message'
+  ```
+
 ## 测试策略 (Testing Strategy)
 - **强制性 TDD**: 任何代码变更（包括 Bug 修复、新功能开发、重构等）都必须遵循测试驱动开发 (TDD) 方法。
 - **必须编写测试**: 在提交任何更改之前，必须编写并验证相应的测试用例（如 Playwright E2E 测试）。
