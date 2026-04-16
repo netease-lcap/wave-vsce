@@ -82,6 +82,10 @@ export class ChatSession {
                 },
                 onPermissionModeChange: (mode: PermissionMode) => {
                     this.callbacks.onPermissionModeChange(mode);
+                },
+                onLoadingChange: (loading: boolean) => {
+                    this.isStreaming = loading;
+                    this.callbacks.onStreamingChange(loading);
                 }
             };
 
@@ -169,9 +173,6 @@ export class ChatSession {
         }
 
         try {
-            this.isStreaming = true;
-            this.callbacks.onStreamingChange(true);
-            
             let processedImages: Array<{ path: string; mimeType: string; }> | undefined;
             if (images && images.length > 0) {
                 processedImages = images.map(image => ({
@@ -198,9 +199,6 @@ export class ChatSession {
         } catch (error) {
             throw error;
         } finally {
-            this.isStreaming = false;
-            this.callbacks.onStreamingChange(false);
-            
             // Process next message in queue
             if (this.messageQueue.length > 0) {
                 const nextMessage = this.messageQueue.shift()!;
