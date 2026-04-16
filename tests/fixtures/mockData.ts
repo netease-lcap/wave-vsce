@@ -1,4 +1,4 @@
-import type { Message, TextBlock, ToolBlock, ErrorBlock, MessageBlock } from 'wave-agent-sdk';
+import type { Message, TextBlock, ToolBlock, ErrorBlock, MessageBlock, TaskNotificationBlock } from 'wave-agent-sdk';
 import { 
     READ_TOOL_NAME, 
     WRITE_TOOL_NAME, 
@@ -227,6 +227,46 @@ export class MockDataGenerator {
                 stage: isRunning ? 'running' : 'end',
                 exitCode
             } as any]
+        };
+    }
+
+    /**
+     * Create an assistant message with a task notification block
+     */
+    static createAssistantMessageWithTaskNotification(
+        textContent: string,
+        taskId: string,
+        taskType: 'shell' | 'agent' = 'shell',
+        status: 'completed' | 'failed' | 'killed' = 'completed',
+        summary?: string,
+        outputFile?: string
+    ): Message {
+        const blocks: MessageBlock[] = [];
+
+        if (textContent) {
+            blocks.push({
+                type: "text",
+                content: textContent
+            } as TextBlock);
+        }
+
+        const notificationBlock: TaskNotificationBlock = {
+            type: "task_notification",
+            taskId,
+            taskType,
+            status,
+            summary: summary || `Task ${taskId} ${status}`,
+        };
+        if (outputFile) {
+            notificationBlock.outputFile = outputFile;
+        }
+
+        blocks.push(notificationBlock);
+
+        return {
+            id: `msg_${Math.random().toString(36).substring(2, 9)}`,
+            role: "assistant",
+            blocks
         };
     }
 
