@@ -14,7 +14,7 @@ import {
   ASK_USER_QUESTION_TOOL_NAME, 
   EXIT_PLAN_MODE_TOOL_NAME 
 } from 'wave-agent-sdk/dist/constants/tools.js';
-import type { MessageProps, TextBlock, ErrorBlock, ToolBlock, ImageBlock, CompressBlock } from '../types';
+import type { MessageProps, TextBlock, ErrorBlock, ToolBlock, ImageBlock, CompressBlock, TaskNotificationBlock } from '../types';
 import { DiffViewer } from './DiffViewer';
 import { MermaidRenderer } from './MermaidRenderer';
 import '../styles/Message.css';
@@ -465,6 +465,26 @@ export const Message: React.FC<MessageProps> = (props) => {
     );
   };
 
+  const renderTaskNotification = (block: TaskNotificationBlock, index: number) => {
+    const statusIcon = block.status === 'completed' ? 'check' : block.status === 'failed' ? 'error' : 'circle-slash';
+    const statusLabel = block.status === 'completed' ? '已完成' : block.status === 'failed' ? '失败' : '已终止';
+    const statusColor = block.status === 'completed' ? '#3fb950' : block.status === 'failed' ? '#f85149' : '#8b949e';
+    return (
+      <div key={`task-notification-${index}`} className="task-notification-block" style={{ padding: '8px 12px', margin: '4px 0', borderRadius: '6px', border: `1px solid ${statusColor}40`, background: `${statusColor}0d` }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <i className={`codicon codicon-${statusIcon}`} style={{ color: statusColor }}></i>
+          <span style={{ fontWeight: 500, fontSize: '12px', color: statusColor }}>{statusLabel}</span>
+        </div>
+        {block.summary && (
+          <div style={{ marginTop: '4px', fontSize: '13px' }}>{block.summary}</div>
+        )}
+        {block.outputFile && (
+          <div style={{ marginTop: '4px', fontSize: '12px', color: '#8b949e' }}>输出: {block.outputFile}</div>
+        )}
+      </div>
+    );
+  };
+
   const renderBlock = (block: any, index: number) => {
     switch (block.type) {
       case 'text':
@@ -545,6 +565,8 @@ export const Message: React.FC<MessageProps> = (props) => {
         return renderImageBlock(block as ImageBlock, index);
       case 'reasoning':
         return renderReasoningBlock(block, index);
+      case 'task_notification':
+        return renderTaskNotification(block as TaskNotificationBlock, index);
       default:
         return null;
     }
