@@ -23,6 +23,7 @@ const initialState: ChatState = {
   isTaskListCollapsed: false,
   isQueueCollapsed: false,
   isStreaming: false,
+  isCommandRunning: false,
   inputDisabled: false,
   shouldClearInput: false,
   sessions: [],
@@ -166,6 +167,7 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
         isTaskListVisible: (action.payload.tasks && action.payload.tasks.length > 0) ? true : false,
         isTaskListCollapsed: action.payload.isTaskListCollapsed !== undefined ? action.payload.isTaskListCollapsed : state.isTaskListCollapsed,
         isStreaming: action.payload.isStreaming !== undefined ? action.payload.isStreaming : state.isStreaming,
+        isCommandRunning: action.payload.isCommandRunning !== undefined ? action.payload.isCommandRunning : state.isCommandRunning,
         sessions: action.payload.sessions || state.sessions || [],
         currentSession: action.payload.currentSession || state.currentSession,
         configurationData: action.payload.configurationData || state.configurationData,
@@ -187,6 +189,11 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
       return {
         ...state,
         queuedMessages: action.payload
+      };
+    case 'SET_COMMAND_RUNNING':
+      return {
+        ...state,
+        isCommandRunning: action.payload
       };
     case 'SET_PERMISSION_MODE':
       return {
@@ -232,6 +239,9 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
           break;
         case 'updateQueue':
           dispatch({ type: 'SET_QUEUED_MESSAGES', payload: message.queue });
+          break;
+        case 'updateCommandRunning':
+          dispatch({ type: 'SET_COMMAND_RUNNING', payload: message.running });
           break;
         // Test-only handlers 
         case 'startStreaming':
@@ -285,6 +295,7 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
               messages: message.messages,
               tasks: message.tasks,
               isStreaming: message.isStreaming,
+              isCommandRunning: message.isCommandRunning,
               isTaskListCollapsed: message.isTaskListCollapsed,
               sessions: message.sessions,
               currentSession: message.session,
@@ -362,13 +373,12 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
   }, [state.isStreaming, vscode]);
 
   const handleDeleteQueuedMessage = useCallback((index: number) => {
+    // Optimistically update local state
     const newQueue = [...state.queuedMessages];
     newQueue.splice(index, 1);
-    
-    // Update local state
     dispatch({ type: 'SET_QUEUED_MESSAGES', payload: newQueue });
-    
-    // Notify extension to update its queue
+
+    // Notify extension to delete from SDK's queue
     vscode.postMessage({
       command: 'deleteQueuedMessage',
       index: index
@@ -379,8 +389,9 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
     const qm = state.queuedMessages[index];
     if (!qm) return;
 
-    // Send the queued message immediately (backend will handle priority/abort)
-    handleSendMessage(qm.text, qm.images, true);
+    // Send the queued message immediately
+    const images = qm.images?.map(img => ({ data: img.path || (img as any).data || '', mediaType: img.mimeType || (img as any).mediaType || '' }));
+    handleSendMessage(qm.content || qm.text || '', images, true);
 
     // Remove from queue
     handleDeleteQueuedMessage(index);
@@ -539,7 +550,7 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
           <MessageInput
             ref={messageInputRef}
             onSendMessage={handleSendMessage}
-            disabled={state.inputDisabled}
+            disabled={state.inputDisabled || state.isCommandRunning}
             isStreaming={state.isStreaming}
             onAbortMessage={handleAbortMessage}
             onSendQueuedMessage={state.queuedMessages.length > 0 ? () => handleSendQueuedMessage(0) : undefined}

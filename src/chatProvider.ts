@@ -142,6 +142,9 @@ export class ChatProvider implements vscode.WebviewViewProvider {
             onStreamingChange: (isStreaming) => {
                 this.webviewManager.postMessage({ command: isStreaming ? 'startStreaming' : 'endStreaming' }, viewType, windowId);
             },
+            onCommandRunningChange: (running) => {
+                this.webviewManager.postMessage({ command: 'updateCommandRunning', running }, viewType, windowId);
+            },
             onQueueChange: (queue) => {
                 this.webviewManager.postMessage({ command: 'updateQueue', queue }, viewType, windowId);
             },

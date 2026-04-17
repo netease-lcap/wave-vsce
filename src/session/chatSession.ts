@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { Agent, Message, PermissionDecision, ToolPermissionContext, AgentCallbacks, PermissionMode, Task, PromptHistoryManager, TextBlock } from 'wave-agent-sdk';
+import { Agent, Message, PermissionDecision, ToolPermissionContext, AgentCallbacks, PermissionMode, Task, PromptHistoryManager, TextBlock, QueuedMessage } from 'wave-agent-sdk';
 import { ConfigurationData } from '../services/configurationService';
 import { VscodeLspAdapter } from '../services/lspAdapter';
 
@@ -9,14 +9,10 @@ export interface ChatSessionCallbacks {
     onSessionIdChange: (sessionId: string) => void;
     onStreamingChange: (isStreaming: boolean) => void;
     onQueueChange: (queue: QueuedMessage[]) => void;
+    onCommandRunningChange: (running: boolean) => void;
     onPermissionModeChange: (mode: PermissionMode) => void;
     onToolPermissionRequest: (context: ToolPermissionContext) => Promise<PermissionDecision>;
     onError: (error: any) => void;
-}
-
-export interface QueuedMessage {
-    text: string;
-    images?: Array<{ data: string; mediaType: string; }>;
 }
 
 export class ChatSession {
@@ -25,6 +21,7 @@ export class ChatSession {
     public tasks: Task[] = [];
     public sessionId: string | undefined;
     public isStreaming: boolean = false;
+    public isCommandRunning: boolean = false;
     public isInitializing: boolean = false;
     public inputContent: string = '';
     public messageQueue: QueuedMessage[] = [];
@@ -86,6 +83,14 @@ export class ChatSession {
                 onLoadingChange: (loading: boolean) => {
                     this.isStreaming = loading;
                     this.callbacks.onStreamingChange(loading);
+                },
+                onCommandRunningChange: (running: boolean) => {
+                    this.isCommandRunning = running;
+                    this.callbacks.onCommandRunningChange(running);
+                },
+                onQueuedMessagesChange: (messages: QueuedMessage[]) => {
+                    this.messageQueue = messages;
+                    this.callbacks.onQueueChange(messages);
                 }
             };
 
@@ -147,78 +152,41 @@ export class ChatSession {
             throw new Error('智能体未初始化');
         }
 
-        if (this.isStreaming) {
-            if (force) {
-                this.agent.abortMessage();
-                this.messageQueue.unshift({ text, images });
-            } else {
-                this.messageQueue.push({ text, images });
-            }
-            this.callbacks.onQueueChange(this.messageQueue);
-            return;
+        if (this.isStreaming && force) {
+            this.agent.abortMessage();
+            // SDK will re-enqueue automatically via abortMessage clearing the queue,
+            // then the caller should re-send after abort.
         }
 
-        // If not streaming but queue is not empty, and this is a new message (not from queue processing)
-        // we should unshift it to the front of the queue to prioritize it.
-        // Note: nextMessage shift happens in finally block, so we unshift here and then let the queue process.
-        if (this.messageQueue.length > 0 && !force) {
-            this.messageQueue.unshift({ text, images });
-            this.callbacks.onQueueChange(this.messageQueue);
-            
-            // Trigger the queue processing by sending the first message
-            const nextMessage = this.messageQueue.shift()!;
-            this.callbacks.onQueueChange(this.messageQueue);
-            await this.sendMessage(nextMessage.text, nextMessage.images, true);
-            return;
+        let processedImages: Array<{ path: string; mimeType: string; }> | undefined;
+        if (images && images.length > 0) {
+            processedImages = images.map(image => ({
+                path: image.data,
+                mimeType: image.mediaType
+            }));
         }
-
+        
+        // Save prompt to history
         try {
-            let processedImages: Array<{ path: string; mimeType: string; }> | undefined;
-            if (images && images.length > 0) {
-                processedImages = images.map(image => ({
-                    path: image.data,
-                    mimeType: image.mediaType
-                }));
-            }
-            
-            // Save prompt to history
-            try {
-                const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
-                const workdir = workspaceFolder?.uri.fsPath;
-                await PromptHistoryManager.addEntry(text, this.sessionId, {}, workdir);
-            } catch (error) {
-                console.error('Failed to save prompt to history:', error);
-            }
-            
-            if (text.startsWith('!')) {
-                await this.agent.bang(text.slice(1));
-            } else {
-                await this.agent.sendMessage(text, processedImages);
-            }
-            
+            const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+            const workdir = workspaceFolder?.uri.fsPath;
+            await PromptHistoryManager.addEntry(text, this.sessionId, {}, workdir);
         } catch (error) {
-            throw error;
-        } finally {
-            // Process next message in queue
-            if (this.messageQueue.length > 0) {
-                const nextMessage = this.messageQueue.shift()!;
-                this.callbacks.onQueueChange(this.messageQueue);
-                // Use setTimeout to avoid deep recursion and allow UI to update
-                setTimeout(() => {
-                    this.sendMessage(nextMessage.text, nextMessage.images, true).catch(err => {
-                        console.error('Error processing queued message:', err);
-                        this.callbacks.onError(err);
-                    });
-                }, 0);
-            }
+            console.error('Failed to save prompt to history:', error);
+        }
+        
+        // SDK handles queueing internally when agent is busy
+        if (text.startsWith('!')) {
+            await this.agent.bang(text.slice(1));
+        } else {
+            await this.agent.sendMessage(text, processedImages);
         }
     }
 
     public deleteQueuedMessage(index: number) {
-        if (index >= 0 && index < this.messageQueue.length) {
-            this.messageQueue.splice(index, 1);
-            this.callbacks.onQueueChange(this.messageQueue);
-        }
+        if (!this.agent) return;
+        // Use SDK's removeQueuedMessage to delete from the internal queue
+        this.agent.removeQueuedMessage(index);
     }
 
     public abortMessage() {
@@ -238,7 +206,9 @@ export class ChatSession {
     }
 
     private clearQueue() {
-        if (this.messageQueue.length > 0) {
+        if (this.agent && this.agent.queuedMessages.length > 0) {
+            this.agent.abortMessage();
+        } else if (this.messageQueue.length > 0) {
             this.messageQueue = [];
             this.callbacks.onQueueChange(this.messageQueue);
         }
@@ -385,6 +355,7 @@ export class ChatSession {
         this.sessionId = undefined;
         this.pendingConfirmations.clear();
         this.isStreaming = false;
+        this.isCommandRunning = false;
         this.pendingUpdate = false;
         this.messageQueue = [];
     }

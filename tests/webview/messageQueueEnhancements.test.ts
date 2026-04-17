@@ -12,7 +12,7 @@ test.describe('Message Queue Features', () => {
         
         // 2. Add a message to the queue
         const queuedText = 'Queued message 1';
-        await injector.updateQueue([{ text: queuedText }]);
+        await injector.updateQueue([{ content: queuedText }]);
         
         // Verify it's in the new UI (QueuedMessageList)
         const queuePanel = webviewPage.getByTestId('queued-message-list');
@@ -45,8 +45,8 @@ test.describe('Message Queue Features', () => {
         
         // 2. Add multiple messages to the queue
         await injector.updateQueue([
-            { text: 'Queued 1' },
-            { text: 'Queued 2' }
+            { content: 'Queued 1' },
+            { content: 'Queued 2' }
         ]);
         
         const queuePanel = webviewPage.getByTestId('queued-message-list');
@@ -76,7 +76,7 @@ test.describe('Message Queue Features', () => {
         const ui = new UIStateVerifier(webviewPage);
 
         await injector.startStreaming();
-        await injector.updateQueue([{ text: 'Queued 1' }]);
+        await injector.updateQueue([{ content: 'Queued 1' }]);
         
         const queuePanel = webviewPage.getByTestId('queued-message-list');
         await expect(queuePanel).toBeVisible();
@@ -94,7 +94,7 @@ test.describe('Message Queue Features', () => {
         const ui = new UIStateVerifier(webviewPage);
 
         // 1. Have a queue but NOT streaming
-        await injector.updateQueue([{ text: 'Queued 1' }]);
+        await injector.updateQueue([{ content: 'Queued 1' }]);
         
         // 2. Send a new message
         await injector.clearMessageLog();

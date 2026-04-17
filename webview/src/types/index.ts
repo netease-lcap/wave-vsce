@@ -222,9 +222,14 @@ export interface SessionSelectorProps {
   disabled: boolean;
 }
 
+// Matches wave-agent-sdk's QueuedMessage type
 export interface QueuedMessage {
-  text: string;
-  images?: Array<{ data: string; mediaType: string; }>;
+  type?: 'message' | 'bang';
+  content: string;
+  images?: Array<{ path: string; mimeType: string }>;
+  longTextMap?: Record<string, string>;
+  // Legacy alias for backward compat
+  text?: string;
 }
 
 // Chat state management
@@ -235,6 +240,7 @@ export interface ChatState {
   isTaskListCollapsed: boolean;
   isQueueCollapsed: boolean;
   isStreaming: boolean;
+  isCommandRunning: boolean;
   inputDisabled: boolean;
   shouldClearInput: boolean;
   sessions: SessionMetadata[];
@@ -367,11 +373,13 @@ export type ChatAction =
   | { type: 'SET_CONFIGURATION_DATA'; payload: ConfigurationData }
   | { type: 'UPDATE_SELECTION'; payload: SelectionInfo | undefined }
   | { type: 'SET_PERMISSION_MODE'; payload: PermissionMode }
+  | { type: 'SET_COMMAND_RUNNING'; payload: boolean }
   | { type: 'SET_QUEUED_MESSAGES'; payload: QueuedMessage[] }
   | { type: 'SET_INITIAL_STATE'; payload: {
       messages: Message[];
       tasks?: Task[];
       isStreaming: boolean;
+      isCommandRunning?: boolean;
       isTaskListCollapsed?: boolean;
       sessions: SessionMetadata[];
       currentSession?: SessionMetadata;

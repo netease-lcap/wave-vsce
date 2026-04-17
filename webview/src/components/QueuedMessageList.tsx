@@ -49,10 +49,10 @@ export const QueuedMessageList: React.FC<QueuedMessageListProps> = ({
                       id: `queued-${index}`,
                       role: 'user',
                       blocks: [
-                        { type: 'text', content: qm.text },
+                        { type: 'text', content: qm.content || qm.text || '' },
                         ...(qm.images || []).map(img => ({
                           type: 'image' as const,
-                          imageUrls: [img.data]
+                          imageUrls: [img.path || (img as any).data || '']
                         }))
                       ]
                     }}

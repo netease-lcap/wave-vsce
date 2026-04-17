@@ -38,7 +38,7 @@ test.describe('Message Queuing', () => {
     await webviewPage.evaluate(() => {
       (window as any).simulateExtensionMessage({
         command: 'updateQueue',
-        queue: [{ text: 'Queued message 1' }]
+        queue: [{ content: 'Queued message 1' }]
       });
     });
 
@@ -75,7 +75,7 @@ test.describe('Message Queuing', () => {
       });
       (window as any).simulateExtensionMessage({
         command: 'updateQueue',
-        queue: [{ text: 'Queued message 1' }]
+        queue: [{ content: 'Queued message 1' }]
       });
     });
 
@@ -109,7 +109,7 @@ test.describe('Message Queuing', () => {
       });
       (window as any).simulateExtensionMessage({
         command: 'updateQueue',
-        queue: [{ text: 'Queued message 1' }]
+        queue: [{ content: 'Queued message 1' }]
       });
     });
 
@@ -140,8 +140,8 @@ test.describe('Message Queuing', () => {
       (window as any).simulateExtensionMessage({
         command: 'updateQueue',
         queue: [
-          { text: 'Queued message 1' },
-          { text: 'Queued message 2' }
+          { content: 'Queued message 1' },
+          { content: 'Queued message 2' }
         ]
       });
     });
@@ -183,8 +183,8 @@ test.describe('Message Queuing', () => {
         command: 'updateQueue',
         queue: [
           { 
-            text: 'Check this file [@file:src/main.ts] and this image [image1]',
-            images: [{ data: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==', mediaType: 'image/png' }]
+            content: 'Check this file [@file:src/main.ts] and this image [image1]',
+            images: [{ path: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==', mimeType: 'image/png' }]
           }
         ]
       });
@@ -221,7 +221,7 @@ test.describe('Message Queuing', () => {
         command: 'updateQueue',
         queue: [
           { 
-            text: 'Look at this selection: [Selection: src/utils.ts|utils.ts#10-20]',
+            content: 'Look at this selection: [Selection: src/utils.ts|utils.ts#10-20]',
           }
         ]
       });

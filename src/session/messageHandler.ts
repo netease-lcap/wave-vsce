@@ -559,6 +559,7 @@ export class MessageHandler {
             tasks: session.tasks,
             inputContent: session.inputContent,
             isStreaming: session.isStreaming,
+            isCommandRunning: session.isCommandRunning,
             sessions: sessions,
             session: session.sessionId && session.agent ? {
                 id: session.sessionId,

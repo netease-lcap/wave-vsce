@@ -44,8 +44,8 @@ test.describe('Product Specification Screenshots - Message Queuing', () => {
         await injector.simulateExtensionMessage('updateQueue', {
             queue: [
                 { 
-                    text: '顺便帮我写个测试用例，参考 [@file:src/utils.ts] 和 [image1]',
-                    images: [{ data: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==', mediaType: 'image/png' }]
+                    content: '顺便帮我写个测试用例，参考 [@file:src/utils.ts] 和 [image1]',
+                    images: [{ path: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==', mimeType: 'image/png' }]
                 }
             ]
         });
