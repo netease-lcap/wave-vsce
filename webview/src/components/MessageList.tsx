@@ -25,7 +25,7 @@ export const MessageList = forwardRef<{ scrollToBottom: (behavior?: ScrollBehavi
     const messagesEnd = messagesEndRef.current;
     if (!container || !messagesEnd) return;
 
-    const isNearBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 200;
+    const isNearBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 300;
     
     const isUserMessage = messages.length > 0 && messages[messages.length - 1].role === 'user';
     // Force scroll if it's a new message AND (it's from user OR user is already at bottom)
@@ -60,7 +60,7 @@ export const MessageList = forwardRef<{ scrollToBottom: (behavior?: ScrollBehavi
     prevQueuedLengthRef.current = queuedMessages?.length || 0;
 
     const handleScroll = () => {
-      const threshold = 100;
+      const threshold = 300;
       const isNearBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - threshold;
       if (isNearBottom) {
         userScrolledUpRef.current = false;
