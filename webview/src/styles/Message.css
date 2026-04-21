@@ -11,16 +11,19 @@
 }
 
 .message.user {
-    background-color: var(--vscode-chat-requestBubbleBackground);
     color: var(--vscode-foreground);
-    border-radius: 8px;
-    padding: 8px 12px;
     margin-bottom: 8px;
     overflow-wrap: break-word; /* 长词自动换行 */
+}
+
+.user-text-block {
+    background-color: var(--vscode-chat-requestBubbleBackground);
+    border-radius: 8px;
+    padding: 8px 12px;
     transition: background-color 0.2s ease;
 }
 
-.message.user:hover {
+.message.user:hover .user-text-block {
     background-color: var(--vscode-chat-requestBubbleHoverBackground);
 }
 
@@ -39,7 +42,7 @@
     background-color: transparent;
 }
 
-.message.user.queued .user-message-wrapper {
+.message.user.queued .user-text-block {
     padding: 0;
 }
 

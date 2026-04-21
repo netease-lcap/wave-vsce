@@ -138,12 +138,11 @@ test.describe('Tool Display Visual Test', () => {
         const userMessages = webviewPage.locator('.message.user');
         await expect(userMessages).toHaveCount(3);
 
-        // Check that user messages are visually distinct (have background)
-        const firstUserMsg = userMessages.nth(0);
+        // Check that user message text block is visually distinct (has background)
+        const firstUserMsg = userMessages.nth(0).locator('.user-text-block').first();
         const computedStyle = await firstUserMsg.evaluate((el) => {
             const style = window.getComputedStyle(el);
             return {
-                alignSelf: style.alignSelf,
                 backgroundColor: style.backgroundColor,
                 padding: style.padding,
                 borderRadius: style.borderRadius

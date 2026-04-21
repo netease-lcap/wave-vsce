@@ -498,7 +498,7 @@ export const Message: React.FC<MessageProps> = (props) => {
           const parts = parseMentions(content, attachedImages);
           
           return (
-            <div key={index} className="user-message-wrapper">
+            <div key={index} className="user-text-block">
               <div className="message-content user-content">
                 {parts.map((part, pIndex) => {
                   if (part.type === 'mention') {
