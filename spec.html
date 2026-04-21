@@ -152,6 +152,21 @@
       </li>
         </ul>
       </li>
+      <li><a href="#settings-skill">5. 内置 Settings Skill</a>
+        <ul>
+          <li><a href="#settings-json">5.1 settings.json 配置中心</a></li>
+          <li><a href="#settings-hooks">5.2 钩子 (Hooks)</a></li>
+          <li><a href="#settings-env">5.3 环境变量</a></li>
+          <li><a href="#settings-permissions">5.4 工具权限</a></li>
+          <li><a href="#settings-models">5.5 模型配置</a></li>
+          <li><a href="#settings-mcp">5.6 MCP 协议</a></li>
+          <li><a href="#settings-memory">5.7 记忆规则</a></li>
+          <li><a href="#settings-skills">5.8 自定义 Skill</a></li>
+          <li><a href="#settings-subagents">5.9 子代理</a></li>
+          <li><a href="#settings-plugins">5.10 插件配置</a></li>
+          <li><a href="#settings-other">5.11 其他设置</a></li>
+        </ul>
+      </li>
       <li><a href="#product-features-summary">产品特色总结</a></li>
     </ul>
   </div>
@@ -384,11 +399,13 @@
 </figure>
 <h3 id="skill-system">3.14 Skill 技能系统</h3>
 <p>Skill 是预设的自动化任务模板，用于处理特定的复杂任务（如文档处理、PDF 解析等）。AI 可以根据需要调用这些技能来扩展其能力。</p>
+<p><strong>提示：</strong>用户可以通过内置的 <code>/settings</code> skill 来管理 Skill，例如输入 <code>/settings 帮我写个skill，具体做xxx</code> 即可快速创建自定义 Skill。</p>
 <figure>
 <img src="./screenshots/spec-skill.png" alt="" /><figcaption>Skill 系统</figcaption>
 </figure>
 <h3 id="mcp-integration">3.15 MCP 协议集成</h3>
 <p>支持 Model Context Protocol (MCP)，允许 AI 连接到外部的 MCP 服务器，从而获取更多的上下文信息或调用外部工具。</p>
+<p><strong>提示：</strong>用户可以通过内置的 <code>/settings</code> skill 来管理 MCP 配置，例如输入 <code>/settings 增加mcp：xxx</code> 即可快速添加新的 MCP 服务。</p>
 <figure>
 <img src="./screenshots/spec-mcp.png" alt="" /><figcaption>MCP 集成</figcaption>
 </figure>
@@ -469,6 +486,141 @@
     <figure>
     <img src="./screenshots/spec-plugin-marketplaces.png" alt="" /><figcaption>插件市场管理</figcaption>
     </figure>
+<hr />
+<h2 id="settings-skill">5. 内置 Settings Skill</h2>
+<p>Wave 提供了一个强大的内置 <code>/settings</code> skill，作为用户与 Wave 配置系统交互的自然语言入口。用户无需手动编辑配置文件，只需用自然语言描述需求，AI 即可帮助查看、修改和引导配置。</p>
+<p><strong>主要特性：</strong></p>
+<ul>
+<li><strong>自然语言配置</strong>：通过对话方式管理所有 Wave 设置，如"显示我的当前设置"、"更新项目设置启用自动记忆"等。</li>
+<li><strong>三级作用域</strong>：配置支持用户级（<code>~/.wave/settings.json</code>）、项目级（<code>.wave/settings.json</code>）和本地级（<code>.wave/settings.local.json</code>）。</li>
+<li><strong>热加载</strong>：所有配置修改立即生效，无需重启 Wave。</li>
+</ul>
+<h3 id="settings-json">5.1 settings.json 配置中心</h3>
+<p><code>settings.json</code> 是 Wave 的中央配置文件，支持自定义钩子、环境变量、工具权限等功能。</p>
+<p><strong>使用示例：</strong></p>
+<ul>
+<li>"显示我当前的项目设置"</li>
+<li>"帮我在项目级设置里开启自动记忆"</li>
+<li>"用本地配置文件覆盖某个全局设置"</li>
+</ul>
+<h3 id="settings-hooks">5.2 钩子 (Hooks)</h3>
+<p>钩子允许在特定事件发生时自动执行任务，实现工作流自动化。Wave 支持以下 7 种钩子事件：</p>
+<table>
+<thead>
+<tr><th>事件名称</th><th>触发时机</th></tr>
+</thead>
+<tbody>
+<tr><td><code>PreToolUse</code></td><td>工具执行前（可用于校验、拦截或预处理）</td></tr>
+<tr><td><code>PostToolUse</code></td><td>工具执行完成后（可用于后处理或日志记录）</td></tr>
+<tr><td><code>UserPromptSubmit</code></td><td>用户提交 Prompt 时</td></tr>
+<tr><td><code>PermissionRequest</code></td><td>Wave 请求工具权限时</td></tr>
+<tr><td><code>Stop</code></td><td>Wave 完成响应周期（无更多工具调用）时</td></tr>
+<tr><td><code>SubagentStop</code></td><td>子代理完成响应周期时</td></tr>
+<tr><td><code>WorktreeCreate</code></td><td>创建新 worktree 时</td></tr>
+</tbody>
+</table>
+<p><strong>钩子配置要点：</strong></p>
+<ul>
+<li><strong>模式匹配</strong>：支持通过 <code>matcher</code> 匹配工具名（如 <code>Write</code>、<code>Read*</code>、<code>/^Edit/</code>），适用于 <code>PreToolUse</code>、<code>PostToolUse</code> 和 <code>PermissionRequest</code>。</li>
+<li><strong>异步执行</strong>：支持 <code>async</code> 字段配置后台异步执行，避免阻塞工作流。</li>
+<li><strong>超时控制</strong>：支持 <code>timeout</code> 字段设置最大执行时间（默认 600 秒）。</li>
+<li><strong>退出码控制</strong>：
+<ul>
+<li><code>0</code>：成功，Wave 继续正常执行</li>
+<li><code>2</code>：阻塞错误，Wave 阻止当前操作并反馈错误信息</li>
+<li>其他（如 <code>1</code>）：非阻塞错误，Wave 继续执行但向用户显示警告</li>
+</ul>
+</li>
+<li><strong>输入上下文</strong>：Wave 通过 <code>stdin</code> 向钩子进程传递 JSON 格式的详细信息，包括会话 ID、工具名称、工具参数、工具响应等上下文。</li>
+<li><strong>热加载</strong>：配置文件修改后即时生效，无需重启 Wave。</li>
+</ul>
+<p><strong>使用示例：</strong></p>
+<ul>
+<li>"在 Write 工具执行前自动运行 pnpm lint"</li>
+<li>"每次用户提交 Prompt 时记录到日志文件"</li>
+<li>"给 Bash 工具的权限请求添加异步日志 hook"</li>
+</ul>
+<h3 id="settings-env">5.3 环境变量</h3>
+<p>通过 <code>env</code> 字段设置对所有工具和钩子可用的环境变量。常用 <code>WAVE_*</code> 变量包括：</p>
+<ul>
+<li><code>WAVE_MODEL</code>、<code>WAVE_FAST_MODEL</code>：模型选择</li>
+<li><code>WAVE_MAX_INPUT_TOKENS</code>、<code>WAVE_MAX_OUTPUT_TOKENS</code>：Token 限制</li>
+<li><code>WAVE_API_KEY</code>、<code>WAVE_BASE_URL</code>：API 配置</li>
+</ul>
+<p><strong>使用示例：</strong></p>
+<ul>
+<li>"帮我设置默认模型为 claude-3-7-sonnet-20250219"</li>
+<li>"把最大输出 tokens 调到 4096"</li>
+<li>"添加一个自定义环境变量 NODE_ENV=development"</li>
+</ul>
+<h3 id="settings-permissions">5.4 工具权限</h3>
+<p>管理工具权限并定义"安全区域"（Safe Zone），支持 <code>allow</code>、<code>deny</code> 列表以及 <code>permissionMode</code> 配置。权限修改立即生效。</p>
+<p><strong>使用示例：</strong></p>
+<ul>
+<li>"把权限模式改成自动接受修改"</li>
+<li>"允许 Read 和 Bash 工具无需确认"</li>
+<li>"扩展安全区域，把 /tmp/wave-exports 目录加进去"</li>
+</ul>
+<h3 id="settings-models">5.5 模型配置</h3>
+<p>在 <code>models</code> 字段中定义 AI 模型及其专属参数（如 <code>temperature</code>、<code>reasoning_effort</code>、<code>thinking</code>），灵活适配不同模型的行为。</p>
+<p><strong>使用示例：</strong></p>
+<ul>
+<li>"给 claude-3-7-sonnet 开启 thinking，预算设为 2048 tokens"</li>
+<li>"把 o3-mini 的推理强度设为 high"</li>
+<li>"帮我查看当前有哪些模型配置"</li>
+</ul>
+<h3 id="settings-mcp">5.6 MCP 协议</h3>
+<p>配置外部 MCP 服务器连接，为 AI 提供额外的工具和上下文能力。用户可通过 <code>/settings 增加mcp：xxx</code> 快速添加。</p>
+<p><strong>使用示例：</strong></p>
+<ul>
+<li>"增加一个 MCP 服务，连接到本地的文件搜索工具"</li>
+<li>"帮我查看当前配置了哪些 MCP 服务器"</li>
+<li>"移除某个不再使用的 MCP 连接"</li>
+</ul>
+<h3 id="settings-memory">5.7 记忆规则</h3>
+<p>为 Agent 提供上下文特定的指令和指南，确保 AI 在不同场景下遵循预期的行为模式。</p>
+<p><strong>使用示例：</strong></p>
+<ul>
+<li>"添加一条记忆规则：始终用中文回答"</li>
+<li>"帮我查看当前的记忆规则有哪些"</li>
+<li>"删除那条关于代码风格的记忆"</li>
+</ul>
+<h3 id="settings-skills">5.8 自定义 Skill</h3>
+<p>创建自定义 skill 以扩展 Wave 功能，处理特定复杂任务。用户可通过 <code>/settings 帮我写个skill，具体做xxx</code> 快速创建。</p>
+<p><strong>使用示例：</strong></p>
+<ul>
+<li>"帮我写个 skill，自动把当前分支的代码部署到测试服务器"</li>
+<li>"创建一个 skill，用于定期生成项目文档"</li>
+<li>"列出我所有的自定义 skill"</li>
+</ul>
+<h3 id="settings-subagents">5.9 子代理</h3>
+<p>定义专用的 AI 个性代理，将特定任务委托给专业化的子代理执行。</p>
+<p><strong>使用示例：</strong></p>
+<ul>
+<li>"创建一个专门负责代码审查的子代理"</li>
+<li>"定义一个专注于前端 UI 设计的子代理"</li>
+<li>"帮我查看所有已配置的子代理"</li>
+</ul>
+<h3 id="settings-plugins">5.10 插件配置</h3>
+<p>通过 <code>enabledPlugins</code> 启用或禁用插件。插件的 skill、hook、MCP 和 LSP 服务器可使用 <code>${WAVE_PLUGIN_ROOT}</code> 占位符引用其父插件目录。</p>
+<p><strong>使用示例：</strong></p>
+<ul>
+<li>"禁用 xxx 插件"</li>
+<li>"帮我查看所有已启用的插件"</li>
+<li>"在插件的 hook 中使用 ${WAVE_PLUGIN_ROOT} 引用插件目录"</li>
+</ul>
+<h3 id="settings-other">5.11 其他设置</h3>
+<ul>
+<li><code>language</code>：AI 通信首选语言（如 <code>"zh"</code>、<code>"en"</code>）。</li>
+<li><code>autoMemoryEnabled</code>：启用或禁用自动记忆（默认：<code>true</code>）。</li>
+<li><code>autoMemoryFrequency</code>：自动记忆提取频率（默认：<code>1</code>）。</li>
+</ul>
+<p><strong>使用示例：</strong></p>
+<ul>
+<li>"把 AI 回复语言改为英文"</li>
+<li>"关闭自动记忆功能"</li>
+<li>"调整自动记忆的触发频率"</li>
+</ul>
 <hr />
 <h2 id="product-features-summary">产品特色总结</h2>
 <p>Wave 代码智聊致力于成为开发者的智能编程伙伴，在提升开发效率的同时确保代码质量和项目安全。</p>
