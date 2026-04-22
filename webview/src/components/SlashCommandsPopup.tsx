@@ -93,7 +93,7 @@ export const SlashCommandsPopup: React.FC<SlashCommandsPopupProps> = ({
             <li
               key={command.id}
               className={`slash-command-item ${index === selectedIndex ? 'selected' : ''}`}
-              onClick={() => onSelect(command)}
+              onMouseDown={(e) => { e.preventDefault(); onSelect(command); }}
               data-testid={`slash-command-${command.id}`}
             >
               <div className="slash-command-name">/{command.name}</div>
