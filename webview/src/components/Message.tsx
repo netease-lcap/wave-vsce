@@ -14,7 +14,7 @@ import {
   ASK_USER_QUESTION_TOOL_NAME, 
   EXIT_PLAN_MODE_TOOL_NAME 
 } from 'wave-agent-sdk/dist/constants/tools.js';
-import type { MessageProps, TextBlock, ErrorBlock, ToolBlock, ImageBlock, CompressBlock, TaskNotificationBlock } from '../types';
+import type { MessageProps, TextBlock, ErrorBlock, ToolBlock, ImageBlock, CompactBlock, TaskNotificationBlock } from '../types';
 import { DiffViewer } from './DiffViewer';
 import { MermaidRenderer } from './MermaidRenderer';
 import '../styles/Message.css';
@@ -489,7 +489,7 @@ export const Message: React.FC<MessageProps> = (props) => {
     switch (block.type) {
       case 'text':
       case 'memory':
-      case 'compress': {
+      case 'compact': {
         const content = block.content || '';
         if (!content.trim()) return null;
         

@@ -123,6 +123,6 @@
     "dompurify": "^3.3.0",
     "marked": "^9.1.6",
     "mermaid": "^11.12.2",
-    "wave-agent-sdk": "^0.14.0"
+    "wave-agent-sdk": "^0.14.2"
   }
 }
