@@ -310,9 +310,9 @@ test.describe('Diff Viewer', () => {
     
     // Log whether scrolling is available (informational, not a test requirement)
     if (scrollInfo.hasScrollbar) {
-      console.log('Content is scrollable due to size');
+
     } else {
-      console.log('Content fits in container without scrolling');
+
     }
   });
 });

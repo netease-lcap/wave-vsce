@@ -86,7 +86,7 @@ test.describe('Tag Vertical Spacing', () => {
     
     if (box1 && box2) {
       const gap = box2.y - (box1.y + box1.height);
-      console.log(`Input box tag gap: ${gap}px`);
+
       // Expect at least 4px gap (2px margin-bottom of tag1 + 2px margin-top of tag2)
       expect(gap).toBeGreaterThanOrEqual(4);
     }
@@ -128,7 +128,7 @@ test.describe('Tag Vertical Spacing', () => {
     
     if (box1 && box2) {
       const gap = box2.y - (box1.y + box1.height);
-      console.log(`Message list tag gap: ${gap}px`);
+
       // Expect at least 4px gap
       expect(gap).toBeGreaterThanOrEqual(4);
     }

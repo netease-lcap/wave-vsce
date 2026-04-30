@@ -49,8 +49,7 @@ test.describe('Tool Error Scrollable Demo', () => {
         const maxHeight = await errorLocator.evaluate(el => window.getComputedStyle(el).maxHeight);
         const overflowY = await errorLocator.evaluate(el => window.getComputedStyle(el).overflowY);
         
-        console.log('Max height:', maxHeight);
-        console.log('Overflow-Y:', overflowY);
+
         
         expect(maxHeight).toBe('200px');
         expect(overflowY).toBe('auto');
@@ -99,8 +98,7 @@ test.describe('Tool Error Scrollable Demo', () => {
         const maxHeight = await errorLocator.evaluate(el => window.getComputedStyle(el).maxHeight);
         const overflowY = await errorLocator.evaluate(el => window.getComputedStyle(el).overflowY);
         
-        console.log('Error block Max height:', maxHeight);
-        console.log('Error block Overflow-Y:', overflowY);
+
         
         expect(maxHeight).toBe('200px');
         expect(overflowY).toBe('auto');
