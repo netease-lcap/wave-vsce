@@ -776,7 +776,7 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
     // Handle Shift+Tab to cycle permission mode
     if (event.key === 'Tab' && event.shiftKey && !isComposing) {
       event.preventDefault();
-      const modes: PermissionMode[] = ['default', 'acceptEdits', 'plan'];
+      const modes: PermissionMode[] = ['default', 'acceptEdits', 'plan', 'bypassPermissions'];
       const currentMode = permissionMode || 'default';
       const currentIndex = modes.indexOf(currentMode);
       const nextIndex = (currentIndex + 1) % modes.length;
@@ -1129,6 +1129,7 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
                 <option value="default">修改前询问</option>
                 <option value="acceptEdits">自动接受修改</option>
                 <option value="plan">计划模式</option>
+                <option value="bypassPermissions">Bypass Permissions</option>
               </select>
             </Tooltip>
           </div>

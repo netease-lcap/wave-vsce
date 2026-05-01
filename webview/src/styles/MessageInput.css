@@ -136,6 +136,11 @@
     color: var(--vscode-gitDecoration-submoduleResourceForeground);
 }
 
+.permission-mode-select.mode-bypassPermissions {
+    color: var(--vscode-errorForeground);
+    font-weight: bold;
+}
+
 .permission-mode-select option {
     background-color: var(--vscode-dropdown-background);
     color: var(--vscode-dropdown-foreground);

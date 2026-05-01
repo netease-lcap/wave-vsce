@@ -50,4 +50,34 @@ test.describe('Permission Mode Select', () => {
     await expect(select).toHaveValue('acceptEdits');
     await expect(select).toHaveClass(/mode-acceptEdits/);
   });
+
+  test('should include bypassPermissions option in dropdown', async ({ webviewPage }) => {
+    const injector = new MessageInjector(webviewPage);
+    await injector.clearMessageLog();
+
+    await injector.simulateExtensionMessage('setInitialState', {
+      messages: [],
+      permissionMode: 'default',
+      configurationData: {}
+    });
+
+    const select = webviewPage.locator('.permission-mode-select');
+    await expect(select).toBeVisible();
+
+    // Verify bypassPermissions option exists
+    const options = await select.locator('option').allTextContents();
+    expect(options).toContain('Bypass Permissions');
+
+    // Select bypassPermissions
+    await select.selectOption('bypassPermissions');
+
+    // Verify UI update
+    await injector.simulateExtensionMessage('setInitialState', {
+      messages: [],
+      permissionMode: 'bypassPermissions',
+      configurationData: {}
+    });
+    await expect(select).toHaveValue('bypassPermissions');
+    await expect(select).toHaveClass(/mode-bypassPermissions/);
+  });
 });

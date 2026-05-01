@@ -81,10 +81,32 @@ test.describe('Permission Mode Cycle', () => {
     await webviewPage.keyboard.press('Tab');
     await webviewPage.keyboard.up('Shift');
 
-    // 10. Verify message sent to extension (should be default)
+    // 10. Verify message sent to extension (should be bypassPermissions)
     await expect(async () => {
       expect(sentMessages.length).toBe(3);
       expect(sentMessages[2]).toEqual({
+        command: 'setPermissionMode',
+        mode: 'bypassPermissions'
+      });
+    }).toPass();
+
+    // 11. Simulate extension response for bypassPermissions
+    await injector.simulateExtensionMessage('setInitialState', {
+      messages: [],
+      permissionMode: 'bypassPermissions',
+      configurationData: {}
+    });
+    await expect(select).toHaveValue('bypassPermissions');
+
+    // 12. Press Shift+Tab again
+    await webviewPage.keyboard.down('Shift');
+    await webviewPage.keyboard.press('Tab');
+    await webviewPage.keyboard.up('Shift');
+
+    // 13. Verify message sent to extension (should cycle back to default)
+    await expect(async () => {
+      expect(sentMessages.length).toBe(4);
+      expect(sentMessages[3]).toEqual({
         command: 'setPermissionMode',
         mode: 'default'
       });
