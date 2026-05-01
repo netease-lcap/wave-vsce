@@ -10,6 +10,7 @@ test.describe('Task Notification Demo', () => {
       {
         id: 'msg_notify_completed',
         role: 'assistant' as const,
+        timestamp: '2024-01-01T00:00:00.000Z',
         blocks: [
           {
             type: 'text' as const,
@@ -28,6 +29,7 @@ test.describe('Task Notification Demo', () => {
       {
         id: 'msg_notify_failed',
         role: 'assistant' as const,
+        timestamp: '2024-01-01T00:00:00.000Z',
         blocks: [
           {
             type: 'task_notification' as const,
@@ -41,6 +43,7 @@ test.describe('Task Notification Demo', () => {
       {
         id: 'msg_notify_killed',
         role: 'assistant' as const,
+        timestamp: '2024-01-01T00:00:00.000Z',
         blocks: [
           {
             type: 'task_notification' as const,

@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
 import { Message } from './Message';
 import type { MessageListProps } from '../types';
+import type { Message as MessageType } from 'wave-agent-sdk';
 import '../styles/MessageList.css';
 
 const welcomeMessage = {
@@ -104,20 +105,32 @@ export const MessageList = forwardRef<{ scrollToBottom: (behavior?: ScrollBehavi
         vscode={vscode}
       />
       
-      {/* Chat messages */}
-      {messages.map((message, index) => {
-        const isStreaming = streamingMessageIndex !== undefined && index === streamingMessageIndex;
-        
-        return (
-          <Message
-            key={`${message.role}-${index}`}
-            message={message}
-            isStreaming={isStreaming}
-            vscode={vscode}
-            onRewindToMessage={onRewindToMessage}
-          />
-        );
-      })}
+      {/* Chat messages - filter out user meta messages */}
+      {(() => {
+        // Filter out user messages with isMeta, and build index mapping for streaming detection
+        const visibleMessages: MessageType[] = [];
+        const originalIndexMap: number[] = [];
+        for (let i = 0; i < messages.length; i++) {
+          const msg = messages[i];
+          if (msg.role === 'user' && msg.isMeta) continue;
+          visibleMessages.push(msg);
+          originalIndexMap.push(i);
+        }
+
+        return visibleMessages.map((message, idx) => {
+          const isStreaming = streamingMessageIndex !== undefined && originalIndexMap[idx] === streamingMessageIndex;
+
+          return (
+            <Message
+              key={`${message.role}-${originalIndexMap[idx]}`}
+              message={message}
+              isStreaming={isStreaming}
+              vscode={vscode}
+              onRewindToMessage={onRewindToMessage}
+            />
+          );
+        });
+      })()}
       
       {/* Invisible div to scroll to */}
       <div ref={messagesEndRef} />

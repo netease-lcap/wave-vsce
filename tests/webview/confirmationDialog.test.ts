@@ -367,6 +367,7 @@ test.describe('Confirmation Dialog', () => {
         const manyMessages: Message[] = Array.from({ length: 5 }, (_, i) => ({
             id: `msg_many_${i}`,
             role: i % 2 === 0 ? 'user' : 'assistant',
+            timestamp: '2024-01-01T00:00:00.000Z',
             blocks: [{ type: 'text', content: `Test message ${i + 1} with some longer content to take up space` }]
         }));
 

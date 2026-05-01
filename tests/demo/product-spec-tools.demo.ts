@@ -40,6 +40,7 @@ test.describe('Product Specification Screenshots - Tools', () => {
         const diffMessage: Message = {
             id: 'msg_demo_diff',
             role: 'assistant',
+            timestamp: '2024-01-01T00:00:00.000Z',
             blocks: [
                 {
                     type: 'tool',
@@ -97,6 +98,7 @@ test.describe('Product Specification Screenshots - Tools', () => {
         const subagentMessage: Message = {
             id: 'msg_demo_subagent',
             role: 'assistant',
+            timestamp: '2024-01-01T00:00:00.000Z',
             blocks: [
                 {
                     type: 'tool',
@@ -117,6 +119,7 @@ test.describe('Product Specification Screenshots - Tools', () => {
         const bashMessage: Message = {
             id: 'msg_demo_bash',
             role: 'assistant',
+            timestamp: '2024-01-01T00:00:00.000Z',
             blocks: [
                 {
                     type: 'tool',
@@ -137,6 +140,7 @@ test.describe('Product Specification Screenshots - Tools', () => {
             {
                 id: 'msg_demo_exploration',
                 role: 'assistant',
+                timestamp: '2024-01-01T00:00:00.000Z',
                 blocks: [
                     {
                         type: 'tool',
@@ -186,6 +190,7 @@ test.describe('Product Specification Screenshots - Tools', () => {
             {
                 id: 'msg_demo_file_ops',
                 role: 'assistant',
+                timestamp: '2024-01-01T00:00:00.000Z',
                 blocks: [
                     {
                         type: 'tool',

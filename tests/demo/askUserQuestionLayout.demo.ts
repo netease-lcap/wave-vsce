@@ -9,6 +9,7 @@ test.describe('AskUserQuestion Layout Demo', () => {
     const mockMessage: Message = {
       id: 'msg_ask_demo',
       role: 'assistant' as const,
+      timestamp: '2024-01-01T00:00:00.000Z',
       blocks: [
         {
           type: 'tool' as const,

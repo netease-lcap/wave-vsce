@@ -122,6 +122,7 @@ test.describe('Product Specification Screenshots - Rich Content', () => {
             {
                 id: 'msg_demo_inline_tags',
                 role: 'user',
+                timestamp: '2024-01-01T00:00:00.000Z',
                 blocks: [
                     {
                         type: 'text',

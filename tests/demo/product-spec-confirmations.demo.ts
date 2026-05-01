@@ -37,6 +37,7 @@ test.describe('Product Specification Screenshots - Confirmations', () => {
         const askUserMessage: Message = {
             id: 'msg_demo_ask',
             role: 'assistant',
+            timestamp: '2024-01-01T00:00:00.000Z',
             blocks: [
                 {
                     type: 'tool',

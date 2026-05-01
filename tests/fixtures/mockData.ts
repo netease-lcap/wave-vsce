@@ -24,6 +24,7 @@ export class MockDataGenerator {
         return {
             id: id || `msg_${Math.random().toString(36).substring(2, 9)}`,
             role: "user",
+            timestamp: '2024-01-01T00:00:00.000Z',
             blocks: [textBlock]
         };
     }
@@ -39,7 +40,8 @@ export class MockDataGenerator {
 
         return {
             id: id || `msg_${Math.random().toString(36).substring(2, 9)}`,
-            role: "assistant", 
+            role: "assistant",
+            timestamp: '2024-01-01T00:00:00.000Z',
             blocks: [textBlock]
         };
     }
@@ -76,6 +78,7 @@ export class MockDataGenerator {
         return {
             id: `msg_${Math.random().toString(36).substring(2, 9)}`,
             role: "assistant",
+            timestamp: '2024-01-01T00:00:00.000Z',
             blocks: blocks
         };
     }
@@ -92,6 +95,7 @@ export class MockDataGenerator {
         return {
             id: `msg_${Math.random().toString(36).substring(2, 9)}`,
             role: "assistant",
+            timestamp: '2024-01-01T00:00:00.000Z',
             blocks: [errorBlock]
         };
     }
@@ -101,13 +105,14 @@ export class MockDataGenerator {
      */
     static createStreamingMessage(accumulatedContent: string): Message {
         const textBlock: TextBlock = {
-            type: "text", 
+            type: "text",
             content: accumulatedContent
         };
 
         return {
             id: `msg_${Math.random().toString(36).substring(2, 9)}`,
             role: "assistant",
+            timestamp: '2024-01-01T00:00:00.000Z',
             blocks: [textBlock]
         };
     }
@@ -150,6 +155,7 @@ export class MockDataGenerator {
         return {
             id: `msg_${Math.random().toString(36).substring(2, 9)}`,
             role: "assistant",
+            timestamp: '2024-01-01T00:00:00.000Z',
             blocks: blocks
         };
     }
@@ -210,6 +216,7 @@ export class MockDataGenerator {
         return {
             id: `msg_${Math.random().toString(36).substring(2, 9)}`,
             role: "assistant",
+            timestamp: '2024-01-01T00:00:00.000Z',
             blocks: blocks
         };
     }
@@ -220,6 +227,7 @@ export class MockDataGenerator {
         return {
             id: `msg_${Math.random().toString(36).substring(2, 9)}`,
             role: "user",
+            timestamp: '2024-01-01T00:00:00.000Z',
             blocks: [{
                 type: "bang",
                 command,
@@ -266,6 +274,7 @@ export class MockDataGenerator {
         return {
             id: `msg_${Math.random().toString(36).substring(2, 9)}`,
             role: "assistant",
+            timestamp: '2024-01-01T00:00:00.000Z',
             blocks
         };
     }
