@@ -43,7 +43,8 @@
 }
 
 .message.user.queued .user-text-block {
-    padding: 0;
+    padding: 4px 8px;
+    border-radius: 4px;
 }
 
 .message.user.queued .message-content.user-content {
