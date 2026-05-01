@@ -24,6 +24,7 @@ test.describe('Streaming Messages', () => {
             await injector.updateMessages([{
                 id: "msg_streaming_basic",
                 role: "assistant",
+                timestamp: "2024-01-01T00:00:00.000Z",
                 blocks: [{ type: "text", content: accumulated }]
             }]);
             
@@ -56,6 +57,7 @@ test.describe('Streaming Messages', () => {
             await injector.updateMessages([{
                 id: "msg_streaming_long",
                 role: "assistant",
+                timestamp: "2024-01-01T00:00:00.000Z",
                 blocks: [{ type: "text", content: accumulated }]
             }]);
             
@@ -87,6 +89,7 @@ test.describe('Streaming Messages', () => {
         await injector.updateMessages([{
             id: "msg_streaming_empty",
             role: "assistant",
+            timestamp: "2024-01-01T00:00:00.000Z",
             blocks: [{ type: "text", content: '' }]
         }]);
         // Empty content should not render .message-content div
@@ -96,6 +99,7 @@ test.describe('Streaming Messages', () => {
         await injector.updateMessages([{
             id: "msg_streaming_empty",
             role: "assistant",
+            timestamp: "2024-01-01T00:00:00.000Z",
             blocks: [{ type: "text", content: 'Hello world' }]
         }]);
         await ui.verifyLatestMessageContent('Hello world');
@@ -104,6 +108,7 @@ test.describe('Streaming Messages', () => {
         await injector.updateMessages([{
             id: "msg_streaming_empty",
             role: "assistant",
+            timestamp: "2024-01-01T00:00:00.000Z",
             blocks: [{ type: "text", content: '' }]
         }]);
         // Empty content should not render .message-content div
@@ -121,6 +126,7 @@ test.describe('Streaming Messages', () => {
         await injector.updateMessages([{
             id: "msg_completed_1",
             role: "assistant",
+            timestamp: "2024-01-01T00:00:00.000Z",
             blocks: [{ type: "text", content: "This is a completed message" }]
         }]);
 
@@ -138,10 +144,12 @@ test.describe('Streaming Messages', () => {
         await injector.updateMessages([{
             id: "msg_completed_1",
             role: "assistant",
+            timestamp: "2024-01-01T00:00:00.000Z",
             blocks: [{ type: "text", content: "This is a completed message" }]
         }, {
             id: "msg_streaming_1",
             role: "assistant",
+            timestamp: "2024-01-01T00:00:00.000Z",
             blocks: [{ type: "text", content: "This is streaming content" }]
         }]);
         

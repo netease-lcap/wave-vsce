@@ -10,6 +10,7 @@ test.describe('Tag Clickability', () => {
     await injector.updateMessages([{
       id: 'msg1',
       role: 'user',
+      timestamp: '2024-01-01T00:00:00.000Z',
       blocks: [
         {
           type: 'text',
@@ -41,6 +42,7 @@ test.describe('Tag Clickability', () => {
     await injector.updateMessages([{
       id: 'msg2',
       role: 'user',
+      timestamp: '2024-01-01T00:00:00.000Z',
       blocks: [
         {
           type: 'text',
@@ -67,6 +69,7 @@ test.describe('Tag Clickability', () => {
     await injector.updateMessages([{
       id: 'msg3',
       role: 'user',
+      timestamp: '2024-01-01T00:00:00.000Z',
       blocks: [
         {
           type: 'text',
@@ -93,6 +96,7 @@ test.describe('Tag Clickability', () => {
     await injector.updateMessages([{
       id: 'msg4',
       role: 'user',
+      timestamp: '2024-01-01T00:00:00.000Z',
       blocks: [
         {
           type: 'text',

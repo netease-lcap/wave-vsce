@@ -34,6 +34,7 @@ test.describe('Abort Functionality', () => {
         await injector.updateMessages([{
             id: "msg_1",
             role: "assistant",
+            timestamp: "2024-01-01T00:00:00.000Z",
             blocks: [{ type: "text", content: "Completed message" }]
         }]);
         
@@ -59,6 +60,7 @@ test.describe('Abort Functionality', () => {
         await injector.updateMessages([{
             id: "msg_streaming_1",
             role: "assistant",
+            timestamp: "2024-01-01T00:00:00.000Z",
             blocks: [{ type: "text", content: "This is partial content that will be aborted..." }]
         }]);
         await ui.verifyLatestMessageContent('This is partial content');
@@ -84,6 +86,7 @@ test.describe('Abort Functionality', () => {
         await injector.updateMessages([{
             id: "msg_partial_1",
             role: "assistant",
+            timestamp: "2024-01-01T00:00:00.000Z",
             blocks: [{ type: "text", content: partialContent }]
         }]);
         await ui.verifyLatestMessageContent(partialContent);
@@ -114,6 +117,7 @@ test.describe('Abort Functionality', () => {
         await injector.updateMessages([{
             id: "msg_partial_2",
             role: "assistant",
+            timestamp: "2024-01-01T00:00:00.000Z",
             blocks: [{ type: "text", content: "Partial content" }]
         }]);
         await injector.abortMessage('Partial content');
@@ -154,6 +158,7 @@ test.describe('Abort Functionality', () => {
             await injector.updateMessages([{
                 id: "msg_streaming_scenario",
                 role: "assistant",
+                timestamp: "2024-01-01T00:00:00.000Z",
                 blocks: [{ type: "text", content: accumulated }]
             }]);
         }

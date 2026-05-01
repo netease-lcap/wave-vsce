@@ -48,6 +48,7 @@ export const QueuedMessageList: React.FC<QueuedMessageListProps> = ({
                     message={{
                       id: `queued-${index}`,
                       role: 'user',
+                      timestamp: new Date().toISOString(),
                       blocks: [
                         { type: 'text', content: qm.content || qm.text || '' },
                         ...(qm.images || []).map(img => ({

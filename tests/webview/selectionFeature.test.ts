@@ -57,6 +57,7 @@ test.describe('Selection Feature (Inline Tags)', () => {
             {
                 id: 'msg_sel_inline',
                 role: 'user',
+                timestamp: '2024-01-01T00:00:00.000Z',
                 blocks: [
                     { 
                         type: 'text', 
@@ -104,6 +105,7 @@ test.describe('Selection Feature (Inline Tags)', () => {
             {
                 id: 'msg_sel_old',
                 role: 'user',
+                timestamp: '2024-01-01T00:00:00.000Z',
                 blocks: [
                     { 
                         type: 'text', 

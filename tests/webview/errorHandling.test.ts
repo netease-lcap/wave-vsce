@@ -14,6 +14,7 @@ test.describe('Error Message Display', () => {
         await injector.updateMessages([{
             id: 'msg_err_1',
             role: 'assistant',
+            timestamp: '2024-01-01T00:00:00.000Z',
             blocks: [{ type: 'error', content: errorMessage }]
         }]);
 
@@ -42,6 +43,7 @@ test.describe('Error Message Display', () => {
         await injector.updateMessages([...messages, {
             id: 'msg_err_2',
             role: 'assistant',
+            timestamp: '2024-01-01T00:00:00.000Z',
             blocks: [{ type: 'error', content: 'An error occurred while processing your request' }]
         }]);
 
@@ -81,6 +83,7 @@ test.describe('Error Message Display', () => {
         const errorMessages: Message[] = errors.map((error, index) => ({
             id: `msg_err_multi_${index}`,
             role: 'assistant' as const,
+            timestamp: '2024-01-01T00:00:00.000Z',
             blocks: [{ type: 'error' as const, content: error }]
         }));
         
@@ -103,6 +106,7 @@ test.describe('Error Message Display', () => {
         await injector.updateMessages([{
             id: 'msg_err_recovery',
             role: 'assistant',
+            timestamp: '2024-01-01T00:00:00.000Z',
             blocks: [{ type: 'error', content: 'Something went wrong' }]
         }]);
         await ui.verifyErrorMessageDisplayed('Something went wrong');
@@ -140,6 +144,7 @@ test.describe('Error Message Display', () => {
         await injector.updateMessages([{
             id: "msg_streaming_err",
             role: "assistant",
+            timestamp: "2024-01-01T00:00:00.000Z",
             blocks: [{ type: "text", content: "I was working on your request when..." }]
         }]);
 
@@ -147,6 +152,7 @@ test.describe('Error Message Display', () => {
         await injector.updateMessages([{
             id: "msg_streaming_err_final",
             role: 'assistant',
+            timestamp: '2024-01-01T00:00:00.000Z',
             blocks: [{ type: 'error', content: 'Connection lost during streaming' }]
         }]);
 

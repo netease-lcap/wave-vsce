@@ -13,6 +13,7 @@ test.describe('Diff Viewer', () => {
     const mockEditMessage: Message = {
       id: 'msg_diff_1',
       role: 'assistant' as const,
+      timestamp: '2024-01-01T00:00:00.000Z',
       blocks: [
         {
           type: 'tool',
@@ -53,6 +54,7 @@ test.describe('Diff Viewer', () => {
     const mockWriteMessage: Message = {
       id: 'msg_diff_2',
       role: 'assistant' as const,
+      timestamp: '2024-01-01T00:00:00.000Z',
       blocks: [
         {
           type: 'tool',
@@ -88,6 +90,7 @@ test.describe('Diff Viewer', () => {
     const mockReadMessage: Message = {
       id: 'msg_diff_3',
       role: 'assistant' as const,
+      timestamp: '2024-01-01T00:00:00.000Z',
       blocks: [
         {
           type: 'tool',
@@ -119,6 +122,7 @@ test.describe('Diff Viewer', () => {
     const mockRunningEditMessage: Message = {
       id: 'msg_diff_4',
       role: 'assistant' as const,
+      timestamp: '2024-01-01T00:00:00.000Z',
       blocks: [
         {
           type: 'tool',
@@ -150,6 +154,7 @@ test.describe('Diff Viewer', () => {
     const mockMalformedMessage: Message = {
       id: 'msg_diff_5',
       role: 'assistant' as const,
+      timestamp: '2024-01-01T00:00:00.000Z',
       blocks: [
         {
           type: 'tool',
@@ -178,6 +183,7 @@ test.describe('Diff Viewer', () => {
     const mockMessage: Message = {
       id: 'msg_diff_6',
       role: 'assistant' as const,
+      timestamp: '2024-01-01T00:00:00.000Z',
       blocks: [
         {
           type: 'text',
@@ -218,6 +224,7 @@ test.describe('Diff Viewer', () => {
     const mockSingleLineEdit: Message = {
       id: 'msg_diff_7',
       role: 'assistant' as const,
+      timestamp: '2024-01-01T00:00:00.000Z',
       blocks: [
         {
           type: 'tool',
@@ -264,6 +271,7 @@ test.describe('Diff Viewer', () => {
     const mockLargeEditMessage: Message = {
       id: 'msg_diff_8',
       role: 'assistant' as const,
+      timestamp: '2024-01-01T00:00:00.000Z',
       blocks: [
         {
           type: 'tool',

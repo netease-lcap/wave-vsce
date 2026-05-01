@@ -6,6 +6,7 @@ import '../styles/MessageList.css';
 const welcomeMessage = {
   id: 'welcome-message',
   role: 'assistant' as const,
+  timestamp: new Date().toISOString(),
   blocks: [{ 
     type: 'text' as const, 
     content: '您好！我是您的 AI 助手。我可以帮助您处理当前项目、编写代码和修改文件。今天我能为您做些什么吗？'

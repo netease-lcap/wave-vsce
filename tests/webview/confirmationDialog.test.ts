@@ -279,11 +279,13 @@ test.describe('Confirmation Dialog', () => {
             {
                 id: 'msg_conf_pos_1',
                 role: 'user' as const,
+                timestamp: '2024-01-01T00:00:00.000Z',
                 blocks: [{ type: 'text', content: 'Test message 1' }]
             },
             {
                 id: 'msg_conf_pos_2',
                 role: 'assistant' as const,
+                timestamp: '2024-01-01T00:00:00.000Z',
                 blocks: [{ type: 'text', content: 'Test response 1' }]
             }
         ];
@@ -464,6 +466,7 @@ test.describe('Confirmation Dialog', () => {
         const manyMessages: Message[] = Array.from({ length: 10 }, (_, i) => ({
             id: `msg_scroll_${i}`,
             role: i % 2 === 0 ? 'user' : 'assistant',
+            timestamp: '2024-01-01T00:00:00.000Z',
             blocks: [{ type: 'text', content: `Message ${i + 1} with enough content to make the message list scrollable and ensure we need to scroll down` }]
         }));
         await injector.updateMessages(manyMessages);

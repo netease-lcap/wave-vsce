@@ -88,6 +88,7 @@ test.describe('Image Tag Consistency and Placeholder Flow', () => {
       {
         id: 'msg_1',
         role: 'user',
+        timestamp: '2024-01-01T00:00:00.000Z',
         blocks: [
           {
             type: 'text',

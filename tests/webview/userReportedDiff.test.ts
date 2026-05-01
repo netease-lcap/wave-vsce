@@ -10,6 +10,7 @@ test.describe('Diff Viewer User Reported Case', () => {
     const mockEditMessage: Message = {
       id: 'msg_user_reported_1',
       role: 'assistant' as const,
+      timestamp: '2024-01-01T00:00:00.000Z',
       blocks: [
         {
           type: 'tool',

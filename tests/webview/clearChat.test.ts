@@ -79,6 +79,7 @@ test.describe('Clear Chat Functionality', () => {
         await injector.updateMessages([{
             id: "msg_streaming_clear",
             role: "assistant",
+            timestamp: "2024-01-01T00:00:00.000Z",
             blocks: [{ type: "text", content: "This is being streamed..." }]
         }]);
         

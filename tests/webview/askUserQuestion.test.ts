@@ -10,6 +10,7 @@ test.describe('AskUserQuestion Newline Support', () => {
     const mockMessage: Message = {
       id: 'msg_ask_1',
       role: 'assistant' as const,
+      timestamp: '2024-01-01T00:00:00.000Z',
       blocks: [
         {
           type: 'tool' as const,
@@ -47,6 +48,7 @@ test.describe('AskUserQuestion Newline Support', () => {
     const mockMessage: Message = {
       id: 'msg_ask_2',
       role: 'assistant' as const,
+      timestamp: '2024-01-01T00:00:00.000Z',
       blocks: [
         {
           type: 'tool' as const,
