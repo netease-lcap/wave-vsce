@@ -186,6 +186,11 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
         behavior: 'allow',
         newPermissionMode: 'acceptEdits',
       };
+    } else if (confirmation.toolName.startsWith('mcp__')) {
+      decision = {
+        behavior: 'allow',
+        newPermissionRule: confirmation.toolName,
+      };
     } else {
       decision = {
         behavior: 'allow',
@@ -204,6 +209,9 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
     }
     if (confirmation.toolName === EXIT_PLAN_MODE_TOOL_NAME) {
       return "批准并自动接受后续修改";
+    }
+    if (confirmation.toolName.startsWith('mcp__')) {
+      return `是，且不再询问：${confirmation.toolName}`;
     }
     return "是，且自动接受修改";
   };

@@ -545,6 +545,42 @@ test.describe('Confirmation Dialog', () => {
         expect(isAtBottom).toBe(true);
     });
 
+    test('should show auto-confirm button for MCP tools with correct text', async ({ webviewPage }) => {
+        const injector = new MessageInjector(webviewPage);
+
+        // Simulate confirmation request for MCP tool
+        await injector.simulateExtensionMessage('showConfirmation', {
+            confirmationId: 'test_mcp_confirmation',
+            toolName: 'mcp__fetch__web_fetch',
+            confirmationType: '操作待确认',
+            toolInput: { url: 'https://example.com' }
+        });
+
+        const confirmationDialog = webviewPage.locator('.confirmation-dialog');
+        await expect(confirmationDialog).toBeVisible();
+
+        // Verify auto button is visible with correct text
+        const autoBtn = webviewPage.locator('.confirmation-btn-auto');
+        await expect(autoBtn).toBeVisible();
+        await expect(autoBtn).toHaveText('是，且不再询问：mcp__fetch__web_fetch');
+
+        // Click auto-confirm and verify decision
+        await injector.clearMessageLog();
+        await autoBtn.click();
+
+        const sentMessages = await injector.getMessagesSentToExtension();
+        expect(sentMessages).toHaveLength(1);
+        expect(sentMessages[0]).toEqual({
+            command: 'confirmationResponse',
+            confirmationId: 'test_mcp_confirmation',
+            approved: true,
+            decision: {
+                behavior: 'allow',
+                newPermissionRule: 'mcp__fetch__web_fetch'
+            }
+        });
+    });
+
     test('should show file path for write and edit tool confirmations', async ({ webviewPage }) => {
         const injector = new MessageInjector(webviewPage);
 
