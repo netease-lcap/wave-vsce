@@ -1129,7 +1129,7 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
                 <option value="default">修改前询问</option>
                 <option value="acceptEdits">自动接受修改</option>
                 <option value="plan">计划模式</option>
-                <option value="bypassPermissions">Bypass Permissions</option>
+                <option value="bypassPermissions">跳过权限确认</option>
               </select>
             </Tooltip>
           </div>
