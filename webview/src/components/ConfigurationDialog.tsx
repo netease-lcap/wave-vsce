@@ -36,6 +36,7 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps & { vscode: any }> 
   const [marketplaces, setMarketplaces] = useState<MarketplaceInfo[]>([]);
   const [newMarketplaceUrl, setNewMarketplaceUrl] = useState('');
   const [selectedPlugin, setSelectedPlugin] = useState<PluginInfo | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     if (isVisible && activeTab === 'plugins') {
@@ -45,6 +46,8 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps & { vscode: any }> 
         vscode?.postMessage({ command: 'listMarketplaces' });
       }
     }
+    setSearchQuery('');
+    setSelectedPlugin(null);
   }, [isVisible, activeTab, activePluginTab, vscode]);
 
   useEffect(() => {
@@ -90,6 +93,12 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps & { vscode: any }> 
   const handleUpdateMarketplace = (name?: string) => {
     vscode?.postMessage({ command: 'updateMarketplace', name });
   };
+
+  const filteredPlugins = plugins.filter(p => {
+    const q = searchQuery.toLowerCase();
+    if (!q) return true;
+    return p.name.toLowerCase().includes(q) || (p.description?.toLowerCase().includes(q));
+  });
 
   const isFormValid = true;
 
@@ -302,7 +311,7 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps & { vscode: any }> 
                   {selectedPlugin ? (
                     // Plugin detail view
                     <div className="plugin-detail">
-                      <button className="back-button" onClick={() => setSelectedPlugin(null)}>
+                      <button className="back-button" onClick={() => { setSelectedPlugin(null); setSearchQuery(''); }}>
                         ← 返回列表
                       </button>
                       <div className="plugin-detail-header">
@@ -319,21 +328,21 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps & { vscode: any }> 
                       )}
                       <div className="install-options">
                         <h4>选择安装作用域</h4>
-                        <button 
+                        <button
                           className="install-option-btn"
                           onClick={() => handleInstallPlugin(selectedPlugin.id, 'user')}
                         >
                           <div className="install-option-title">为你安装 (user)</div>
                           <div className="install-option-desc">仅在你的用户配置中安装此插件</div>
                         </button>
-                        <button 
+                        <button
                           className="install-option-btn"
                           onClick={() => handleInstallPlugin(selectedPlugin.id, 'project')}
                         >
                           <div className="install-option-title">为此仓库的所有协作者安装 (project)</div>
                           <div className="install-option-desc">在项目配置中安装，团队成员共享</div>
                         </button>
-                        <button 
+                        <button
                           className="install-option-btn"
                           onClick={() => handleInstallPlugin(selectedPlugin.id, 'local')}
                         >
@@ -344,28 +353,40 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps & { vscode: any }> 
                     </div>
                   ) : (
                     // Plugin list view
-                    <div className="plugin-list">
-                      {plugins.length > 0 ? (
-                        plugins.map(plugin => (
-                          <div 
-                            key={plugin.id} 
-                            className="plugin-item clickable"
-                            onClick={() => setSelectedPlugin(plugin)}
-                          >
-                            <div className="plugin-info">
-                              <div className="plugin-name">
-                                {plugin.name} <span className="plugin-version">{plugin.version}</span>
-                                {plugin.installed && plugin.scope && <span className="plugin-scope">[{plugin.scope}]</span>}
+                    <div className="explore-list">
+                      <div className="plugin-search">
+                        <input
+                          type="text"
+                          placeholder="搜索插件..."
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                        />
+                      </div>
+                      <div className="plugin-list">
+                        {filteredPlugins.length > 0 ? (
+                          filteredPlugins.map(plugin => (
+                            <div
+                              key={plugin.id}
+                              className="plugin-item clickable"
+                              onClick={() => setSelectedPlugin(plugin)}
+                            >
+                              <div className="plugin-info">
+                                <div className="plugin-name">
+                                  {plugin.name} <span className="plugin-version">{plugin.version}</span>
+                                  {plugin.installed && plugin.scope && <span className="plugin-scope">[{plugin.scope}]</span>}
+                                </div>
+                                <div className="plugin-desc">{plugin.description}</div>
+                                <div className="plugin-market">来自: {plugin.marketplace}</div>
                               </div>
-                              <div className="plugin-desc">{plugin.description}</div>
-                              <div className="plugin-market">来自: {plugin.marketplace}</div>
+                              <div className="plugin-chevron">›</div>
                             </div>
-                            <div className="plugin-chevron">›</div>
+                          ))
+                        ) : (
+                          <div className="empty-state">
+                            {searchQuery ? '没有找到匹配的插件' : '没有可探索的插件'}
                           </div>
-                        ))
-                      ) : (
-                        <div className="empty-state">没有可探索的插件</div>
-                      )}
+                        )}
+                      </div>
                     </div>
                   )}
                 </div>

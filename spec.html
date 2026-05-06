@@ -190,8 +190,8 @@
 <p>当 AI 正在处理当前请求并进行流式输出时，用户仍然可以发送新消息。这些消息会自动进入队列，并在当前任务完成后按顺序自动执行。</p>
 <p><strong>主要特性：</strong></p>
 <ul>
-<li><strong>忙碌时发送</strong>：在 AI 运行时，发送按钮会变为“加入队列”图标，点击即可将消息加入队列。</li>
-<li><strong>视觉反馈</strong>：排队中的消息会显示在消息列表末尾，并带有“已排队”标识和半透明效果。<strong>支持富文本渲染</strong>，包括文件提及标签、代码选择标签和图片标签，且样式与主聊天窗口保持一致但更为紧凑。</li>
+<li><strong>忙碌时发送</strong>：在 AI 运行时，发送按钮会变为"加入队列"图标，点击即可将消息加入队列。</li>
+<li><strong>视觉反馈</strong>：排队中的消息会显示在消息列表末尾，并带有"已排队"标识和半透明效果。<strong>支持富文本渲染</strong>，包括文件提及标签、代码选择标签和图片标签，且样式与主聊天窗口保持一致但更为紧凑。</li>
 <li><strong>自动执行</strong>：当前任务完成后，下一条排队消息会自动开始处理，无需用户手动干预。</li>
 <li><strong>队列管理</strong>：
     <ul>
@@ -203,9 +203,9 @@
             </ul>
         </li>
         <li><strong>空输入发送</strong>：当输入框为空且用户再次按下 <code>Enter</code> 键时，系统会自动发送队列中的第一条消息。</li>
-        <li><strong>立即发送图标</strong>：队列中的第一条消息带有“播放”图标，点击可中止当前任务并立即发送该消息。</li>
+        <li><strong>立即发送图标</strong>：队列中的第一条消息带有"播放"图标，点击可中止当前任务并立即发送该消息。</li>
         <li><strong>删除单条消息</strong>：点击排队消息右侧的垃圾桶图标，可将其从队列中移除。</li>
-        <li><strong>清空队列</strong>：点击“清除聊天”会同时清空当前会话和所有排队消息。注意：手动点击“停止”按钮中止当前任务时，<strong>不会</strong>清空消息队列。</li>
+        <li><strong>清空队列</strong>：点击"清除聊天"会同时清空当前会话和所有排队消息。注意：手动点击"停止"按钮中止当前任务时，<strong>不会</strong>清空消息队列。</li>
     </ul>
 </li>
 </ul>
@@ -219,7 +219,7 @@
 <p>Wave 支持将对话回滚到之前的任意用户消息状态。这不仅会删除该消息及其之后的所有对话记录，还会自动撤销 AI 在这些回合中所做的所有文件更改，并将被回滚的消息内容重新填充到输入框中，方便用户修改后重新发送。</p>
 <p><strong>主要特性：</strong></p>
 <ul>
-<li><strong>悬停触发</strong>：当鼠标悬停在历史记录中的用户消息上时，右上方会出现“回滚”图标。</li>
+<li><strong>悬停触发</strong>：当鼠标悬停在历史记录中的用户消息上时，右上方会出现"回滚"图标。</li>
 <li><strong>一键回滚</strong>：点击图标并确认后，系统会自动清理后续消息、恢复文件状态，并将该消息内容回填至输入框。</li>
 <li><strong>安全确认</strong>：执行回滚前会弹出二次确认对话框，防止误操作导致数据丢失。</li>
 <li><strong>状态同步</strong>：回滚后，任务列表、会话元数据以及输入框内容会自动同步到回滚后的状态。</li>
@@ -248,7 +248,7 @@
 <li><strong>快捷键触发</strong>：在输入框中按下 <code>Ctrl+R</code> (或 <code>Cmd+R</code>) 即可弹出历史记录搜索界面。</li>
 <li><strong>实时过滤</strong>：支持按关键词实时搜索历史记录，结果按时间倒序排列。</li>
 <li><strong>键盘导航</strong>：支持使用上下箭头键选择记录，按下 <code>Enter</code> 键将选中的 Prompt 填入输入框。</li>
-<li><strong>智能拦截</strong>：当焦点在聊天输入框时，<code>Ctrl+R</code> 和 <code>Ctrl+T</code> 等快捷键会被 Webview 优先拦截，防止触发 VS Code 的默认行为（如“打开最近项目”），确保流畅的聊天体验。</li>
+<li><strong>智能拦截</strong>：当焦点在聊天输入框时，<code>Ctrl+R</code> 和 <code>Ctrl+T</code> 等快捷键会被 Webview 优先拦截，防止触发 VS Code 的默认行为（如"打开最近项目"），确保流畅的聊天体验。</li>
 </ul>
 <figure>
 <img src="./screenshots/spec-history-search.png" alt="" /><figcaption>历史记录搜索弹窗</figcaption>
@@ -257,7 +257,7 @@
     <h2 id="intelligent-input-context">2. 智能输入与上下文</h2>
     <p>Wave 提供了一个强大的富文本输入框，支持内联标签、指令补全和图片附件，让用户能够高效地构建复杂的上下文。</p>
     <h3 id="code-selection-reference">2.1 代码选择与引用</h3>
-    <p>用户可以通过编辑器右键菜单中的“添加到 Wave”选项，将选中的代码手动添加到对话上下文中。选中的代码会以蓝色内联标签的形式插入到输入框当前光标位置。在消息历史中，点击该标签可快速跳转回编辑器中的对应文件及行号。</p>
+    <p>用户可以通过编辑器右键菜单中的"添加到 Wave"选项，将选中的代码手动添加到对话上下文中。选中的代码会以蓝色内联标签的形式插入到输入框当前光标位置。在消息历史中，点击该标签可快速跳转回编辑器中的对应文件及行号。</p>
     <figure>
     <img src="./screenshots/spec-selection-menu.png" alt="" /><figcaption>右键菜单：添加到 Wave</figcaption>
     </figure>
@@ -308,7 +308,7 @@
 <li><strong>快速触发</strong>：只需在命令前加上 <code>!</code> 即可触发，如 <code>!ls -la</code>。</li>
 <li><strong>实时输出</strong>：命令执行过程中的输出会实时显示在专用的 Bang 块中，风格与 AI 触发的终端工具保持一致。</li>
 <li><strong>状态反馈</strong>：通过图标直观展示命令的运行状态（运行中、退出代码等）。</li>
-<li><strong>可中止性</strong>：对于长时间运行的命令，用户可以点击“停止”按钮随时中止执行。</li>
+<li><strong>可中止性</strong>：对于长时间运行的命令，用户可以点击"停止"按钮随时中止执行。</li>
 </ul>
 <figure>
 <img src="./screenshots/bang-command-success.png" alt="" /><figcaption>Bang 命令执行成功</figcaption>
@@ -361,7 +361,7 @@
 </figure>
 <h3 id="plan-confirmation">3.7 计划执行确认 (Plan Confirmation)</h3>
 <p>当 AI 制定了详细的执行计划并准备退出计划模式时，会向用户展示计划内容并请求确认。用户可以选择批准执行、自动接受后续修改，或提供反馈意见。</p>
-<p><strong>主要特性：</strong> - 清晰显示完整的执行计划内容 - 支持 Markdown 格式的计划展示 - 提供“批准并继续”和“批准并自动接受后续修改”选项 - 支持用户反馈和计划修改建议</p>
+<p><strong>主要特性：</strong> - 清晰显示完整的执行计划内容 - 支持 Markdown 格式的计划展示 - 提供"批准并继续"和"批准并自动接受后续修改"选项 - 支持用户反馈和计划修改建议</p>
 <figure>
 <img src="./screenshots/spec-plan-confirm.png" alt="" /><figcaption>计划执行确认</figcaption>
 </figure>
@@ -472,12 +472,15 @@
     <li><strong>插件市场管理</strong>：添加、更新和移除插件市场源（支持 GitHub 仓库、本地路径等）。</li>
     </ul>
     <h4 id="explore-plugins">4.4.1 探索新插件</h4>
-    <p>在"探索新插件"标签页中，用户可以浏览所有可用的插件。对于尚未在当前环境激活的插件，用户可以选择安装作用域后点击"安装"按钮。已安装但未在当前作用域激活的插件也会在此列出，并带有“已安装”标识。</p>
+    <p>在"探索新插件"标签页中，用户可以通过顶部的搜索框按关键词过滤插件列表。搜索支持对插件名称和描述进行不区分大小写的匹配。对于尚未在当前环境激活的插件，用户可以选择安装作用域后点击"安装"按钮。已安装但未在当前作用域激活的插件也会在此列出，并带有"已安装"标识。</p>
     <figure>
-    <img src="./screenshots/spec-plugin-explore.png" alt="" /><figcaption>探索新插件</figcaption>
+    <img src="./screenshots/spec-plugin-explore.png" alt="" /><figcaption>探索新插件（支持关键词搜索）</figcaption>
+    </figure>
+    <figure>
+    <img src="./screenshots/plugin-search-filtered.png" alt="" /><figcaption>关键词过滤效果</figcaption>
     </figure>
     <h4 id="installed-plugins">4.4.2 已激活插件</h4>
-    <p>在"已激活插件"标签页中，用户可以查看当前作用域下所有已激活的插件。用户可以对这些插件进行“更新”或“卸载”操作。每个插件会显示其激活的作用域（User、Project 或 Local）。</p>
+    <p>在"已激活插件"标签页中，用户可以查看当前作用域下所有已激活的插件。用户可以对这些插件进行"更新"或"卸载"操作。每个插件会显示其激活的作用域（User、Project 或 Local）。</p>
     <figure>
     <img src="./screenshots/spec-plugin-installed.png" alt="" /><figcaption>已激活插件管理</figcaption>
     </figure>
