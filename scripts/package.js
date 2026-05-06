@@ -40,10 +40,10 @@ async function main() {
         fs.mkdirSync(releasesDir, { recursive: true });
     }
 
-    // Clean up old .vsix files in root directory
-    for (const f of fs.readdirSync(rootDir)) {
+    // Clean up old .vsix files in releases directory
+    for (const f of fs.readdirSync(releasesDir)) {
         if (f.endsWith('.vsix')) {
-            fs.unlinkSync(path.join(rootDir, f));
+            fs.unlinkSync(path.join(releasesDir, f));
             console.log(`Cleaned up old vsix: ${f}`);
         }
     }

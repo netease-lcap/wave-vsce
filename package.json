@@ -99,7 +99,7 @@
     "test:demo": "playwright test --project=demo",
     "deploy:spec": "bash scripts/deploy-spec.sh",
     "preinstall:vsix": "npm run package",
-    "install:vsix": "node scripts/install-latest.js"
+    "install:vsix": "code --install-extension releases/*.vsix"
   },
   "devDependencies": {
     "@playwright/test": "^1.58.2",
