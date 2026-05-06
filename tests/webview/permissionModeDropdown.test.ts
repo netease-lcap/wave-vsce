@@ -66,7 +66,7 @@ test.describe('Permission Mode Select', () => {
 
     // Verify bypassPermissions option exists
     const options = await select.locator('option').allTextContents();
-    expect(options).toContain('Bypass Permissions');
+    expect(options).toContain('跳过权限确认');
 
     // Select bypassPermissions
     await select.selectOption('bypassPermissions');

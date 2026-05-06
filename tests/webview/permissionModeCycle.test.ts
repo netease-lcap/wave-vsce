@@ -59,44 +59,44 @@ test.describe('Permission Mode Cycle', () => {
     await webviewPage.keyboard.press('Tab');
     await webviewPage.keyboard.up('Shift');
 
-    // 7. Verify message sent to extension (should be plan)
+    // 7. Verify message sent to extension (should be bypassPermissions)
     await expect(async () => {
       expect(sentMessages.length).toBe(2);
       expect(sentMessages[1]).toEqual({
-        command: 'setPermissionMode',
-        mode: 'plan'
-      });
-    }).toPass();
-
-    // 8. Simulate extension response for plan
-    await injector.simulateExtensionMessage('setInitialState', {
-      messages: [],
-      permissionMode: 'plan',
-      configurationData: {}
-    });
-    await expect(select).toHaveValue('plan');
-
-    // 9. Press Shift+Tab again
-    await webviewPage.keyboard.down('Shift');
-    await webviewPage.keyboard.press('Tab');
-    await webviewPage.keyboard.up('Shift');
-
-    // 10. Verify message sent to extension (should be bypassPermissions)
-    await expect(async () => {
-      expect(sentMessages.length).toBe(3);
-      expect(sentMessages[2]).toEqual({
         command: 'setPermissionMode',
         mode: 'bypassPermissions'
       });
     }).toPass();
 
-    // 11. Simulate extension response for bypassPermissions
+    // 8. Simulate extension response for bypassPermissions
     await injector.simulateExtensionMessage('setInitialState', {
       messages: [],
       permissionMode: 'bypassPermissions',
       configurationData: {}
     });
     await expect(select).toHaveValue('bypassPermissions');
+
+    // 9. Press Shift+Tab again
+    await webviewPage.keyboard.down('Shift');
+    await webviewPage.keyboard.press('Tab');
+    await webviewPage.keyboard.up('Shift');
+
+    // 10. Verify message sent to extension (should be plan)
+    await expect(async () => {
+      expect(sentMessages.length).toBe(3);
+      expect(sentMessages[2]).toEqual({
+        command: 'setPermissionMode',
+        mode: 'plan'
+      });
+    }).toPass();
+
+    // 11. Simulate extension response for plan
+    await injector.simulateExtensionMessage('setInitialState', {
+      messages: [],
+      permissionMode: 'plan',
+      configurationData: {}
+    });
+    await expect(select).toHaveValue('plan');
 
     // 12. Press Shift+Tab again
     await webviewPage.keyboard.down('Shift');
