@@ -559,10 +559,16 @@ test.describe('Confirmation Dialog', () => {
         const confirmationDialog = webviewPage.locator('.confirmation-dialog');
         await expect(confirmationDialog).toBeVisible();
 
+        // Verify apply button shows "批准并继续"
+        await expect(webviewPage.locator('.confirmation-btn-apply')).toHaveText('批准并继续');
+
         // Verify auto button is visible with correct text
         const autoBtn = webviewPage.locator('.confirmation-btn-auto');
         await expect(autoBtn).toBeVisible();
         await expect(autoBtn).toHaveText('是，且不再询问：mcp__fetch__web_fetch');
+
+        // Verify feedback button is visible
+        await expect(webviewPage.locator('.confirmation-btn-feedback')).toHaveText('提供反馈');
 
         // Click auto-confirm and verify decision
         await injector.clearMessageLog();
@@ -577,6 +583,35 @@ test.describe('Confirmation Dialog', () => {
             decision: {
                 behavior: 'allow',
                 newPermissionRule: 'mcp__fetch__web_fetch'
+            }
+        });
+    });
+
+    test('should send allow decision for MCP tools when clicking apply', async ({ webviewPage }) => {
+        const injector = new MessageInjector(webviewPage);
+
+        // Clear message log before starting
+        await injector.clearMessageLog();
+
+        // Simulate confirmation request for MCP tool
+        await injector.simulateExtensionMessage('showConfirmation', {
+            confirmationId: 'test_mcp_apply',
+            toolName: 'mcp__tavily__search',
+            confirmationType: '操作待确认',
+            toolInput: { query: 'test query' }
+        });
+
+        // Click apply button
+        await webviewPage.locator('.confirmation-btn-apply').click();
+
+        const sentMessages = await injector.getMessagesSentToExtension();
+        expect(sentMessages).toHaveLength(1);
+        expect(sentMessages[0]).toEqual({
+            command: 'confirmationResponse',
+            confirmationId: 'test_mcp_apply',
+            approved: true,
+            decision: {
+                behavior: 'allow'
             }
         });
     });

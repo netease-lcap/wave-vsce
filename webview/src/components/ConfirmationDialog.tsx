@@ -143,6 +143,17 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
           newPermissionMode: confirmation.toolName === EXIT_PLAN_MODE_TOOL_NAME ? 'default' : undefined
         });
       }
+    } else if (confirmation.toolName.startsWith('mcp__')) {
+      if (showFeedbackInput) {
+        onConfirm(confirmation.confirmationId, {
+          behavior: 'deny',
+          message: feedback
+        });
+      } else {
+        onConfirm(confirmation.confirmationId, {
+          behavior: 'allow'
+        });
+      }
     } else if (confirmation.toolName === ASK_USER_QUESTION_TOOL_NAME) {
       // Combine selected options and "Other" inputs
       const finalAnswers: Record<string, string | string[]> = { ...answers };
@@ -423,7 +434,7 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
       });
     }
     const isPlanModeTool = confirmation.toolName === EXIT_PLAN_MODE_TOOL_NAME || confirmation.toolName === ENTER_PLAN_MODE_TOOL_NAME;
-    if ((isPlanModeTool || confirmation.toolName === BASH_TOOL_NAME || [EDIT_TOOL_NAME, WRITE_TOOL_NAME].includes(confirmation.toolName)) && showFeedbackInput) {
+    if ((isPlanModeTool || confirmation.toolName === BASH_TOOL_NAME || [EDIT_TOOL_NAME, WRITE_TOOL_NAME].includes(confirmation.toolName) || confirmation.toolName.startsWith('mcp__')) && showFeedbackInput) {
       return !feedback.trim();
     }
     return false;
@@ -485,7 +496,7 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
                   disabled={isConfirmDisabled()}
                 >
                   <span className="btn-text">
-                    {(confirmation.toolName === EXIT_PLAN_MODE_TOOL_NAME || confirmation.toolName === ENTER_PLAN_MODE_TOOL_NAME || confirmation.toolName === BASH_TOOL_NAME || [EDIT_TOOL_NAME, WRITE_TOOL_NAME].includes(confirmation.toolName))
+                    {(confirmation.toolName === EXIT_PLAN_MODE_TOOL_NAME || confirmation.toolName === ENTER_PLAN_MODE_TOOL_NAME || confirmation.toolName === BASH_TOOL_NAME || [EDIT_TOOL_NAME, WRITE_TOOL_NAME].includes(confirmation.toolName) || confirmation.toolName.startsWith('mcp__'))
                       ? '批准并继续'
                       : '是'}
                   </span>
@@ -519,7 +530,7 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
                   </button>
                 )}
 
-                {(confirmation.toolName === EXIT_PLAN_MODE_TOOL_NAME || confirmation.toolName === BASH_TOOL_NAME || [EDIT_TOOL_NAME, WRITE_TOOL_NAME].includes(confirmation.toolName)) && (
+                {(confirmation.toolName === EXIT_PLAN_MODE_TOOL_NAME || confirmation.toolName === BASH_TOOL_NAME || [EDIT_TOOL_NAME, WRITE_TOOL_NAME].includes(confirmation.toolName) || confirmation.toolName.startsWith('mcp__')) && (
                   <button
                     className="confirmation-btn confirmation-btn-feedback"
                     onClick={() => setShowFeedbackInput(true)}
