@@ -17,10 +17,7 @@ const extensionConfig = {
     vscode: 'commonjs vscode'
   },
   resolve: {
-    extensions: ['.ts', '.js'],
-    extensionAlias: {
-      '.js': ['.ts', '.js'],
-    },
+    extensions: ['.ts', '.js']
   },
   cache: {
     type: 'filesystem',
