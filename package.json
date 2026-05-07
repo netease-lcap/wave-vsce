@@ -7,7 +7,7 @@
   "icon": "LOGO.png",
   "repository": {
     "type": "git",
-    "url": "ssh://git@g.hz.netease.com:22222/vusion/wave-vsce.git"
+    "url": "https://github.com/netease-lcap/wave-vsce.git"
   },
   "engines": {
     "vscode": "^1.107.0",
