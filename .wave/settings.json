@@ -4,17 +4,9 @@
     "WAVE_MAX_INPUT_TOKENS": "200000"
   },
   "permissions": {
-    "defaultMode": "acceptEdits",
     "allow": [
-      "Bash(npm run compile*)",
-      "Bash(npm run package*)",
-      "Bash(git status*)",
-      "Bash(git branch*)",
-      "Bash(npm test*)",
-      "Bash(npx playwright test*)",
-      "Bash(npm run test*)",
-      "Bash(npm i*)",
-      "Bash(npm install*)"
+      "Bash(npm *)",
+      "Bash(npx *)"
     ]
   }
 }
