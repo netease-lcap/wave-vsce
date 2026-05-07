@@ -9,7 +9,6 @@ on:
       - 'tests/**'
       - 'package*.json'
       - 'playwright.config.ts'
-      - 'webpack.config.mjs'
       - '.github/workflows/**'
 
 permissions:
