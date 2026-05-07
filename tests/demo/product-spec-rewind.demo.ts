@@ -23,13 +23,13 @@ test.describe('Product Spec: Rewind', () => {
 
         // Take screenshot of the message list showing the rewind button on hover
         await webviewPage.screenshot({
-            path: 'screenshots/spec-rewind-button.png',
+            path: 'docs/public/screenshots/spec-rewind-button.png',
             clip: await ui.messagesContainer.boundingBox() || undefined
         });
 
         // Take a full screenshot showing the context
         await webviewPage.screenshot({
-            path: 'screenshots/spec-rewind-context.png'
+            path: 'docs/public/screenshots/spec-rewind-context.png'
         });
     });
 });

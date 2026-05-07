@@ -80,7 +80,7 @@ test.describe('Product Specification Screenshots - Confirmations', () => {
         });
         
         await webviewPage.waitForSelector('.confirmation-dialog');
-        await webviewPage.screenshot({ path: 'screenshots/spec-ask-user.png' });
+        await webviewPage.screenshot({ path: 'docs/public/screenshots/spec-ask-user.png' });
         
         // 关闭确认对话框以便继续其他截图
         await webviewPage.keyboard.press('Escape');
@@ -99,7 +99,7 @@ test.describe('Product Specification Screenshots - Confirmations', () => {
         });
         await webviewPage.click('.configuration-button');
         await webviewPage.waitForSelector('.configuration-dialog');
-        await webviewPage.screenshot({ path: 'screenshots/spec-configuration.png' });
+        await webviewPage.screenshot({ path: 'docs/public/screenshots/spec-configuration.png' });
         await webviewPage.keyboard.press('Escape');
         await webviewPage.waitForSelector('.configuration-dialog', { state: 'hidden' });
 
@@ -112,21 +112,21 @@ test.describe('Product Specification Screenshots - Confirmations', () => {
         });
         await webviewPage.waitForSelector('.permission-mode-select');
         await expect(webviewPage.locator('.permission-mode-select')).toHaveValue('default');
-        await webviewPage.screenshot({ path: 'screenshots/spec-permission-mode-default.png' });
+        await webviewPage.screenshot({ path: 'docs/public/screenshots/spec-permission-mode-default.png' });
 
         // Mode 2: Accept Edits (自动接受修改)
         await injector.simulateExtensionMessage('updatePermissionMode', {
             mode: 'acceptEdits'
         });
         await expect(webviewPage.locator('.permission-mode-select')).toHaveValue('acceptEdits');
-        await webviewPage.screenshot({ path: 'screenshots/spec-permission-mode-accept.png' });
+        await webviewPage.screenshot({ path: 'docs/public/screenshots/spec-permission-mode-accept.png' });
 
         // Mode 3: Plan Mode (计划模式)
         await injector.simulateExtensionMessage('updatePermissionMode', {
             mode: 'plan'
         });
         await expect(webviewPage.locator('.permission-mode-select')).toHaveValue('plan');
-        await webviewPage.screenshot({ path: 'screenshots/spec-permission-mode-plan.png' });
+        await webviewPage.screenshot({ path: 'docs/public/screenshots/spec-permission-mode-plan.png' });
 
         // Reset to default for remaining screenshots
         await injector.simulateExtensionMessage('updatePermissionMode', {
@@ -158,7 +158,7 @@ test.describe('Product Specification Screenshots - Confirmations', () => {
         });
         const planConfirmDialog = webviewPage.locator('.confirmation-dialog');
         await planConfirmDialog.waitFor({ state: 'visible' });
-        await planConfirmDialog.screenshot({ path: 'screenshots/spec-plan-confirm.png' });
+        await planConfirmDialog.screenshot({ path: 'docs/public/screenshots/spec-plan-confirm.png' });
 
         // 关闭当前确认对话框
         await webviewPage.click('.confirmation-close-btn');
@@ -174,7 +174,7 @@ test.describe('Product Specification Screenshots - Confirmations', () => {
         });
         const enterPlanDialog = webviewPage.locator('.confirmation-dialog');
         await enterPlanDialog.waitFor({ state: 'visible' });
-        await enterPlanDialog.screenshot({ path: 'screenshots/spec-enter-plan-mode.png' });
+        await enterPlanDialog.screenshot({ path: 'docs/public/screenshots/spec-enter-plan-mode.png' });
 
         // 关闭当前确认对话框
         await webviewPage.click('.confirmation-close-btn');
@@ -193,7 +193,7 @@ test.describe('Product Specification Screenshots - Confirmations', () => {
         });
         const editConfirmDialog = webviewPage.locator('.confirmation-dialog');
         await editConfirmDialog.waitFor({ state: 'visible' });
-        await editConfirmDialog.screenshot({ path: 'screenshots/spec-edit-confirm.png' });
+        await editConfirmDialog.screenshot({ path: 'docs/public/screenshots/spec-edit-confirm.png' });
 
         // 关闭当前确认对话框
         await webviewPage.click('.confirmation-close-btn');
@@ -211,6 +211,6 @@ test.describe('Product Specification Screenshots - Confirmations', () => {
         });
         const bashConfirmDialog = webviewPage.locator('.confirmation-dialog');
         await bashConfirmDialog.waitFor({ state: 'visible' });
-        await bashConfirmDialog.screenshot({ path: 'screenshots/spec-bash-confirm.png' });
+        await bashConfirmDialog.screenshot({ path: 'docs/public/screenshots/spec-bash-confirm.png' });
     });
 });

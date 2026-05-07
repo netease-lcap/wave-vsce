@@ -91,7 +91,7 @@ test.describe('Plugin Management Screenshots', () => {
         await expect(webviewPage.getByText('Docker Helper')).toBeVisible();
         
         // 截图：探索新插件列表页
-        await webviewPage.screenshot({ path: 'screenshots/spec-plugin-explore-list.png' });
+        await webviewPage.screenshot({ path: 'docs/public/screenshots/spec-plugin-explore-list.png' });
         
         // 点击一个插件查看详情
         await webviewPage.getByText('GitHub Integration').click();
@@ -104,7 +104,7 @@ test.describe('Plugin Management Screenshots', () => {
         await expect(webviewPage.getByText('仅为你在此仓库中安装 (local)')).toBeVisible();
         
         // 截图：插件详情页，显示安装作用域选择
-        await webviewPage.screenshot({ path: 'screenshots/spec-plugin-explore.png' });
+        await webviewPage.screenshot({ path: 'docs/public/screenshots/spec-plugin-explore.png' });
         
         // 返回列表
         await webviewPage.getByText('返回列表').click();
@@ -121,7 +121,7 @@ test.describe('Plugin Management Screenshots', () => {
         await expect(webviewPage.locator('.uninstall-btn').first()).toBeVisible();
         
         // 截图：已激活插件标签页，显示更新和卸载按钮
-        await webviewPage.screenshot({ path: 'screenshots/spec-plugin-installed.png' });
+        await webviewPage.screenshot({ path: 'docs/public/screenshots/spec-plugin-installed.png' });
 
         // 5. Marketplaces tab - 展示插件市场管理
         await webviewPage.getByText('插件市场', { exact: true }).click();
@@ -154,7 +154,7 @@ test.describe('Plugin Management Screenshots', () => {
         await expect(webviewPage.getByText('添加', { exact: true })).toBeVisible();
         
         // 截图：插件市场标签页，显示市场列表和管理功能
-        await webviewPage.screenshot({ path: 'screenshots/spec-plugin-marketplaces.png' });
+        await webviewPage.screenshot({ path: 'docs/public/screenshots/spec-plugin-marketplaces.png' });
 
         // Close the dialog
         await webviewPage.keyboard.press('Escape');

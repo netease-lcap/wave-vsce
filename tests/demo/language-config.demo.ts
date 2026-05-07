@@ -38,6 +38,6 @@ test.describe('Language Configuration Demo', () => {
         
         // Take screenshot of the dialog only
         const dialog = webviewPage.locator('.configuration-dialog');
-        await dialog.screenshot({ path: 'screenshots/language-config-ui.png' });
+        await dialog.screenshot({ path: 'docs/public/screenshots/language-config-ui.png' });
     });
 });

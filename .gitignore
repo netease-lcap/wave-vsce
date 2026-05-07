@@ -19,5 +19,10 @@ designs/
 
 .env
 screenshots/
+docs/public/screenshots/
+docs/.vitepress/dist/
+docs/.vitepress/cache/
+docs/.vitepress/.temp/
+docs/.vitepress/data/
 releases/
 .wave/worktrees/

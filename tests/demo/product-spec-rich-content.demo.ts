@@ -105,13 +105,13 @@ test.describe('Product Specification Screenshots - Rich Content', () => {
             return document.querySelectorAll('.context-tag').length >= 3;
         }, { timeout: 5000 });
         
-        await webviewPage.locator('.input-container').screenshot({ path: 'screenshots/spec-inline-mentions.png' });
+        await webviewPage.locator('.input-container').screenshot({ path: 'docs/public/screenshots/spec-inline-mentions.png' });
 
         // 13d. Image Preview Modal
         const imageTag = webviewPage.locator('.context-tag.is-image');
         await imageTag.click();
         await webviewPage.waitForSelector('.image-preview-modal', { state: 'visible' });
-        await webviewPage.screenshot({ path: 'screenshots/spec-image-preview.png' });
+        await webviewPage.screenshot({ path: 'docs/public/screenshots/spec-image-preview.png' });
         
         // Close modal
         await webviewPage.click('.image-preview-close');
@@ -131,7 +131,7 @@ test.describe('Product Specification Screenshots - Rich Content', () => {
                 ]
             }
         ]);
-        await webviewPage.locator('.messages-container').screenshot({ path: 'screenshots/spec-message-inline-tags.png' });
+        await webviewPage.locator('.messages-container').screenshot({ path: 'docs/public/screenshots/spec-message-inline-tags.png' });
 
         // 14. Session Selector - 使用 SDK 的 SessionMetadata 类型
         const now = Date.now();
@@ -176,7 +176,7 @@ test.describe('Product Specification Screenshots - Rich Content', () => {
             }
         });
         
-        await webviewPage.screenshot({ path: 'screenshots/spec-sessions.png' });
+        await webviewPage.screenshot({ path: 'docs/public/screenshots/spec-sessions.png' });
 
         // 恢复 select 状态
         await webviewPage.evaluate(() => {
@@ -199,7 +199,7 @@ test.describe('Product Specification Screenshots - Rich Content', () => {
             MockDataGenerator.createAssistantMessage('这张图片显示了一个简单的 UI 布局，包含一个侧边栏和一个主内容区域。侧边栏使用了深色主题...')
         ];
         await injector.updateMessages(visionMessages as any);
-        await webviewPage.locator('.messages-container').screenshot({ path: 'screenshots/spec-vision.png' });
+        await webviewPage.locator('.messages-container').screenshot({ path: 'docs/public/screenshots/spec-vision.png' });
 
         // 27. Reasoning
         await injector.simulateExtensionMessage('setInitialState', {
@@ -220,6 +220,6 @@ test.describe('Product Specification Screenshots - Rich Content', () => {
                 }
             ]
         });
-        await webviewPage.locator('.messages-container').screenshot({ path: 'screenshots/spec-reasoning.png' });
+        await webviewPage.locator('.messages-container').screenshot({ path: 'docs/public/screenshots/spec-reasoning.png' });
     });
 });
