@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { Agent, Message, PermissionDecision, ToolPermissionContext, AgentCallbacks, PermissionMode, Task, PromptHistoryManager, TextBlock, QueuedMessage } from 'wave-agent-sdk';
-import { ConfigurationData } from '../services/configurationService.js';
-import { VscodeLspAdapter } from '../services/lspAdapter.js';
+import { ConfigurationData } from '../services/configurationService';
+import { VscodeLspAdapter } from '../services/lspAdapter';
 
 export interface ChatSessionCallbacks {
     onMessagesChange: (messages: Message[]) => void;

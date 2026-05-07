@@ -1,10 +1,7 @@
-import { execSync } from 'child_process';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const { execSync } = require('child_process');
+const fs = require('fs');
+const path = require('path');
+const os = require('os');
 
 async function main() {
     const rootDir = path.join(__dirname, '..');
@@ -52,8 +49,7 @@ async function main() {
     }
 
     console.log(`\n=== Packaging extension ===`);
-    const pkg = JSON.parse(fs.readFileSync(path.join(rootDir, 'package.json'), 'utf-8'));
-    const version = pkg.version;
+    const version = require('./../package.json').version;
     const vsixName = `wave-vscode-chat-${version}.vsix`;
     const vsixPath = path.join(releasesDir, vsixName);
     execSync(`npx vsce package --out ${vsixPath} ${vsceArgs}`, { stdio: 'inherit' });
