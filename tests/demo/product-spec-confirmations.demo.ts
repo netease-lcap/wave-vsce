@@ -105,6 +105,7 @@ test.describe('Product Specification Screenshots - Confirmations', () => {
 
         // 12. Permission Mode Select - Show all three modes
         const inputContainer = webviewPage.locator('.input-container');
+        const permissionModeSelect = webviewPage.locator('.permission-mode-select');
         
         // Mode 1: Default (修改前询问)
         await injector.simulateExtensionMessage('updatePermissionMode', {
@@ -112,21 +113,24 @@ test.describe('Product Specification Screenshots - Confirmations', () => {
         });
         await webviewPage.waitForSelector('.permission-mode-select');
         await expect(webviewPage.locator('.permission-mode-select')).toHaveValue('default');
-        await webviewPage.screenshot({ path: 'docs/public/screenshots/spec-permission-mode-default.png' });
+        await permissionModeSelect.focus();
+        await inputContainer.screenshot({ path: 'docs/public/screenshots/spec-permission-mode-default.png' });
 
         // Mode 2: Accept Edits (自动接受修改)
         await injector.simulateExtensionMessage('updatePermissionMode', {
             mode: 'acceptEdits'
         });
         await expect(webviewPage.locator('.permission-mode-select')).toHaveValue('acceptEdits');
-        await webviewPage.screenshot({ path: 'docs/public/screenshots/spec-permission-mode-accept.png' });
+        await permissionModeSelect.focus();
+        await inputContainer.screenshot({ path: 'docs/public/screenshots/spec-permission-mode-accept.png' });
 
         // Mode 3: Plan Mode (计划模式)
         await injector.simulateExtensionMessage('updatePermissionMode', {
             mode: 'plan'
         });
         await expect(webviewPage.locator('.permission-mode-select')).toHaveValue('plan');
-        await webviewPage.screenshot({ path: 'docs/public/screenshots/spec-permission-mode-plan.png' });
+        await permissionModeSelect.focus();
+        await inputContainer.screenshot({ path: 'docs/public/screenshots/spec-permission-mode-plan.png' });
 
         // Reset to default for remaining screenshots
         await injector.simulateExtensionMessage('updatePermissionMode', {
