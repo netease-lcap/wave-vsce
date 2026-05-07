@@ -1,10 +1,10 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { ChatSession } from './chatSession.js';
-import { ConfigurationService } from '../services/configurationService.js';
-import { FileService } from '../services/fileService.js';
-import { SessionService } from '../services/sessionService.js';
-import { PluginService } from '../services/pluginService.js';
+import { ChatSession } from './chatSession';
+import { ConfigurationService } from '../services/configurationService';
+import { FileService } from '../services/fileService';
+import { SessionService } from '../services/sessionService';
+import { PluginService } from '../services/pluginService';
 import { SessionMetadata, PromptHistoryManager } from 'wave-agent-sdk';
 
 export interface MessageHandlerContext {

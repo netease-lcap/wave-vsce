@@ -1,9 +1,4 @@
-import path from 'path';
-import { fileURLToPath } from 'url';
-import webpack from 'webpack';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const path = require('path');
 
 // 使用环境变量判断是否只打包前端
 const onlyFrontend = process.env.ONLY_FRONTEND === 'true';
@@ -82,7 +77,7 @@ const webviewConfig = {
     },
   },
   plugins: [
-    new webpack.DefinePlugin({
+    new (require('webpack')).DefinePlugin({
       'process': false
     })
   ],
@@ -121,4 +116,10 @@ const webviewConfig = {
 };
 
 // 根据环境变量决定导出哪些配置
-export default onlyFrontend ? (() => { console.log('只打包前端...'); return webviewConfig; })() : (() => { console.log('同时打包前后端...'); return [extensionConfig, webviewConfig]; })();
+if (onlyFrontend) {
+  console.log('只打包前端...');
+  module.exports = webviewConfig;
+} else {
+  console.log('同时打包前后端...');
+  module.exports = [extensionConfig, webviewConfig];
+}

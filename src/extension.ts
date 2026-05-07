@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import { ChatProvider } from './chatProvider.js';
-import { checkAndNotify } from './services/updateService.js';
+import { ChatProvider } from './chatProvider';
+import { checkAndNotify } from './services/updateService';
 
 let chatProvider: ChatProvider | undefined;
 
