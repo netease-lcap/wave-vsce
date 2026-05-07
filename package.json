@@ -13,7 +13,6 @@
     "vscode": "^1.107.0",
     "node": ">=22.0.0"
   },
-  "activationEvents": ["onCommand:wave-code.openChatSidebar"],
   "files": [
     "dist/",
     "webview/dist/",
