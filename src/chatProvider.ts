@@ -8,14 +8,14 @@ import {
     EXIT_PLAN_MODE_TOOL_NAME, 
     ASK_USER_QUESTION_TOOL_NAME 
 } from 'wave-agent-sdk';
-import { ChatSession } from './session/chatSession';
-import { ConfigurationService } from './services/configurationService';
-import { FileService } from './services/fileService';
-import { SessionService } from './services/sessionService';
-import { SelectionService, SelectionInfo } from './services/selectionService';
-import { PluginService } from './services/pluginService';
-import { WebviewManager } from './session/webviewManager';
-import { MessageHandler } from './session/messageHandler';
+import { ChatSession } from './session/chatSession.js';
+import { ConfigurationService } from './services/configurationService.js';
+import { FileService } from './services/fileService.js';
+import { SessionService } from './services/sessionService.js';
+import { SelectionService, SelectionInfo } from './services/selectionService.js';
+import { PluginService } from './services/pluginService.js';
+import { WebviewManager } from './session/webviewManager.js';
+import { MessageHandler } from './session/messageHandler.js';
 
 export class ChatProvider implements vscode.WebviewViewProvider {
     public static readonly viewType = 'waveChatView';
