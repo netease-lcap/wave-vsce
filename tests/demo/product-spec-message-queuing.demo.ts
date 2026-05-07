@@ -50,6 +50,9 @@ test.describe('Product Specification Screenshots - Message Queuing', () => {
             ]
         });
 
+        // Clear input to simulate real behavior (input cleared after message queued)
+        await webviewPage.fill('[data-testid="message-input"]', '');
+        
         // Wait for the queued message to appear in the queue panel
         const queuePanel = webviewPage.getByTestId('queued-message-list');
         await expect(queuePanel).toBeVisible();
