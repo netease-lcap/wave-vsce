@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { ChatProvider } from './chatProvider';
+import { checkAndNotify } from './services/updateService';
 
 let chatProvider: ChatProvider | undefined;
 
@@ -8,6 +9,11 @@ export function activate(context: vscode.ExtensionContext) {
 
     // Create a single ChatProvider instance for the extension lifecycle
     chatProvider = new ChatProvider(context);
+
+    // Check for updates asynchronously (non-blocking)
+    checkAndNotify(context).catch(err => {
+        console.warn('[UpdateService] Update check failed:', err);
+    });
 
     // Register sidebar command
     const openChatSidebarCommand = vscode.commands.registerCommand('wave-code.openChatSidebar', async () => {
