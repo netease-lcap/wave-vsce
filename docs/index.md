@@ -23,7 +23,7 @@ title: Wave 代码智聊
 4. 在插件配置中添加 Headers：
 
 ```json
-{"X-AIGW-APP": "_wave_code", "X-Access-Token": "your_access_token"}
+{"X-AIGW-APP": "your_app_code", "X-Access-Token": "your_access_token"}
 ```
 
 5. 将 **BASE URL** 配置为：`https://aigw.netease.com/v1`
