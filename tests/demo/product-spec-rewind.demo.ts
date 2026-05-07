@@ -1,4 +1,4 @@
-import { test } from '../utils/webviewTestHarness.js';
+import { test, expect } from '../utils/webviewTestHarness.js';
 import { MessageInjector } from '../utils/messageInjector.js';
 import { UIStateVerifier } from '../utils/uiStateVerifier.js';
 import { MockDataGenerator } from '../fixtures/mockData.js';
@@ -17,11 +17,15 @@ test.describe('Product Spec: Rewind', () => {
         await injector.updateMessages(messages);
         await injector.endStreaming();
 
-        // Hover over the first user message to show the rewind button
+        // Hover over the first user message to show the rewind button, then hover the button to show tooltip
         const firstUserMessage = ui.userMessages.first();
         await firstUserMessage.hover();
+        
+        const rewindBtn = firstUserMessage.locator('.message-action-btn');
+        await expect(rewindBtn).toBeVisible();
+        await rewindBtn.hover();
 
-        // Take screenshot of the message list showing the rewind button on hover
+        // Take screenshot of the message list showing the rewind button with tooltip
         await webviewPage.screenshot({
             path: 'docs/public/screenshots/spec-rewind-button.png',
             clip: await ui.messagesContainer.boundingBox() || undefined

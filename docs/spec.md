@@ -69,8 +69,8 @@ _用户消息上的回滚按钮_
 - **视觉一致性**：使用 VS Code 官方主题变量，完美适配深色和浅色模式。
 - **覆盖全面**：涵盖了发送、停止、清除聊天、权限模式切换、设置以及文件标签等所有核心交互元素。
 
-![停止按钮工具提示](/screenshots/tooltip-stop.png)
-_停止按钮工具提示_
+![发送按钮工具提示](/screenshots/tooltip-send.png)
+_发送按钮工具提示_
 
 ### 1.6 历史记录搜索 (History Search) {#history-search}
 

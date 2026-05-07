@@ -33,9 +33,10 @@ test.describe('Product Specification Screenshots - Message Queuing', () => {
         await webviewPage.focus('[data-testid="message-input"]');
         await webviewPage.keyboard.type('顺便帮我写个测试用例');
         
-        // Wait for the button to update
+        // Wait for the button to update and focus it for screenshot
         const sendBtn = webviewPage.getByTestId('send-btn');
         await expect(sendBtn).toHaveAttribute('aria-label', '加入队列');
+        await sendBtn.focus();
         
         // Take screenshot of the input area with "Add to Queue" button
         await webviewPage.locator('.input-container').screenshot({ path: 'docs/public/screenshots/spec-queue-button.png' });
