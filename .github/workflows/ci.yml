@@ -9,6 +9,7 @@ on:
       - 'tests/**'
       - 'package*.json'
       - 'playwright.config.ts'
+      - '.github/workflows/**'
 
 permissions:
   contents: read
