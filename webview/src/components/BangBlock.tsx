@@ -16,14 +16,9 @@ export const BangBlock: React.FC<BangBlockProps> = ({ block }) => {
         <span className="bash-command">{command}</span>
         {isRunning && <i className="codicon codicon-loading codicon-modifier-spin" style={{ marginLeft: '8px', fontSize: '12px' }}></i>}
       </div>
-      {output && (
+      {!isRunning && (
         <div className="bash-command-output">
-          {output}
-        </div>
-      )}
-      {!isRunning && exitCode !== null && exitCode !== 0 && !output && (
-        <div className="tool-error" style={{ border: 'none', marginTop: 0, padding: '4px 8px' }}>
-          退出代码: {exitCode}
+          {output || `退出代码: ${exitCode}`}
         </div>
       )}
     </div>

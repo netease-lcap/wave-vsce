@@ -27,7 +27,13 @@ test.describe('Bang Command Demo', () => {
         ]);
         await webviewPage.screenshot({ path: 'docs/public/screenshots/bang-command-long-output.png' });
 
-        // 4. Show a failed command
+        // 4. Show a successful command with no output
+        await injector.updateMessages([
+            MockDataGenerator.createBangMessage('mkdir test-dir', '', false, 0)
+        ]);
+        await webviewPage.screenshot({ path: 'docs/public/screenshots/bang-command-no-output.png' });
+
+        // 5. Show a failed command
         await injector.updateMessages([
             MockDataGenerator.createBangMessage('nonexistent', 'sh: nonexistent: command not found', false, 127)
         ]);

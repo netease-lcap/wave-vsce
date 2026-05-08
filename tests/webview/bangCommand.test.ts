@@ -87,6 +87,20 @@ test.describe('Bang Command', () => {
         await injector.updateMessages(messages);
 
         const bangBlock = webviewPage.locator('.bash-command-unified');
-        await expect(bangBlock.locator('.tool-error')).toHaveText(/退出代码: 1/);
+        await expect(bangBlock.locator('.bash-command-output')).toHaveText(/退出代码: 1/);
+    });
+
+    test('should show success exit code when no output', async ({ webviewPage }) => {
+        const injector = new MessageInjector(webviewPage);
+        const ui = new UIStateVerifier(webviewPage);
+
+        // Simulate a successful bang command with no output
+        const messages = [
+            MockDataGenerator.createBangMessage('mkdir test-dir', '', false, 0)
+        ];
+        await injector.updateMessages(messages);
+
+        const bangBlock = webviewPage.locator('.bash-command-unified');
+        await expect(bangBlock.locator('.bash-command-output')).toHaveText(/退出代码: 0/);
     });
 });
