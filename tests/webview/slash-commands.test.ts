@@ -67,13 +67,29 @@ test.describe('Slash Commands', () => {
     const input = webviewPage.getByTestId('message-input');
     await input.focus();
 
+    // Set up listener for slash command request
+    const slashCommandPromise = webviewPage.evaluate(() => {
+      return new Promise((resolve) => {
+        const messages = (window as any).getTestMessages();
+        if (messages.some((m: any) => m.command === 'requestSlashCommands')) {
+          resolve(true);
+          return;
+        }
+
+        window.addEventListener('vscode-message', (event: any) => {
+          if (event.detail.command === 'requestSlashCommands') {
+            resolve(true);
+          }
+        });
+      });
+    });
+
     // 1. Type some text and then '/'
     await input.type('hello ');
-    // Small delay to ensure DOM is updated
-    await webviewPage.waitForTimeout(100);
     await input.press('/');
 
-    // 2. Simulate response
+    // 2. Wait for request, then simulate response
+    await slashCommandPromise;
     await webviewPage.evaluate(() => {
       (window as any).simulateExtensionMessage({
         command: 'slashCommandsResponse',
@@ -83,7 +99,9 @@ test.describe('Slash Commands', () => {
       });
     });
 
-    // 3. Select command
+    // 3. Wait for popup and select command
+    const popup = webviewPage.getByTestId('slash-commands-popup');
+    await expect(popup).toBeVisible();
     await webviewPage.keyboard.press('Enter');
 
     // 4. Verify content
