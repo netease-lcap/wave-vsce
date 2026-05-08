@@ -14,6 +14,7 @@ webview/dist/
 
 # Binaries
 vendor/
+builtin/
 
 designs/
 

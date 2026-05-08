@@ -19,6 +19,7 @@
     "LOGO.png",
     "logo.svg",
     "vendor/",
+    "builtin/",
     "LICENSE"
   ],
   "categories": [
@@ -123,6 +124,6 @@
     "dompurify": "^3.3.0",
     "marked": "^9.1.6",
     "mermaid": "^11.12.2",
-    "wave-agent-sdk": "^0.15.3"
+    "wave-agent-sdk": "^0.15.5"
   }
 }
