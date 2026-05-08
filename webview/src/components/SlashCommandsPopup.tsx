@@ -61,6 +61,15 @@ export const SlashCommandsPopup: React.FC<SlashCommandsPopupProps> = ({
     }
   }, [isVisible, onClose]);
 
+  // Auto-scroll selected item into view when navigation happens
+  useEffect(() => {
+    if (!popupRef.current) return;
+    const selectedItem = popupRef.current.querySelector('.slash-command-item.selected');
+    if (selectedItem) {
+      selectedItem.scrollIntoView({ block: 'nearest' });
+    }
+  }, [selectedIndex]);
+
   if (!isVisible) return null;
 
   return (
