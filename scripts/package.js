@@ -15,8 +15,8 @@ async function main() {
     const packageCurrent = args.includes('--current');
     
     // Run build first
-    console.log('Running npm run esbuild:prod...');
-    execSync('npm run esbuild:prod', { stdio: 'inherit' });
+    console.log('Running npm run webpack:prod...');
+    execSync('npm run webpack:prod', { stdio: 'inherit' });
     
     const vsceArgs = packageCurrent ? '' : '--no-dependencies';
 
