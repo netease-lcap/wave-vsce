@@ -75,6 +75,7 @@ export const test = base.extend<WebviewTestContext>({
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Wave AI Chat</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@vscode/codicons@latest/dist/codicon.css">
+    <link rel="stylesheet" href="vscode-webview://mock-extension-id/chat.css">
     <style>
         /* Global VS Code CSS Variables for Testing */
         ${vscodeStyles}
