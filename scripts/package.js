@@ -34,6 +34,21 @@ async function main() {
         process.exit(1);
     }
 
+    // Copy builtin directory from wave-agent-sdk
+    const builtinDir = path.join(rootDir, 'builtin');
+    const sdkBuiltinDir = path.join(rootDir, 'node_modules', 'wave-agent-sdk', 'builtin');
+    console.log(`\n=== Copying builtin directory from wave-agent-sdk ===`);
+    if (fs.existsSync(builtinDir)) {
+        fs.rmSync(builtinDir, { recursive: true, force: true });
+    }
+
+    if (fs.existsSync(sdkBuiltinDir)) {
+        fs.cpSync(sdkBuiltinDir, builtinDir, { recursive: true });
+        console.log('Copied builtin directory successfully.');
+    } else {
+        console.warn('Warning: wave-agent-sdk builtin directory not found, skipping.');
+    }
+
     // Ensure releases directory exists
     const releasesDir = path.join(rootDir, 'releases');
     if (!fs.existsSync(releasesDir)) {
