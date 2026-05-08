@@ -1,8 +1,27 @@
 import * as vscode from 'vscode';
-import { 
+import {
     PluginCore,
-    Scope 
+    Scope
 } from 'wave-agent-sdk';
+
+const DEFAULT_PLUGINS = ['settings@wave-plugins-official'];
+
+interface PluginInfo {
+    id: string;
+    installed: boolean;
+}
+
+/**
+ * Pure helper: returns plugin IDs that are not yet installed.
+ */
+export function getMissingDefaultPlugins(
+    installedPlugins: PluginInfo[],
+    defaultPlugins: string[] = DEFAULT_PLUGINS
+): string[] {
+    return defaultPlugins.filter(
+        id => !installedPlugins.some(p => p.id === id && p.installed)
+    );
+}
 
 export class PluginService {
     private pluginCore: PluginCore;
@@ -68,5 +87,22 @@ export class PluginService {
 
     public async updateMarketplace(name?: string) {
         return await this.pluginCore.updateMarketplace(name);
+    }
+
+    /**
+     * Automatically install default plugins that are not yet installed.
+     * Silently swallows errors to avoid blocking extension startup.
+     */
+    public async ensureDefaultPluginsInstalled(): Promise<void> {
+        try {
+            const plugins = await this.listPlugins();
+            const missing = getMissingDefaultPlugins(plugins);
+            for (const pluginId of missing) {
+                await this.installPlugin(pluginId, 'user');
+                console.log(`自动安装插件成功: ${pluginId}`);
+            }
+        } catch (error) {
+            console.warn(`自动安装默认插件失败: ${error}`);
+        }
     }
 }

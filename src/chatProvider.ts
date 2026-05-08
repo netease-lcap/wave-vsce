@@ -81,6 +81,11 @@ export class ChatProvider implements vscode.WebviewViewProvider {
         this.sidebarSession = this.createChatSession('sidebar');
         this.tabSession = this.createChatSession('tab');
 
+        // 自动安装默认插件
+        this.pluginService.ensureDefaultPluginsInstalled().catch(err => {
+            console.warn('[ChatProvider] 自动安装默认插件失败:', err);
+        });
+
         console.log('创建了 ChatProvider');
         
         // Register as webview provider for sidebar
