@@ -259,7 +259,24 @@ export class ChatSession {
             return undefined;
         }
         try {
-            return JSON.parse(headersStr);
+            const headers: Record<string, string> = {};
+            const lines = headersStr.split('\n');
+            for (const line of lines) {
+                const trimmed = line.trim();
+                if (!trimmed || trimmed.startsWith('#')) {
+                    continue;
+                }
+                const colonIndex = trimmed.indexOf(':');
+                if (colonIndex === -1) {
+                    continue;
+                }
+                const key = trimmed.slice(0, colonIndex).trim();
+                const value = trimmed.slice(colonIndex + 1).trim();
+                if (key) {
+                    headers[key] = value;
+                }
+            }
+            return Object.keys(headers).length > 0 ? headers : undefined;
         } catch (e) {
             console.error('Failed to parse headers:', e);
             return undefined;

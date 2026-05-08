@@ -378,15 +378,30 @@ input:checked + .slider:before {
 }
 
 .configuration-field input:focus,
-.configuration-field select:focus {
+.configuration-field select:focus,
+.configuration-field textarea:focus {
     outline: none;
     border-color: var(--vscode-focusBorder);
 }
 
 .configuration-field input:disabled,
-.configuration-field select:disabled {
+.configuration-field select:disabled,
+.configuration-field textarea:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+}
+
+.configuration-textarea {
+    background-color: var(--vscode-input-background);
+    color: var(--vscode-input-foreground);
+    border: 1px solid var(--vscode-input-border);
+    padding: 6px 8px;
+    border-radius: 3px;
+    font-family: var(--vscode-font-family);
+    font-size: 13px;
+    resize: vertical;
+    min-height: 60px;
+    line-height: 1.4;
 }
 
 .auth-method-radio-group {

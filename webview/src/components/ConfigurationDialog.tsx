@@ -196,14 +196,15 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps & { vscode: any }> 
               </div>
 
               <div className="configuration-field">
-                <label htmlFor="headers">Headers (JSON):</label>
-                <input
+                <label htmlFor="headers">Headers:</label>
+                <textarea
                   id="headers"
-                  type="text"
                   value={formData.headers || ''}
                   onChange={(e) => handleInputChange('headers', e.target.value)}
-                  placeholder='{"Authorization": "Bearer ..."} (或设置 WAVE_CUSTOM_HEADERS)'
+                  placeholder={`Authorization: Bearer ...\nX-AIGW-APP: your_app_code\n(或设置 WAVE_CUSTOM_HEADERS)`}
                   disabled={isLoading}
+                  className="configuration-textarea"
+                  rows={3}
                 />
               </div>
 
