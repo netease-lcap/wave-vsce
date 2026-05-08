@@ -142,7 +142,8 @@ test.describe('EnterPlanMode Confirmation Dialog', () => {
             hidePersistentOption: true
         });
 
-        // Press Escape
+        // Wait for dialog to be visible, then press Escape
+        await expect(webviewPage.locator('.confirmation-dialog')).toBeVisible();
         await webviewPage.keyboard.press('Escape');
 
         // Verify confirmation dialog is hidden
