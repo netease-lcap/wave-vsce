@@ -56,6 +56,7 @@ test.describe('Product Specification Screenshots - UI Basic', () => {
         ];
         await injector.updateMessages(basicChat);
         await injector.endStreaming();
+        await ui.verifyMessageCount(3); // Welcome + user + assistant
         await webviewPage.screenshot({ path: 'docs/public/screenshots/spec-basic-chat.png' });
 
         // 3. Slash Commands
