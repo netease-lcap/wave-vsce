@@ -933,6 +933,10 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
       content: newValue
     });
 
+    // Auto-resize textarea height
+    target.style.height = 'auto';
+    target.style.height = target.scrollHeight + 'px';
+
     // Use setTimeout to ensure selection is updated after DOM changes
     setTimeout(() => {
       handleSelectionChange();
