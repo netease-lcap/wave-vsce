@@ -463,6 +463,13 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
     dispatch({ type: 'INPUT_CLEARED' });
   }, []);
 
+  // Re-focus input when command finishes running (e.g., after bang execution)
+  useEffect(() => {
+    if (!state.isCommandRunning && messageInputRef.current) {
+      messageInputRef.current.focus();
+    }
+  }, [state.isCommandRunning]);
+
   const handleConfirmation = useCallback((confirmationId: string, decision?: any) => {
     vscode.postMessage({
       command: 'confirmationResponse',
