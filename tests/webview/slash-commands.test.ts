@@ -220,4 +220,83 @@ test.describe('Slash Commands', () => {
     await expect(popup).toContainText('/help');
     await expect(popup).not.toContainText('/init');
   });
+
+  test('should auto-scroll selected item into view when navigating beyond visible area', async ({ webviewPage }) => {
+    const input = webviewPage.getByTestId('message-input');
+    await input.focus();
+
+    // Generate enough commands to overflow the list (max-height 240px, each item ~30px = ~8 visible)
+    const commands = Array.from({ length: 20 }, (_, i) => ({
+      id: `cmd-${i}`,
+      name: `command-${i}`,
+      description: `Description for command ${i}`
+    }));
+
+    // Trigger slash command request
+    const slashCommandPromise = webviewPage.evaluate(() => {
+      return new Promise<void>((resolve) => {
+        window.addEventListener('vscode-message', (event: any) => {
+          if (event.detail.command === 'requestSlashCommands') {
+            resolve();
+          }
+        });
+      });
+    });
+
+    await input.press('/');
+    await slashCommandPromise;
+
+    // Send a large list of commands
+    await webviewPage.evaluate((cmds) => {
+      (window as any).simulateExtensionMessage({
+        command: 'slashCommandsResponse',
+        commands: cmds
+      });
+    }, commands);
+
+    const popup = webviewPage.getByTestId('slash-commands-popup');
+    await expect(popup).toBeVisible();
+
+    // Verify popup has the scrollable list
+    const list = popup.locator('.slash-commands-list');
+    await expect(list).toBeVisible();
+
+    // Get initial scroll position
+    const initialScrollTop = await list.evaluate(el => el.scrollTop);
+
+    // Navigate down with ArrowDown multiple times to go beyond visible area
+    for (let i = 0; i < 15; i++) {
+      await webviewPage.keyboard.press('ArrowDown');
+    }
+
+    await webviewPage.waitForTimeout(100);
+
+    // Verify scroll position has changed (scrolled down)
+    const scrolledDown = await list.evaluate(el => el.scrollTop);
+    expect(scrolledDown).toBeGreaterThan(initialScrollTop);
+
+    // Verify the 16th item (index 15) is selected
+    const selectedItem = popup.locator('.slash-command-item.selected');
+    await expect(selectedItem).toBeVisible();
+    await expect(selectedItem).toContainText('/command-15');
+
+    // Verify the selected item is within the visible area of the scroll container
+    const isInView = await list.evaluate((listEl, selectedEl) => {
+      const listRect = listEl.getBoundingClientRect();
+      const selectedRect = selectedEl.getBoundingClientRect();
+      return selectedRect.top >= listRect.top && selectedRect.bottom <= listRect.bottom;
+    }, await selectedItem.elementHandle());
+
+    expect(isInView).toBe(true);
+
+    // Navigate back up and verify scroll changes
+    for (let i = 0; i < 15; i++) {
+      await webviewPage.keyboard.press('ArrowUp');
+    }
+
+    await webviewPage.waitForTimeout(100);
+
+    const scrolledUp = await list.evaluate(el => el.scrollTop);
+    expect(scrolledUp).toBeLessThan(scrolledDown);
+  });
 });
