@@ -84,7 +84,7 @@
     }
   },
   "scripts": {
-    "clean": "node -e \"const fs=require('fs'); ['dist', 'webview/dist'].forEach(d => {try{fs.rmSync(d, {recursive:true, force:true})}catch(e){}})\"",
+    "clean": "node -e \"import('fs').then(fs => ['dist', 'webview/dist'].forEach(d => {try{fs.rmSync(d, {recursive:true, force:true})}catch(e){}}))\"",
     "prepackage": "npm run clean",
     "compile": "npm run compile:backend && npm run compile:frontend",
     "watch": "npm-run-all -p watch:backend watch:frontend",
@@ -93,7 +93,7 @@
     "watch:backend": "node esbuild.config.mjs backend --watch",
     "watch:frontend": "node esbuild.config.mjs frontend --watch",
     "esbuild:prod": "node esbuild.config.mjs --production",
-    "package": "node scripts/package.js",
+    "package": "node scripts/package.mjs",
     "check-types": "tsc --noEmit && tsc -p webview --noEmit && tsc -p e2e --noEmit",
     "pretest": "npm run check-types && npm run compile",
     "test": "vitest run && playwright test --project=chromium",
