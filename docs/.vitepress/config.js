@@ -58,21 +58,78 @@ export default {
           ],
         },
         {
-          text: '4. 会话与配置管理',
-          collapsed: false,
+          text: '4. 完整工具清单',
+          collapsed: true,
           items: [
-            { text: '4.1 会话管理', link: '/spec#session-management' },
-            { text: '4.2 配置设置', link: '/spec#configuration-settings' },
-            { text: '4.3 语言设置', link: '/spec#language-settings' },
-            { text: '4.4 插件管理', link: '/spec#plugin-management' },
+            { text: '4.1 Bash', link: '/spec#tool-bash' },
+            { text: '4.2 Read', link: '/spec#tool-read' },
+            { text: '4.3 Glob', link: '/spec#tool-glob' },
+            { text: '4.4 Grep', link: '/spec#tool-grep' },
+            { text: '4.5 Write', link: '/spec#tool-write' },
+            { text: '4.6 Edit', link: '/spec#tool-edit' },
+            { text: '4.7 LSP', link: '/spec#tool-lsp' },
+            { text: '4.8 AskUserQuestion', link: '/spec#tool-askuser' },
+            { text: '4.9 WebFetch', link: '/spec#tool-webfetch' },
+            { text: '4.10 ToolSearch', link: '/spec#tool-toolsearch' },
+            { text: '4.11 Worktree', link: '/spec#tool-worktree' },
+            { text: '4.12 Cron', link: '/spec#tool-cron' },
+            { text: '4.13 Task', link: '/spec#tool-task' },
+            { text: '4.14 TaskStop', link: '/spec#tool-taskstop' },
           ],
         },
         {
-          text: '5. 内置 Skills 与 Subagents',
+          text: '5. 核心机制',
+          collapsed: true,
+          items: [
+            { text: '5.1 消息压缩', link: '/spec#mechanism-context-management' },
+            { text: '5.2 自动记忆系统', link: '/spec#mechanism-auto-memory' },
+            { text: '5.3 记忆规则', link: '/spec#mechanism-memory-rules' },
+            { text: '5.4 后台任务系统', link: '/spec#mechanism-background-tasks' },
+            { text: '5.5 会话恢复与多会话', link: '/spec#mechanism-session-restore' },
+            { text: '5.6 文件修改回滚', link: '/spec#mechanism-reversion' },
+          ],
+        },
+        {
+          text: '6. 会话与配置管理',
+          collapsed: false,
+          items: [
+            { text: '6.1 会话管理', link: '/spec#session-management' },
+            { text: '6.2 配置设置', link: '/spec#configuration-settings' },
+            { text: '6.3 语言设置', link: '/spec#language-settings' },
+          ],
+        },
+        {
+          text: '7. 插件系统',
+          collapsed: false,
+          items: [
+            { text: '7.1 概述', link: '/spec#plugin-overview' },
+            { text: '7.2 探索新插件', link: '/spec#explore-plugins' },
+            { text: '7.3 已激活插件', link: '/spec#installed-plugins' },
+            {
+              text: '7.4 官方插件市场',
+              collapsed: false,
+              items: [
+                { text: 'document-skills', link: '/spec#plugin-document-skills' },
+                { text: 'typescript-lsp', link: '/spec#plugin-typescript-lsp' },
+                { text: 'chrome-devtools', link: '/spec#plugin-chrome-devtools' },
+                { text: 'code2spec', link: '/spec#plugin-code2spec' },
+                { text: 'code2cwspec', link: '/spec#plugin-code2cwspec' },
+                { text: 'commit-skills', link: '/spec#plugin-commit-skills' },
+                { text: 'speckit', link: '/spec#plugin-speckit' },
+                { text: 'deep-wiki', link: '/spec#plugin-deep-wiki' },
+                { text: 'tavily-search', link: '/spec#plugin-tavily-search' },
+                { text: 'lcap-extension-component', link: '/spec#plugin-lcap-extension-component' },
+                { text: 'frontend-design', link: '/spec#plugin-frontend-design' },
+              ],
+            },
+          ],
+        },
+        {
+          text: '8. 内置 Skills 与 Subagents',
           collapsed: false,
           items: [
             {
-              text: '5.1 Settings Skill',
+              text: '8.1 Settings Skill',
               collapsed: false,
               items: [
                 { text: 'settings.json 配置中心', link: '/spec#settings-json' },
@@ -89,7 +146,7 @@ export default {
               ],
             },
             {
-              text: '5.2 其他内置 Skills',
+              text: '8.2 其他内置 Skills',
               collapsed: false,
               items: [
                 { text: 'init — 代码库初始化', link: '/spec#skill-init' },
@@ -97,7 +154,7 @@ export default {
               ],
             },
             {
-              text: '5.3 内置 Subagents',
+              text: '8.3 内置 Subagents',
               collapsed: false,
               items: [
                 { text: 'Bash — 命令执行', link: '/spec#subagent-bash' },
