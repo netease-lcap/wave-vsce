@@ -1,5 +1,8 @@
-const esbuild = require('esbuild');
-const path = require('path');
+import * as esbuild from 'esbuild';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const production = process.argv.includes('--production');
 const watch = process.argv.includes('--watch');
@@ -11,7 +14,7 @@ const backendConfig = {
   bundle: true,
   format: 'cjs',
   platform: 'node',
-  outfile: 'dist/extension.js',
+  outfile: 'dist/extension.cjs',
   external: ['vscode'],
   minify: production,
   sourcemap: !production,
