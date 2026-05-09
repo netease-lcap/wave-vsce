@@ -83,7 +83,6 @@ export const test = base.extend<WebviewTestContext>({
         /* Ensure body has proper styling */
         body {
             margin: 0;
-            padding: 20px;
             background-color: var(--vscode-editor-background);
             color: var(--vscode-editor-foreground);
             font-family: var(--vscode-font-family);
