@@ -31,7 +31,7 @@ jobs:
       - name: Get previous tag
         id: prev
         run: |
-          PREV=$(gh release list --limit 1 --json tagName --jq '.[0].tagName')
+          PREV=$(git tag --sort=-version:refname | sed -n '2p')
           echo "tag=$PREV" >> $GITHUB_OUTPUT
 
       - name: Create GitHub Release
