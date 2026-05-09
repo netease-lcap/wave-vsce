@@ -17,8 +17,8 @@ test.describe('Bang Input Focus', () => {
             });
         });
 
-        // Input should be disabled when command is running
-        await ui.verifyInputState(false, true);
+        // Input should remain enabled when command is running
+        await ui.verifyInputState(false, false);
 
         // Simulate bang command completing (isCommandRunning = false)
         await webviewPage.evaluate(() => {
