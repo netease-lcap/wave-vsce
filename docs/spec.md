@@ -692,7 +692,24 @@ _已激活插件管理_
 
 #### 6.4.3 插件市场 {#plugin-marketplaces}
 
-在"插件市场"标签页中，用户可以添加自定义的插件市场源，支持 GitHub 仓库（owner/repo 格式）、Git URL 或本地文件路径。添加后可以从该市场源安装插件，也可以更新或移除市场源。
+SDK 内置默认插件市场 `wave-plugins-official`（来源：[netease-lcap/wave-plugins-official](https://github.com/netease-lcap/wave-plugins-official)），自动启用且支持自动更新。该市场提供以下插件：
+
+| 插件 | 类型 | 说明 |
+|------|------|------|
+| document-skills | Skill | 文档处理套件（PDF/Word/PPT/Excel） |
+| typescript-lsp | LSP | TypeScript/JavaScript 代码智能支持 |
+| chrome-devtools | MCP | Chrome DevTools 浏览器自动化 |
+| code2spec | Skill | 从代码生成规格说明文档 |
+| code2cwspec | Agent | 代码逆向生成 CodeWave 规范模板 |
+| commit-skills | Skill | Git 工作流（Commit/Push/PR/MR） |
+| speckit | Skill | 规范驱动开发工具包（中文版） |
+| deep-wiki | Agent | AI 驱动的 Wiki 生成（Mermaid/VitePress） |
+| tavily-search | MCP | Tavily AI 网络搜索 |
+| lcap-extension-component | Skill | LCAP 扩展组件开发指南 |
+| frontend-design | Skill | 独特美学的 Web 前端设计 |
+| superpowers | Skill | AI 编码助手核心技能库（TDD/调试等） |
+
+在"插件市场"标签页中，用户还可以添加自定义的插件市场源，支持 GitHub 仓库（owner/repo 格式）、Git URL 或本地文件路径。添加后可以从该市场源安装插件，也可以更新或移除市场源。
 
 ![插件市场管理](/screenshots/spec-plugin-marketplaces.png)
 _插件市场管理_
