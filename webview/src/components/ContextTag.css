@@ -5,7 +5,7 @@
     border-radius: 4px;
     font-size: 13px;
     background-color: var(--vscode-editor-inactiveSelectionBackground);
-    color: var(--vscode-badge-foreground);
+    color: var(--vscode-foreground);
     margin: 2px;
     user-select: none;
     max-width: 200px;
