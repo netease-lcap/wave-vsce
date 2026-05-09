@@ -163,8 +163,8 @@ test.describe('File Upload Feature', () => {
     await messageInput.fill('@');
     await messageInput.press('End');
 
-    // Wait for the request
-    await webviewPage.waitForTimeout(200);
+    // Wait for the debounced request (100ms selectionChange + 150ms file suggestion)
+    await webviewPage.waitForTimeout(300);
 
     // Simulate response with no filter text to show upload option
     await injector.simulateExtensionMessage('fileSuggestionsResponse', {
@@ -199,7 +199,7 @@ test.describe('File Upload Feature', () => {
     await messageInput.fill('@');
     await messageInput.press('End');
 
-    await webviewPage.waitForTimeout(200);
+    await webviewPage.waitForTimeout(300);
 
     // Simulate successful file upload response
     await injector.simulateExtensionMessage('uploadSuccess', {
@@ -231,7 +231,7 @@ test.describe('File Upload Feature', () => {
     await messageInput.fill('@');
     await messageInput.press('End');
 
-    await webviewPage.waitForTimeout(200);
+    await webviewPage.waitForTimeout(300);
 
     // Simulate successful single file upload response
     await injector.simulateExtensionMessage('uploadSuccess', {
@@ -261,7 +261,7 @@ test.describe('File Upload Feature', () => {
     // Simple scenario: just type @ and upload
     await messageInput.type('@');
 
-    await webviewPage.waitForTimeout(200);
+    await webviewPage.waitForTimeout(300);
 
     // Simulate successful file upload response
     await injector.simulateExtensionMessage('uploadSuccess', {
@@ -291,7 +291,7 @@ test.describe('File Upload Feature', () => {
     // Type @ and some filter text
     await messageInput.type('@test');
 
-    await webviewPage.waitForTimeout(200);
+    await webviewPage.waitForTimeout(300);
 
     // Simulate successful file upload response
     await injector.simulateExtensionMessage('uploadSuccess', {
