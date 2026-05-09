@@ -71,6 +71,25 @@ export default {
             { text: '6.1 子代理状态', link: '/spec#subagent-display' },
             { text: '6.2 Skill 技能系统', link: '/spec#skill-system' },
             { text: '6.3 MCP 协议集成', link: '/spec#mcp-integration' },
+            {
+              text: '6.4 内置 Skills',
+              collapsed: false,
+              items: [
+                { text: 'settings — 配置管理', link: '/spec#skill-settings' },
+                { text: 'init — 代码库初始化', link: '/spec#skill-init' },
+                { text: 'loop — 定时循环任务', link: '/spec#skill-loop' },
+              ],
+            },
+            {
+              text: '6.5 内置 Subagents',
+              collapsed: false,
+              items: [
+                { text: 'Bash — 命令执行', link: '/spec#subagent-bash' },
+                { text: 'Explore — 代码库探索', link: '/spec#subagent-explore' },
+                { text: 'Plan — 软件架构师', link: '/spec#subagent-plan' },
+                { text: '通用代理', link: '/spec#subagent-general-purpose' },
+              ],
+            },
           ],
         },
         {
@@ -126,6 +145,23 @@ export default {
           items: [
             { text: '11.1 配置设置', link: '/spec#configuration-settings' },
             { text: '11.2 语言设置', link: '/spec#language-settings' },
+            {
+              text: '11.3 Settings Skill',
+              collapsed: false,
+              items: [
+                { text: 'settings.json 配置中心', link: '/spec#settings-json' },
+                { text: '钩子 (Hooks)', link: '/spec#settings-hooks' },
+                { text: '环境变量', link: '/spec#settings-env' },
+                { text: '工具权限', link: '/spec#settings-permissions' },
+                { text: '模型配置', link: '/spec#settings-models' },
+                { text: 'MCP 协议', link: '/spec#settings-mcp' },
+                { text: '记忆规则', link: '/spec#settings-memory' },
+                { text: '自定义 Skill', link: '/spec#settings-skills' },
+                { text: '子代理', link: '/spec#settings-subagents' },
+                { text: '插件配置', link: '/spec#settings-plugins' },
+                { text: '其他设置', link: '/spec#settings-other' },
+              ],
+            },
           ],
         },
         {
@@ -150,47 +186,6 @@ export default {
                 { text: 'tavily-search', link: '/spec#plugin-tavily-search' },
                 { text: 'lcap-extension-component', link: '/spec#plugin-lcap-extension-component' },
                 { text: 'frontend-design', link: '/spec#plugin-frontend-design' },
-              ],
-            },
-          ],
-        },
-        {
-          text: '13. 内置 Skills 与 Subagents',
-          collapsed: false,
-          items: [
-            {
-              text: '13.1 Settings Skill',
-              collapsed: false,
-              items: [
-                { text: 'settings.json 配置中心', link: '/spec#settings-json' },
-                { text: '钩子 (Hooks)', link: '/spec#settings-hooks' },
-                { text: '环境变量', link: '/spec#settings-env' },
-                { text: '工具权限', link: '/spec#settings-permissions' },
-                { text: '模型配置', link: '/spec#settings-models' },
-                { text: 'MCP 协议', link: '/spec#settings-mcp' },
-                { text: '记忆规则', link: '/spec#settings-memory' },
-                { text: '自定义 Skill', link: '/spec#settings-skills' },
-                { text: '子代理', link: '/spec#settings-subagents' },
-                { text: '插件配置', link: '/spec#settings-plugins' },
-                { text: '其他设置', link: '/spec#settings-other' },
-              ],
-            },
-            {
-              text: '13.2 其他内置 Skills',
-              collapsed: false,
-              items: [
-                { text: 'init — 代码库初始化', link: '/spec#skill-init' },
-                { text: 'loop — 定时循环任务', link: '/spec#skill-loop' },
-              ],
-            },
-            {
-              text: '13.3 内置 Subagents',
-              collapsed: false,
-              items: [
-                { text: 'Bash — 命令执行', link: '/spec#subagent-bash' },
-                { text: 'Explore — 代码库探索', link: '/spec#subagent-explore' },
-                { text: 'Plan — 软件架构师', link: '/spec#subagent-plan' },
-                { text: '通用代理', link: '/spec#subagent-general-purpose' },
               ],
             },
           ],
