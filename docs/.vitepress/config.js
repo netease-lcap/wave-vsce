@@ -134,9 +134,10 @@ export default {
           text: '10. 记忆系统',
           collapsed: true,
           items: [
-            { text: '10.1 消息压缩', link: '/spec#mechanism-context-management' },
-            { text: '10.2 自动记忆系统', link: '/spec#mechanism-auto-memory' },
-            { text: '10.3 记忆规则', link: '/spec#mechanism-memory-rules' },
+            { text: '10.1 AGENTS.md 文件', link: '/spec#agents-md' },
+            { text: '10.2 消息压缩', link: '/spec#mechanism-context-management' },
+            { text: '10.3 自动记忆系统', link: '/spec#mechanism-auto-memory' },
+            { text: '10.4 记忆规则', link: '/spec#mechanism-memory-rules' },
           ],
         },
         {
