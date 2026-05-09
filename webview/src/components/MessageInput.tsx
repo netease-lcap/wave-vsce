@@ -761,6 +761,7 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
       
       // Clear contenteditable
       textareaRef.current.innerHTML = '';
+      textareaRef.current.style.height = 'auto';
       setMessage('');
       // Clear persisted input content
       vscode.postMessage({
