@@ -138,8 +138,8 @@ test.describe('File Mention Feature (@)', () => {
     await messageInput.fill('@src');
     await messageInput.press('End');
 
-    // Wait for the debounced request
-    await webviewPage.waitForTimeout(200);
+    // Wait for the debounced request (100ms selectionChange + 150ms file suggestion)
+    await webviewPage.waitForTimeout(300);
 
     // Mock filtered response with captured requestId
     await injector.simulateExtensionMessage('fileSuggestionsResponse', {
