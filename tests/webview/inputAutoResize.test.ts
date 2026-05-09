@@ -88,4 +88,33 @@ test.describe('Input Auto Resize', () => {
     // Height should have decreased
     expect(clearedHeight).toBeLessThan(expandedHeight);
   });
+
+  test('should reset input height after sending message', async ({ webviewPage }) => {
+    const input = webviewPage.getByTestId('message-input');
+    const sendBtn = webviewPage.getByTestId('send-btn');
+    await input.focus();
+
+    // Get initial height
+    const initialHeight = await input.evaluate(el => el.clientHeight);
+
+    // Add multiple lines to expand the input
+    await input.type('line1');
+    await input.press('Shift+Enter');
+    await input.type('line2');
+    await input.press('Shift+Enter');
+    await input.type('line3');
+    await webviewPage.waitForTimeout(50);
+
+    const expandedHeight = await input.evaluate(el => el.clientHeight);
+    expect(expandedHeight).toBeGreaterThan(initialHeight);
+
+    // Send the message
+    await sendBtn.click();
+    await webviewPage.waitForTimeout(100);
+
+    // Height should reset back to initial
+    const afterSendHeight = await input.evaluate(el => el.clientHeight);
+    expect(afterSendHeight).toBeLessThan(expandedHeight);
+    expect(afterSendHeight).toBe(initialHeight);
+  });
 });
