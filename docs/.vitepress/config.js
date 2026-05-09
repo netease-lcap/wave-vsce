@@ -61,6 +61,7 @@ export default {
           items: [
             { text: '5.1 任务列表', link: '/spec#task-list' },
             { text: '5.2 后台任务通知', link: '/spec#task-notification' },
+            { text: '5.3 后台任务系统', link: '/spec#mechanism-background-tasks' },
           ],
         },
         {
@@ -102,35 +103,40 @@ export default {
           ],
         },
         {
-          text: '9. 核心机制',
+          text: '9. 会话与持久化',
           collapsed: true,
           items: [
-            { text: '9.1 消息压缩', link: '/spec#mechanism-context-management' },
-            { text: '9.2 自动记忆系统', link: '/spec#mechanism-auto-memory' },
-            { text: '9.3 记忆规则', link: '/spec#mechanism-memory-rules' },
-            { text: '9.4 后台任务系统', link: '/spec#mechanism-background-tasks' },
-            { text: '9.5 会话恢复与多会话', link: '/spec#mechanism-session-restore' },
-            { text: '9.6 文件修改回滚', link: '/spec#mechanism-reversion' },
+            { text: '9.1 会话恢复与多会话', link: '/spec#mechanism-session-restore' },
+            { text: '9.2 文件修改回滚', link: '/spec#mechanism-reversion' },
+            { text: '9.3 会话管理', link: '/spec#session-management' },
           ],
         },
         {
-          text: '10. 会话与配置管理',
-          collapsed: false,
+          text: '10. 记忆系统',
+          collapsed: true,
           items: [
-            { text: '10.1 会话管理', link: '/spec#session-management' },
-            { text: '10.2 配置设置', link: '/spec#configuration-settings' },
-            { text: '10.3 语言设置', link: '/spec#language-settings' },
+            { text: '10.1 消息压缩', link: '/spec#mechanism-context-management' },
+            { text: '10.2 自动记忆系统', link: '/spec#mechanism-auto-memory' },
+            { text: '10.3 记忆规则', link: '/spec#mechanism-memory-rules' },
           ],
         },
         {
-          text: '11. 插件系统',
+          text: '11. 配置管理',
           collapsed: false,
           items: [
-            { text: '11.1 概述', link: '/spec#plugin-overview' },
-            { text: '11.2 探索新插件', link: '/spec#explore-plugins' },
-            { text: '11.3 已激活插件', link: '/spec#installed-plugins' },
+            { text: '11.1 配置设置', link: '/spec#configuration-settings' },
+            { text: '11.2 语言设置', link: '/spec#language-settings' },
+          ],
+        },
+        {
+          text: '12. 插件系统',
+          collapsed: false,
+          items: [
+            { text: '12.1 概述', link: '/spec#plugin-overview' },
+            { text: '12.2 探索新插件', link: '/spec#explore-plugins' },
+            { text: '12.3 已激活插件', link: '/spec#installed-plugins' },
             {
-              text: '11.4 官方插件市场',
+              text: '12.4 官方插件市场',
               collapsed: false,
               items: [
                 { text: 'document-skills', link: '/spec#plugin-document-skills' },
@@ -149,11 +155,11 @@ export default {
           ],
         },
         {
-          text: '12. 内置 Skills 与 Subagents',
+          text: '13. 内置 Skills 与 Subagents',
           collapsed: false,
           items: [
             {
-              text: '12.1 Settings Skill',
+              text: '13.1 Settings Skill',
               collapsed: false,
               items: [
                 { text: 'settings.json 配置中心', link: '/spec#settings-json' },
@@ -170,7 +176,7 @@ export default {
               ],
             },
             {
-              text: '12.2 其他内置 Skills',
+              text: '13.2 其他内置 Skills',
               collapsed: false,
               items: [
                 { text: 'init — 代码库初始化', link: '/spec#skill-init' },
@@ -178,7 +184,7 @@ export default {
               ],
             },
             {
-              text: '12.3 内置 Subagents',
+              text: '13.3 内置 Subagents',
               collapsed: false,
               items: [
                 { text: 'Bash — 命令执行', link: '/spec#subagent-bash' },
