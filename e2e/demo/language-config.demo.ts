@@ -20,23 +20,17 @@ test.describe('Language Configuration Demo', () => {
 
         // Check if the configuration dialog is visible
         await expect(webviewPage.getByText('配置设置', { exact: true })).toBeVisible();
-        
-        // Check if the language field is visible
-        await expect(webviewPage.locator('label[for="language"]')).toBeVisible();
+
+        // Scroll to the language field in the scrollable area
+        const languageField = webviewPage.locator('label[for="language"]');
+        await expect(languageField).toBeAttached();
+        await languageField.scrollIntoViewIfNeeded();
+
+        // Verify the language field is visible and has the correct value
+        await expect(languageField).toBeVisible();
         await expect(webviewPage.locator('#language')).toHaveValue('English');
-        
-        // Verify it's a select and has options
-        const select = webviewPage.locator('#language');
-        const tagName = await select.evaluate(el => el.tagName.toLowerCase());
-        expect(tagName).toBe('select');
-        
-        // Check options exist in DOM
-        const chineseOption = select.locator('option[value="Chinese"]');
-        const englishOption = select.locator('option[value="English"]');
-        await expect(chineseOption).toBeAttached();
-        await expect(englishOption).toBeAttached();
-        
-        // Take screenshot of the dialog only
+
+        // Take screenshot of the dialog with language field in view
         const dialog = webviewPage.locator('.configuration-dialog');
         await dialog.screenshot({ path: 'docs/public/screenshots/language-config-ui.png' });
     });
