@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
+    "module": "ESNext",
     "target": "ES2020",
     "outDir": "dist",
     "lib": ["ES2020"],
@@ -10,8 +10,8 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "allowSyntheticDefaultImports": true
   },
-  "exclude": ["node_modules", ".vscode-test", "tests", "playwright.config.ts", "webview"]
+  "exclude": ["node_modules", ".vscode-test", "tests", "e2e", "playwright.config.ts", "vitest.config.ts", "webview"]
 }

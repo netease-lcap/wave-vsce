@@ -23,7 +23,7 @@ export const test = base.extend<WebviewTestContext>({
         // Load the React webview app for testing
         const chatJsPath = path.join(process.cwd(), 'webview', 'dist', 'chat.js');
         const webviewDistPath = path.join(process.cwd(), 'webview', 'dist');
-        const vscodeStylesPath = path.join(process.cwd(), 'tests', 'utils', 'vscode-styles.css');
+        const vscodeStylesPath = path.join(process.cwd(), 'e2e', 'utils', 'vscode-styles.css');
 
         let vscodeStyles = '';
         if (fs.existsSync(vscodeStylesPath)) {
