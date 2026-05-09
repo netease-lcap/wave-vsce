@@ -15,21 +15,19 @@ export default {
           items: [
             { text: '1.1 欢迎界面', link: '/spec#welcome-interface' },
             { text: '1.2 基础对话', link: '/spec#basic-chat' },
-            { text: '1.3 消息队列', link: '/spec#message-queuing' },
-            { text: '1.4 对话回滚', link: '/spec#rewind-feature' },
-            { text: '1.5 工具提示', link: '/spec#tooltips' },
-            { text: '1.6 历史记录搜索', link: '/spec#history-search' },
+            { text: '1.3 工具提示', link: '/spec#tooltips' },
           ],
         },
         {
           text: '2. 智能输入与上下文',
           collapsed: false,
           items: [
-            { text: '2.1 代码选择与引用', link: '/spec#code-selection-reference' },
-            { text: '2.2 指令系统', link: '/spec#slash-commands' },
-            { text: '2.3 文件建议与预览', link: '/spec#file-suggestions' },
-            { text: '2.4 权限模式管理', link: '/spec#permission-modes' },
-            { text: '2.5 快捷终端命令', link: '/spec#bang-shell-command' },
+            { text: '2.1 消息队列', link: '/spec#message-queuing' },
+            { text: '2.2 历史记录搜索', link: '/spec#history-search' },
+            { text: '2.3 代码选择与引用', link: '/spec#code-selection-reference' },
+            { text: '2.4 指令系统', link: '/spec#slash-commands' },
+            { text: '2.5 文件建议与预览', link: '/spec#file-suggestions' },
+            { text: '2.6 快捷终端命令', link: '/spec#bang-shell-command' },
           ],
         },
         {
@@ -48,11 +46,12 @@ export default {
           text: '4. 权限与安全',
           collapsed: false,
           items: [
-            { text: '4.1 代码修改确认', link: '/spec#code-edit-confirmation' },
-            { text: '4.2 命令执行确认', link: '/spec#bash-command-confirmation' },
-            { text: '4.3 计划执行确认', link: '/spec#plan-confirmation' },
-            { text: '4.4 进入计划模式确认', link: '/spec#enter-plan-mode' },
-            { text: '4.5 错误消息展示', link: '/spec#error-message-display' },
+            { text: '4.1 权限模式管理', link: '/spec#permission-modes' },
+            { text: '4.2 代码修改确认', link: '/spec#code-edit-confirmation' },
+            { text: '4.3 命令执行确认', link: '/spec#bash-command-confirmation' },
+            { text: '4.4 计划执行确认', link: '/spec#plan-confirmation' },
+            { text: '4.5 进入计划模式确认', link: '/spec#enter-plan-mode' },
+            { text: '4.6 错误消息展示', link: '/spec#error-message-display' },
           ],
         },
         {
@@ -105,9 +104,8 @@ export default {
           text: '8. 会话与持久化',
           collapsed: true,
           items: [
-            { text: '8.1 会话恢复与多会话', link: '/spec#mechanism-session-restore' },
-            { text: '8.2 文件修改回滚', link: '/spec#mechanism-reversion' },
-            { text: '8.3 会话管理', link: '/spec#session-management' },
+            { text: '8.1 对话回滚', link: '/spec#rewind-feature' },
+            { text: '8.2 会话管理', link: '/spec#session-management' },
           ],
         },
         {

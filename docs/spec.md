@@ -20,7 +20,28 @@ _欢迎界面_
 ![基础对话](/screenshots/spec-basic-chat.png)
 _基础对话_
 
-### 1.3 消息队列 {#message-queuing}
+### 1.3 工具提示 (Tooltips) {#tooltips}
+
+为了提供一致且可靠的用户体验，Wave 实现了自定义的工具提示组件。当用户将鼠标悬停在图标或特定元素上时，会显示功能说明文案。
+
+**主要特性：**
+
+- **智能定位**：工具提示会根据元素在屏幕上的位置自动选择最佳显示方向（如 `top-left`, `bottom-left` 等），确保文案始终在 Webview 边界内显示，避免被遮挡。
+- **视觉一致性**：使用 VS Code 官方主题变量，完美适配深色和浅色模式。
+- **覆盖全面**：涵盖了发送、停止、清除聊天、权限模式切换、设置以及文件标签等所有核心交互元素。
+
+![发送按钮工具提示](/screenshots/tooltip-send.png)
+_发送按钮工具提示_
+
+
+
+---
+
+## 2. 智能输入与上下文 {#intelligent-input-context}
+
+Wave 提供了一个强大的富文本输入框，支持内联标签、指令补全和图片附件，让用户能够高效地构建复杂的上下文。
+
+### 2.1 消息队列 {#message-queuing}
 
 当 AI 正在处理当前请求并进行流式输出时，用户仍然可以发送新消息。这些消息会自动进入队列，并在当前任务完成后按顺序自动执行。
 
@@ -45,34 +66,8 @@ _加入队列按钮_
 ![已排队的消息](/screenshots/spec-queued-message.png)
 _已排队的消息_
 
-### 1.4 对话回滚 (Rewind) {#rewind-feature}
 
-Wave 支持将对话回滚到之前的任意用户消息状态。这不仅会删除该消息及其之后的所有对话记录，还会自动撤销 AI 在这些回合中所做的所有文件更改，并将被回滚的消息内容重新填充到输入框中，方便用户修改后重新发送。
-
-**主要特性：**
-
-- **悬停触发**：当鼠标悬停在历史记录中的用户消息上时，右上方会出现"回滚"图标。
-- **一键回滚**：点击图标并确认后，系统会自动清理后续消息、恢复文件状态，并将该消息内容回填至输入框。
-- **安全确认**：执行回滚前会弹出二次确认对话框，防止误操作导致数据丢失。
-- **状态同步**：回滚后，任务列表、会话元数据以及输入框内容会自动同步到回滚后的状态。
-
-![用户消息上的回滚按钮](/screenshots/spec-rewind-button.png)
-_用户消息上的回滚按钮_
-
-### 1.5 工具提示 (Tooltips) {#tooltips}
-
-为了提供一致且可靠的用户体验，Wave 实现了自定义的工具提示组件。当用户将鼠标悬停在图标或特定元素上时，会显示功能说明文案。
-
-**主要特性：**
-
-- **智能定位**：工具提示会根据元素在屏幕上的位置自动选择最佳显示方向（如 `top-left`, `bottom-left` 等），确保文案始终在 Webview 边界内显示，避免被遮挡。
-- **视觉一致性**：使用 VS Code 官方主题变量，完美适配深色和浅色模式。
-- **覆盖全面**：涵盖了发送、停止、清除聊天、权限模式切换、设置以及文件标签等所有核心交互元素。
-
-![发送按钮工具提示](/screenshots/tooltip-send.png)
-_发送按钮工具提示_
-
-### 1.6 历史记录搜索 (History Search) {#history-search}
+### 2.2 历史记录搜索 (History Search) {#history-search}
 
 Wave 支持通过快捷键快速搜索并重用之前的 Prompt，提高交互效率。
 
@@ -88,11 +83,8 @@ _历史记录搜索弹窗_
 
 ---
 
-## 2. 智能输入与上下文 {#intelligent-input-context}
 
-Wave 提供了一个强大的富文本输入框，支持内联标签、指令补全和图片附件，让用户能够高效地构建复杂的上下文。
-
-### 2.1 代码选择与引用 {#code-selection-reference}
+### 2.3 代码选择与引用 {#code-selection-reference}
 
 用户可以通过编辑器右键菜单中的"添加到 Wave"选项，将选中的代码手动添加到对话上下文中。选中的代码会以蓝色内联标签的形式插入到输入框当前光标位置。在消息历史中，点击该标签可快速跳转回编辑器中的对应文件及行号。
 
@@ -100,14 +92,16 @@ Wave 提供了一个强大的富文本输入框，支持内联标签、指令补
 ![输入框中的代码选中标签](/screenshots/spec-selection-inline-tag.png)
 _输入框中的代码选中标签_
 
-### 2.2 指令系统 (Slash Commands) {#slash-commands}
+
+### 2.4 指令系统 (Slash Commands) {#slash-commands}
 
 通过输入 `/`，用户可以快速调用预设的指令，如 `/explain`、`/fix` 等，提高操作效率。
 
 ![指令系统](/screenshots/spec-slash-commands.png)
 _指令系统_
 
-### 2.3 文件建议与预览 (@ 提及) {#file-suggestions}
+
+### 2.5 文件建议与预览 (@ 提及) {#file-suggestions}
 
 通过输入 `@`，用户可以轻松地将项目中的文件添加到对话上下文中。标签会内联显示在输入框和消息中。对于图片类型的文件，支持点击标签直接在编辑器中预览。
 
@@ -123,45 +117,9 @@ _图片全屏预览模态框_
 ![消息列表中的内联标签](/screenshots/spec-message-inline-tags.png)
 _消息列表中的内联标签_
 
-### 2.4 权限模式管理 {#permission-modes}
 
-Wave 代码智聊 提供五种权限管理模式，用户可以根据需要灵活切换：
 
-#### 默认模式（修改前询问）
-
-![权限模式 - 默认](/screenshots/spec-permission-mode-default.png)
-_权限模式 - 默认_
-
-在默认模式下，AI 执行任何涉及文件修改或系统操作的工具之前，都会先向用户请求确认。这是最安全的模式，适合初次使用或处理重要项目时使用。
-
-#### 自动接受修改模式
-
-![权限模式 - 自动接受修改](/screenshots/spec-permission-mode-accept.png)
-_权限模式 - 自动接受修改_
-
-在此模式下，AI 可以自动执行文件编辑、创建和删除操作，无需每次确认。适合在信任 AI 建议且希望提高效率的场景下使用。
-
-#### 计划模式
-
-![权限模式 - 计划模式](/screenshots/spec-permission-mode-plan.png)
-_权限模式 - 计划模式_
-
-计划模式是一种特殊的工作模式，AI 只能修改计划文件（通常是 `.wave/plans/` 目录下的文件），用于协作制定和完善开发计划，而不会直接修改项目代码。这种模式特别适合项目规划阶段。
-
-#### 完全跳过权限模式（bypassPermissions）
-
-最高权限模式，完全跳过所有权限检查，所有工具无需确认直接执行。仅在完全受控环境中使用。
-
-#### 安全区域（Safe Zone）
-
-用户可通过 `settings.json` 中的 `permissions.additionalDirectories` 配置，将额外目录纳入安全区域。在安全区域内的文件操作可被自动接受，无需逐次确认。
-
-**特点**：
-- 下拉切换：点击输入框左下角的权限模式按钮即可弹出下拉菜单切换模式
-- 视觉区分：每种模式都有不同的图标和颜色标识
-- 实时生效：切换后立即应用到当前会话中
-
-### 2.5 快捷终端命令 (Bang Command) {#bang-shell-command}
+### 2.6 快捷终端命令 (Bang Command) {#bang-shell-command}
 
 用户可以通过在输入框中以 `!` 开头直接执行终端命令。这允许用户在不离开聊天界面的情况下快速执行系统操作、运行脚本或检查环境。
 
@@ -241,7 +199,45 @@ _视觉理解_
 
 ## 4. 权限与安全 {#permissions-security}
 
-### 4.1 代码修改确认 (Code Edit Confirmation) {#code-edit-confirmation}
+### 4.1 权限模式管理 {#permission-modes}
+
+Wave 代码智聊 提供五种权限管理模式，用户可以根据需要灵活切换：
+
+#### 默认模式（修改前询问）
+
+![权限模式 - 默认](/screenshots/spec-permission-mode-default.png)
+_权限模式 - 默认_
+
+在默认模式下，AI 执行任何涉及文件修改或系统操作的工具之前，都会先向用户请求确认。这是最安全的模式，适合初次使用或处理重要项目时使用。
+
+#### 自动接受修改模式
+
+![权限模式 - 自动接受修改](/screenshots/spec-permission-mode-accept.png)
+_权限模式 - 自动接受修改_
+
+在此模式下，AI 可以自动执行文件编辑、创建和删除操作，无需每次确认。适合在信任 AI 建议且希望提高效率的场景下使用。
+
+#### 计划模式
+
+![权限模式 - 计划模式](/screenshots/spec-permission-mode-plan.png)
+_权限模式 - 计划模式_
+
+计划模式是一种特殊的工作模式，AI 只能修改计划文件（通常是 `.wave/plans/` 目录下的文件），用于协作制定和完善开发计划，而不会直接修改项目代码。这种模式特别适合项目规划阶段。
+
+#### 完全跳过权限模式（bypassPermissions）
+
+最高权限模式，完全跳过所有权限检查，所有工具无需确认直接执行。仅在完全受控环境中使用。
+
+#### 安全区域（Safe Zone）
+
+用户可通过 `settings.json` 中的 `permissions.additionalDirectories` 配置，将额外目录纳入安全区域。在安全区域内的文件操作可被自动接受，无需逐次确认。
+
+**特点**：
+- 下拉切换：点击输入框左下角的权限模式按钮即可弹出下拉菜单切换模式
+- 视觉区分：每种模式都有不同的图标和颜色标识
+- 实时生效：切换后立即应用到当前会话中
+
+### 4.2 代码修改确认 (Code Edit Confirmation) {#code-edit-confirmation}
 
 在进行代码编辑、文件写入或删除操作前，系统会显示具体的修改内容供用户确认。
 
@@ -254,7 +250,7 @@ _视觉理解_
 ![代码修改确认](/screenshots/spec-edit-confirm.png)
 _代码修改确认_
 
-### 4.2 命令执行确认 (Bash Command Confirmation) {#bash-command-confirmation}
+### 4.3 命令执行确认 (Bash Command Confirmation) {#bash-command-confirmation}
 
 执行系统命令前会显示具体的命令内容，确保用户了解将要执行的操作。
 
@@ -267,7 +263,7 @@ _代码修改确认_
 ![命令执行确认](/screenshots/spec-bash-confirm.png)
 _命令执行确认_
 
-### 4.3 计划执行确认 (Plan Confirmation) {#plan-confirmation}
+### 4.4 计划执行确认 (Plan Confirmation) {#plan-confirmation}
 
 当 AI 制定了详细的执行计划并准备退出计划模式时，会向用户展示计划内容并请求确认。用户可以选择批准执行、自动接受后续修改，或提供反馈意见。
 
@@ -280,7 +276,7 @@ _命令执行确认_
 ![计划执行确认](/screenshots/spec-plan-confirm.png)
 _计划执行确认_
 
-### 4.4 进入计划模式确认 (Enter Plan Mode Confirmation) {#enter-plan-mode}
+### 4.5 进入计划模式确认 (Enter Plan Mode Confirmation) {#enter-plan-mode}
 
 当 AI 判断当前任务较为复杂时，会主动请求用户确认是否进入计划模式。与计划执行确认不同，进入计划模式确认仅提供两个选项：批准进入计划模式，或拒绝并直接开始实现。
 
@@ -296,7 +292,7 @@ _计划执行确认_
 ![进入计划模式确认](/screenshots/spec-enter-plan-mode.png)
 _进入计划模式确认_
 
-### 4.5 错误消息展示 {#error-message-display}
+### 4.6 错误消息展示 {#error-message-display}
 
 当工具执行出错或 AI 返回错误信息时，Wave 会以醒目的方式展示错误内容。为了防止过长的错误消息占据过多屏幕空间，错误消息区域设置了最大高度，并支持内部滚动。
 
@@ -486,24 +482,21 @@ _AI 思考过程_
 
 ## 8. 会话与持久化 {#session-persistence}
 
-### 8.1 会话恢复与多会话 {#mechanism-session-restore}
+### 8.1 对话回滚 (Rewind) {#rewind-feature}
 
-- **Session Restore**：按 `sessionId` 恢复之前的会话历史，或继续最近一次会话（`continueLastSession`）
-- **Session 持久化**：消息以 JSONL 格式存储（每行一个 JSON 对象），包含完整的 block 结构
-- **Session 元数据**：工作目录（`workdir`）、最后活跃时间（`lastActiveAt`）、token 使用统计（`latestTotalTokens`）、首条消息预览（`firstMessage`）
-- **子代理会话**：文件名以 `subagent-` 为前缀，通过 `rootSessionId` / `parentSessionId` 关联主会话
-- **会话链**：压缩后新会话通过 `parentSessionId` 链接到旧会话，可追溯完整历史
-- **过期清理**：14 天以上未活动的会话文件自动清理
+Wave 支持将对话回滚到之前的任意用户消息状态。这不仅会删除该消息及其之后的所有对话记录，还会自动撤销 AI 在这些回合中所做的所有文件更改，并将被回滚的消息内容重新填充到输入框中，方便用户修改后重新发送。
 
-### 8.2 文件修改回滚 (Reversion) {#mechanism-reversion}
+**主要特性：**
 
-Wave 在文件修改前自动拍摄快照，确保所有变更可追溯和可撤销：
+- **悬停触发**：当鼠标悬停在历史记录中的用户消息上时，右上方会出现"回滚"图标。
+- **一键回滚**：点击图标并确认后，系统会自动清理后续消息、恢复文件状态，并将该消息内容回填至输入框。
+- **安全确认**：执行回滚前会弹出二次确认对话框，防止误操作导致数据丢失。
+- **状态同步**：回滚后，任务列表、会话元数据以及输入框内容会自动同步到回滚后的状态。
 
-- AI 执行 Write、Edit 等操作前，自动记录文件快照
-- 通过 **对话回滚 (Rewind)** 功能，可将对话回滚到任意用户消息，并自动撤销 AI 在该消息之后的所有文件更改
-- 回滚前弹出二次确认对话框，防止误操作
+![用户消息上的回滚按钮](/screenshots/spec-rewind-button.png)
+_用户消息上的回滚按钮_
 
-### 8.3 会话管理 {#session-management}
+### 8.2 会话管理 {#session-management}
 
 扩展提供完整的会话管理功能，支持多个对话会话的创建、切换和管理。
 
