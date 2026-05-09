@@ -695,7 +695,17 @@ _会话管理_
 
 ## 10. 记忆系统 {#memory-system}
 
-### 10.1 消息压缩 (Context Management) {#mechanism-context-management}
+### 10.1 AGENTS.md 文件 {#agents-md}
+
+Wave 使用 `AGENTS.md` 文件作为持久化的项目级和用户级指令，帮助 AI 在不同会话间保持一致的行为和上下文：
+
+- **项目级**：`[project-root]/AGENTS.md`，存放在项目根目录，随代码库共享给所有协作者
+- **用户级**：`~/.wave/AGENTS.md`，存放在用户全局目录，跨所有项目生效
+- 内容在每次会话加载时自动注入系统提示词，确保 AI 始终遵循这些指令
+- 与自动记忆系统互补：AGENTS.md 侧重长期稳定的项目指南和约定，自动记忆侧重会话过程中动态积累的项目洞察
+- 自动记忆提取时会避免与 AGENTS.md 内容产生重复
+
+### 10.2 消息压缩 (Context Management) {#mechanism-context-management}
 
 当对话长时间未活动时，Wave 自动执行消息压缩以控制 token 消耗：
 
@@ -705,7 +715,7 @@ _会话管理_
 - 若无 assistant tool 消息或未超时，则不执行任何操作
 - 压缩后创建新会话，通过 `parentSessionId` 链接到旧会话，保持历史可追溯
 
-### 10.2 自动记忆系统 (Auto Memory) {#mechanism-auto-memory}
+### 10.3 自动记忆系统 (Auto Memory) {#mechanism-auto-memory}
 
 Wave 在后台自动维护项目记忆，帮助 AI 持续了解项目演变：
 
@@ -716,7 +726,7 @@ Wave 在后台自动维护项目记忆，帮助 AI 持续了解项目演变：
 - 支持 `autoMemoryEnabled` 开关（默认开启）
 - 记忆文件存储在 `~/.wave/projects/{项目编码}/memory/` 目录，确保 git worktree 间共享同一记忆
 
-### 10.3 记忆规则 (Memory Rules) {#mechanism-memory-rules}
+### 10.4 记忆规则 (Memory Rules) {#mechanism-memory-rules}
 
 记忆规则提供上下文特定的行为指南，确保 AI 在不同场景下遵循预期模式：
 
