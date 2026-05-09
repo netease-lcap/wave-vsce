@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
+import React, { useEffect, useRef, useImperativeHandle, forwardRef, useMemo } from 'react';
 import { Message } from './Message';
 import type { MessageListProps } from '../types';
 import type { Message as MessageType } from 'wave-agent-sdk';
@@ -106,7 +106,7 @@ export const MessageList = forwardRef<{ scrollToBottom: (behavior?: ScrollBehavi
       />
       
       {/* Chat messages - filter out user meta messages */}
-      {(() => {
+      {useMemo(() => {
         // Filter out user messages with isMeta, and build index mapping for streaming detection
         const visibleMessages: MessageType[] = [];
         const originalIndexMap: number[] = [];
@@ -130,7 +130,7 @@ export const MessageList = forwardRef<{ scrollToBottom: (behavior?: ScrollBehavi
             />
           );
         });
-      })()}
+      }, [messages, streamingMessageIndex, vscode, onRewindToMessage])}
       
       {/* Invisible div to scroll to */}
       <div ref={messagesEndRef} />
