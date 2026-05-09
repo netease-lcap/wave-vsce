@@ -70,6 +70,15 @@ export const HistorySearchPopup: React.FC<HistorySearchPopupProps> = ({
     return () => window.removeEventListener('message', handleMessage);
   }, []);
 
+  // Auto-scroll selected item into view when navigation happens
+  useEffect(() => {
+    if (!popupRef.current) return;
+    const selectedItem = popupRef.current.querySelector('.history-search-item.selected');
+    if (selectedItem) {
+      selectedItem.scrollIntoView({ block: 'nearest' });
+    }
+  }, [selectedIndex]);
+
   // Debounced search
   useEffect(() => {
     if (isVisible && query.trim()) {
