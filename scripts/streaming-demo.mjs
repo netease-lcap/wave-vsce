@@ -7,7 +7,7 @@
  * making other callbacks potentially redundant.
  */
 
-const { Agent } = require('wave-agent-sdk');
+import { Agent } from 'wave-agent-sdk';
 
 console.log('🌊 Simplified Streaming Demo - onMessagesChange Only');
 console.log('=====================================================\n');
@@ -124,16 +124,12 @@ function showSimplifiedApproach() {
 }
 
 // Run the demo
-if (require.main === module) {
-    demonstrateSimplifiedStreaming()
-        .then(() => {
-            showSimplifiedApproach();
-            console.log('\n🎉 You\'re right! onMessagesChange has everything we need.');
-        })
-        .catch(error => {
-            console.error('💥 Demo failed:', error);
-            process.exit(1);
-        });
-}
-
-module.exports = { demonstrateSimplifiedStreaming };
+demonstrateSimplifiedStreaming()
+    .then(() => {
+        showSimplifiedApproach();
+        console.log('\n🎉 You\'re right! onMessagesChange has everything we need.');
+    })
+    .catch(error => {
+        console.error('💥 Demo failed:', error);
+        process.exit(1);
+    });
