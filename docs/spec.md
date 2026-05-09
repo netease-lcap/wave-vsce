@@ -453,7 +453,9 @@ _插件市场管理_
 
 ---
 
-## 5. 内置 Settings Skill {#settings-skill}
+## 5. 内置 Skills 与 Subagents {#builtin-skills-subagents}
+
+### 5.1 Settings Skill {#settings-skill}
 
 Wave 提供了一个强大的内置 `/settings` skill，作为用户与 Wave 配置系统交互的自然语言入口。用户无需手动编辑配置文件，只需用自然语言描述需求，AI 即可帮助查看、修改和引导配置。
 
@@ -463,7 +465,7 @@ Wave 提供了一个强大的内置 `/settings` skill，作为用户与 Wave 配
 - **三级作用域**：配置支持用户级（`~/.wave/settings.json`）、项目级（`.wave/settings.json`）和本地级（`.wave/settings.local.json`）。
 - **热加载**：所有配置修改立即生效，无需重启 Wave。
 
-### 5.1 settings.json 配置中心 {#settings-json}
+#### settings.json 配置中心 {#settings-json}
 
 `settings.json` 是 Wave 的中央配置文件，支持自定义钩子、环境变量、工具权限等功能。
 
@@ -473,7 +475,7 @@ Wave 提供了一个强大的内置 `/settings` skill，作为用户与 Wave 配
 - "帮我在项目级设置里开启自动记忆"
 - "用本地配置文件覆盖某个全局设置"
 
-### 5.2 钩子 (Hooks) {#settings-hooks}
+#### 钩子 (Hooks) {#settings-hooks}
 
 钩子允许在特定事件发生时自动执行任务，实现工作流自动化。Wave 支持以下 7 种钩子事件：
 
@@ -505,7 +507,7 @@ Wave 提供了一个强大的内置 `/settings` skill，作为用户与 Wave 配
 - "每次用户提交 Prompt 时记录到日志文件"
 - "给 Bash 工具的权限请求添加异步日志 hook"
 
-### 5.3 环境变量 {#settings-env}
+#### 环境变量 {#settings-env}
 
 通过 `env` 字段设置对所有工具和钩子可用的环境变量。常用 `WAVE_*` 变量包括：
 
@@ -519,7 +521,7 @@ Wave 提供了一个强大的内置 `/settings` skill，作为用户与 Wave 配
 - "把最大输出 tokens 调到 4096"
 - "添加一个自定义环境变量 NODE_ENV=development"
 
-### 5.4 工具权限 {#settings-permissions}
+#### 工具权限 {#settings-permissions}
 
 管理工具权限并定义"安全区域"（Safe Zone），支持 `allow`、`deny` 列表以及 `permissionMode` 配置。权限修改立即生效。
 
@@ -529,7 +531,7 @@ Wave 提供了一个强大的内置 `/settings` skill，作为用户与 Wave 配
 - "允许 Read 和 Bash 工具无需确认"
 - "扩展安全区域，把 /tmp/wave-exports 目录加进去"
 
-### 5.5 模型配置 {#settings-models}
+#### 模型配置 {#settings-models}
 
 在 `models` 字段中定义 AI 模型及其专属参数（如 `temperature`、`reasoning_effort`、`thinking`），灵活适配不同模型的行为。
 
@@ -539,7 +541,7 @@ Wave 提供了一个强大的内置 `/settings` skill，作为用户与 Wave 配
 - "把 o3-mini 的推理强度设为 high"
 - "帮我查看当前有哪些模型配置"
 
-### 5.6 MCP 协议 {#settings-mcp}
+#### MCP 协议 {#settings-mcp}
 
 配置外部 MCP 服务器连接，为 AI 提供额外的工具和上下文能力。支持两种连接方式：
 
@@ -555,7 +557,7 @@ Wave 提供了一个强大的内置 `/settings` skill，作为用户与 Wave 配
 - "帮我查看当前配置了哪些 MCP 服务器"
 - "移除某个不再使用的 MCP 连接"
 
-### 5.7 记忆规则 {#settings-memory}
+#### 记忆规则 {#settings-memory}
 
 为 Agent 提供上下文特定的指令和指南，确保 AI 在不同场景下遵循预期的行为模式。
 
@@ -565,7 +567,7 @@ Wave 提供了一个强大的内置 `/settings` skill，作为用户与 Wave 配
 - "帮我查看当前的记忆规则有哪些"
 - "删除那条关于代码风格的记忆"
 
-### 5.8 自定义 Skill {#settings-skills}
+#### 自定义 Skill {#settings-skills}
 
 创建自定义 skill 以扩展 Wave 功能，处理特定复杂任务。用户可通过 `/settings 帮我写个skill，具体做xxx` 快速创建。
 
@@ -575,7 +577,7 @@ Wave 提供了一个强大的内置 `/settings` skill，作为用户与 Wave 配
 - "创建一个 skill，用于定期生成项目文档"
 - "列出我所有的自定义 skill"
 
-### 5.9 子代理 {#settings-subagents}
+#### 子代理 {#settings-subagents}
 
 定义专用的 AI 个性代理，将特定任务委托给专业化的子代理执行。
 
@@ -585,7 +587,7 @@ Wave 提供了一个强大的内置 `/settings` skill，作为用户与 Wave 配
 - "定义一个专注于前端 UI 设计的子代理"
 - "帮我查看所有已配置的子代理"
 
-### 5.10 插件配置 {#settings-plugins}
+#### 插件配置 {#settings-plugins}
 
 通过 `enabledPlugins` 启用或禁用插件。插件的 skill、hook、MCP 和 LSP 服务器可使用 `${WAVE_PLUGIN_ROOT}` 占位符引用其父插件目录。
 
@@ -595,7 +597,7 @@ Wave 提供了一个强大的内置 `/settings` skill，作为用户与 Wave 配
 - "帮我查看所有已启用的插件"
 - "在插件的 hook 中使用 ${WAVE_PLUGIN_ROOT} 引用插件目录"
 
-### 5.11 其他设置 {#settings-other}
+#### 其他设置 {#settings-other}
 
 - `language`：AI 通信首选语言（如 `"zh"`、`"en"`）。
 - `autoMemoryEnabled`：启用或禁用自动记忆（默认：`true`）。
@@ -606,6 +608,61 @@ Wave 提供了一个强大的内置 `/settings` skill，作为用户与 Wave 配
 - "把 AI 回复语言改为英文"
 - "关闭自动记忆功能"
 - "调整自动记忆的触发频率"
+
+### 5.2 其他内置 Skills {#other-builtin-skills}
+
+#### init — 代码库初始化 {#skill-init}
+
+分析代码库并创建 `AGENTS.md` 文件，为后续 Agent 会话提供项目上下文指引。
+
+- **名称**: `init`
+- **特性**: 不会被 AI 自动调用，需用户通过 `/init` 手动触发
+
+#### loop — 定时循环任务 {#skill-loop}
+
+按指定间隔重复执行提示词或斜杠命令。
+
+- **名称**: `loop`
+- **使用方式**: `/loop [interval] <prompt>`
+- **间隔格式**: `Ns`, `Nm`, `Nh`, `Nd`（如 `5m`, `30m`, `2h`, `1d`），最小粒度为 1 分钟，默认 10 分钟
+
+**示例**:
+- `/loop 5m /babysit-prs` — 每 5 分钟执行 `/babysit-prs`
+- `/loop 30m check the deploy` — 每 30 分钟检查部署
+- `/loop check the deploy` — 默认每 10 分钟执行
+
+循环任务 7 天后自动过期，可通过 `CronDelete` 提前取消。
+
+### 5.3 内置 Subagents {#builtin-subagents}
+
+#### Bash — 命令执行 {#subagent-bash}
+
+专门用于执行 bash 命令的代理，适用于 git 操作、命令执行、终端任务等。
+
+- **工具**: `[Bash]`
+- **模型**: 继承主代理模型
+
+#### Explore — 代码库探索 {#subagent-explore}
+
+快速探索代码库的文件搜索专家，支持三种细致程度：`quick`、`medium`、`very thorough`。
+
+- **工具**: `[Glob, Grep, Read, Bash, LSP]`
+- **模型**: 快速模型（fastModel）
+- **模式**: 只读，禁止任何文件修改操作
+
+#### Plan — 软件架构师 {#subagent-plan}
+
+设计实现方案的软件架构师代理，返回分步策略、识别关键文件、考虑架构权衡。
+
+- **工具**: `[Glob, Grep, Read, Bash, LSP]`
+- **模型**: 继承主代理模型
+- **模式**: 只读，禁止任何文件修改操作
+
+#### General-Purpose 代理 {#subagent-general-purpose}
+
+用于研究复杂问题、搜索代码和执行多步骤任务的通用代理。
+
+- **模型**: 继承主代理模型
 
 ---
 
