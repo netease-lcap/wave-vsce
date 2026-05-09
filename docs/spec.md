@@ -125,7 +125,7 @@ _消息列表中的内联标签_
 
 ### 2.4 权限模式管理 {#permission-modes}
 
-Wave 代码智聊 提供三种权限管理模式，用户可以根据需要灵活切换：
+Wave 代码智聊 提供五种权限管理模式，用户可以根据需要灵活切换：
 
 #### 默认模式（修改前询问）
 
@@ -148,8 +148,16 @@ _权限模式 - 计划模式_
 
 计划模式是一种特殊的工作模式，AI 只能修改计划文件（通常是 `.wave/plans/` 目录下的文件），用于协作制定和完善开发计划，而不会直接修改项目代码。这种模式特别适合项目规划阶段。
 
+#### 完全跳过权限模式（bypassPermissions）
+
+最高权限模式，完全跳过所有权限检查，所有工具无需确认直接执行。仅在完全受控环境中使用。
+
+#### 安全区域（Safe Zone）
+
+用户可通过 `settings.json` 中的 `permissions.additionalDirectories` 配置，将额外目录纳入安全区域。在安全区域内的文件操作可被自动接受，无需逐次确认。
+
 **特点**：
-- 下拉切换：点击输入框左下角的权限模式按钮即可弹出下拉菜单切换三种模式
+- 下拉切换：点击输入框左下角的权限模式按钮即可弹出下拉菜单切换模式
 - 视觉区分：每种模式都有不同的图标和颜色标识
 - 实时生效：切换后立即应用到当前会话中
 
@@ -384,9 +392,247 @@ _后台任务通知_
 
 ---
 
-## 4. 会话与配置管理 {#session-config-management}
+## 4. 完整工具清单 {#complete-tool-reference}
 
-### 4.1 会话管理 {#session-management}
+Wave 提供 19 个内置工具，涵盖代码探索、文件操作、任务管理、网页抓取和定时任务等能力。每个工具在执行时以工具块形式展示，标题栏显示关键参数（Compact Parameters）。
+
+### 4.1 Bash — 终端命令执行
+
+| 参数 | 类型 | 说明 |
+|------|------|------|
+| `command` | string | 必需，要执行的命令 |
+| `timeout` | number | 超时时间（秒） |
+| `description` | string | 命令描述 |
+| `run_in_background` | boolean | 是否后台执行 |
+
+执行后显示 `shortResult`（输出最后 3 行摘要）。后台执行时返回任务 ID，可通过任务通知查看结果。
+
+### 4.2 Read — 读取文件
+
+| 参数 | 类型 | 说明 |
+|------|------|------|
+| `file_path` | string | 必需，文件路径 |
+| `offset` | number | 起始行号（默认 1） |
+| `limit` | number | 最大读取行数（默认 2000） |
+
+**特性**：支持图片读取（PNG/JPEG/GIF/WebP），自动检测二进制文档（PDF/DOCX 等返回错误提示），超长行自动截断（2000 字符）。对未变更的文件返回 "File unchanged" 避免重复内容。
+
+Compact Parameters 格式：`src/main.ts 1:2000`
+
+### 4.3 Glob — 文件名模式匹配
+
+| 参数 | 类型 | 说明 |
+|------|------|------|
+| `pattern` | string | 必需，glob 模式（如 `**/*.ts`） |
+| `path` | string | 搜索根目录 |
+| `limit` | number | 最大返回数量（默认 100） |
+
+Compact Parameters 格式：`src/**/*.ts in src`
+
+### 4.4 Grep — 文本内容搜索
+
+| 参数 | 类型 | 说明 |
+|------|------|------|
+| `pattern` | string | 必需，正则表达式 |
+| `path` | string | 搜索目录 |
+| `glob` | string | 文件过滤模式（如 `*.ts`） |
+| `type` | string | 文件类型（如 `ts`、`py`） |
+| `output_mode` | string | `content`（显示内容）、`files_with_matches`（仅文件名）、`count`（计数） |
+| `-A/-B/-C` | number | 匹配后/前/前后上下文行数 |
+| `-i` | boolean | 大小写无关搜索 |
+| `head_limit` | number | 限制输出行数 |
+| `multiline` | boolean | 多行匹配模式 |
+
+Compact Parameters 格式：`interface.*API ts in src`
+
+### 4.5 Write — 写入文件
+
+| 参数 | 类型 | 说明 |
+|------|------|------|
+| `file_path` | string | 必需，文件路径 |
+| `content` | string | 必需，写入内容 |
+
+**规则**：写入已存在文件前必须先 Read 确认当前内容；自动创建不存在的父目录。
+
+Compact Parameters 格式：`src/new-file.ts 1 lines, 29 chars`
+
+### 4.6 Edit — 精确字符串替换
+
+| 参数 | 类型 | 说明 |
+|------|------|------|
+| `file_path` | string | 必需，文件路径 |
+| `old_string` | string | 必需，要替换的原文 |
+| `new_string` | string | 必需，替换后的新文 |
+| `replace_all` | boolean | 是否批量替换所有匹配项 |
+
+**规则**：非 `replace_all` 时若 `old_string` 在文件中出现多次则报错，提示提供更多上下文或使用 `replace_all=true`。
+
+### 4.7 LSP — 代码智能
+
+支持操作：`goToDefinition`（查找定义）、`findReferences`（查找引用）、`hover`（悬停信息）、`documentSymbol`（文档符号）、`workspaceSymbol`（全局符号搜索）、`goToImplementation`（查找实现）、`prepareCallHierarchy`/`incomingCalls`/`outgoingCalls`（调用层级分析）。
+
+Compact Parameters 格式：`goToDefinition src/main.ts:10:5`
+
+### 4.8 AskUserQuestion — 交互式提问
+
+| 参数 | 类型 | 说明 |
+|------|------|------|
+| `questions` | array | 必需，问题列表 |
+| `questions[].question` | string | 问题内容 |
+| `questions[].header` | string | 简短标签（最多 12 字符） |
+| `questions[].options` | array | 选项列表（2-4 个），每项含 `label` 和可选 `description` |
+| `questions[].multiSelect` | boolean | 是否允许多选 |
+
+### 4.9 WebFetch — 网页内容抓取
+
+| 参数 | 类型 | 说明 |
+|------|------|------|
+| `url` | string | 必需，要抓取的 URL |
+| `prompt` | string | 必需，对抓取内容的处理指令 |
+
+**特性**：内置 15 分钟 LRU 缓存（最大 50MB），自动将 HTTP 升级为 HTTPS，HTML 自动转 Markdown，使用快速模型处理摘要。内容上限 100K 字符。GitHub URL 提示使用 `gh` CLI。跨域重定向自动拦截并提示。
+
+### 4.10 ToolSearch — 延迟加载工具发现
+
+| 参数 | 类型 | 说明 |
+|------|------|------|
+| `query` | string | 必需，搜索查询 |
+| `max_results` | number | 最大返回数量（默认 5） |
+
+**查询格式**：
+- `select:ToolName` — 按名称精确匹配（逗号分隔多个）
+- `notebook jupyter` — 关键词搜索
+- `+slack send` — `+` 前缀表示必需匹配项
+
+用于发现延迟加载工具（deferred tools）的完整 schema，获取后即可调用。
+
+### 4.11 EnterWorktree / ExitWorktree — Git Worktree 隔离
+
+**EnterWorktree 参数**：
+
+| 参数 | 类型 | 说明 |
+|------|------|------|
+| `name` | string | worktree 名称（可选，自动生成） |
+
+**特性**：在 `.wave/worktrees/` 下创建独立分支工作区。要求当前在 git 仓库且不在已有 worktree 中。
+
+**ExitWorktree 参数**：
+
+| 参数 | 类型 | 说明 |
+|------|------|------|
+| `keep` | boolean | 是否保留 worktree（默认 false） |
+| `discard_changes` | boolean | 是否丢弃未提交更改（`keep=false` 时若存在未提交内容需确认） |
+
+### 4.12 CronCreate / CronDelete / CronList — 定时任务
+
+**CronCreate 参数**：
+
+| 参数 | 类型 | 说明 |
+|------|------|------|
+| `cron` | string | 必需，5 字段 cron 表达式（本地时区） |
+| `prompt` | string | 必需，要执行的内容 |
+| `recurring` | boolean | 是否循环（默认 true） |
+
+**CronDelete 参数**：`id` — 任务 ID
+**CronList 参数**：无
+
+**限制**：最多 50 个任务，循环任务 7 天自动过期。
+
+### 4.13 TaskCreate / TaskGet / TaskUpdate / TaskList — 任务管理
+
+**TaskCreate 参数**：
+
+| 参数 | 类型 | 说明 |
+|------|------|------|
+| `subject` | string | 必需，任务主题 |
+| `description` | string | 任务描述 |
+| `status` | string | 初始状态（默认 `pending`） |
+| `activeForm` | string | 进行中的动词形式（如 "正在编写测试"） |
+| `owner` | string | 负责人 |
+| `blocks` | string[] | 被此任务阻塞的任务 ID 列表 |
+| `blockedBy` | string[] | 阻塞此任务的任务 ID 列表 |
+
+**TaskUpdate 参数**：`id`（必需）、`subject`、`description`、`status`（`pending`→`in_progress`→`completed`→`deleted`）、`blocks`/`blockedBy`。状态变更时自动清理双向依赖。
+
+**TaskList 参数**：`status` — 按状态过滤
+**TaskGet 参数**：`id` — 获取单个任务详情
+
+### 4.14 TaskStop — 中止后台任务
+
+| 参数 | 类型 | 说明 |
+|------|------|------|
+| `task_id` | string | 必需，要中止的后台任务 ID |
+
+---
+
+## 5. 核心机制 {#core-mechanisms}
+
+### 5.1 消息压缩 (Context Management)
+
+当对话长时间未活动时，Wave 自动执行消息压缩以控制 token 消耗：
+
+- 检测所有 assistant 消息中最近的已完成 tool block 时间戳
+- 若距今超过阈值，则清理旧的工具调用结果
+- 仅保留最近若干条工具结果，被清理的结果替换为 `[Old tool result content cleared]`
+- 若无 assistant tool 消息或未超时，则不执行任何操作
+- 压缩后创建新会话，通过 `parentSessionId` 链接到旧会话，保持历史可追溯
+
+### 5.2 自动记忆系统 (Auto Memory)
+
+Wave 在后台自动维护项目记忆，帮助 AI 持续了解项目演变：
+
+- 每 N 轮对话触发一次记忆提取（`autoMemoryFrequency` 配置，默认每 1 轮）
+- 使用 `general-purpose` 子代理在后台异步执行，不影响主对话
+- 自动检测 AI 是否已手动更新 `.wave/memory/` 目录下的文件，若有则跳过避免重复
+- 提取代理仅允许写入 `.wave/memory/` 目录，使用快速模型，最多 5 轮，越权写入自动拒绝
+- 支持 `autoMemoryEnabled` 开关（默认开启）
+- 记忆文件存储在 `~/.wave/projects/{项目编码}/memory/` 目录，确保 git worktree 间共享同一记忆
+
+### 5.3 记忆规则 (Memory Rules)
+
+记忆规则提供上下文特定的行为指南，确保 AI 在不同场景下遵循预期模式：
+
+- 存放在 `.wave/rules/` 目录下的多个独立 `.md` 文件（项目级）和 `~/.wave/rules/`（用户级）
+- 支持子目录递归扫描和符号链接跟随
+- 每个文件是一个独立规则，支持 YAML frontmatter：
+  - `paths`：glob 模式数组，仅当相关文件在上下文中时规则才激活（空则始终激活）
+  - `priority`：优先级数字，控制冲突时的覆盖顺序
+- 项目规则可覆盖用户规则
+
+### 5.4 后台任务系统
+
+Wave 支持前台和后台两种任务执行模式：
+
+- **Foreground Task**：前台执行的任务（如正在进行的 Bash 命令），用户可将其退化为后台
+- **Background Task**：后台执行的任务，包括：
+  - `shell` 类型：后台 Bash 命令（`run_in_background: true`）
+  - `subagent` 类型：后台子代理
+  - 状态流转：`running` → `completed` / `failed` / `killed`
+- **Notification Queue**：后台任务完成后自动将通知注入聊天消息，显示任务状态和结果摘要
+- 支持 `TaskStop` 工具通过 `task_id` 中止指定后台任务
+
+### 5.5 会话恢复与多会话
+
+- **Session Restore**：按 `sessionId` 恢复之前的会话历史，或继续最近一次会话（`continueLastSession`）
+- **Session 持久化**：消息以 JSONL 格式存储（每行一个 JSON 对象），包含完整的 block 结构
+- **Session 元数据**：工作目录（`workdir`）、最后活跃时间（`lastActiveAt`）、token 使用统计（`latestTotalTokens`）、首条消息预览（`firstMessage`）
+- **子代理会话**：文件名以 `subagent-` 为前缀，通过 `rootSessionId` / `parentSessionId` 关联主会话
+- **会话链**：压缩后新会话通过 `parentSessionId` 链接到旧会话，可追溯完整历史
+- **过期清理**：14 天以上未活动的会话文件自动清理
+
+### 5.6 文件修改回滚 (Reversion)
+
+Wave 在文件修改前自动拍摄快照，确保所有变更可追溯和可撤销：
+
+- AI 执行 Write、Edit 等操作前，自动记录文件快照
+- 通过 **对话回滚 (Rewind)** 功能，可将对话回滚到任意用户消息，并自动撤销 AI 在该消息之后的所有文件更改
+- 回滚前弹出二次确认对话框，防止误操作
+
+---
+
+## 6. 会话与配置管理 {#session-config-management}
+
+### 6.1 会话管理 {#session-management}
 
 扩展提供完整的会话管理功能，支持多个对话会话的创建、切换和管理。
 
@@ -401,21 +647,21 @@ _后台任务通知_
 ![会话管理](/screenshots/spec-sessions.png)
 _会话管理_
 
-### 4.2 配置设置 {#configuration-settings}
+### 6.2 配置设置 {#configuration-settings}
 
 用户可以自定义 AI 模型、API Key、Base URL 等关键参数，以适配不同的 AI 服务提供商。
 
 ![配置设置](/screenshots/spec-configuration.png)
 _配置设置_
 
-### 4.3 语言设置 {#language-settings}
+### 6.3 语言设置 {#language-settings}
 
 用户可以在配置界面中选择偏好的语言（中文或英文），AI 代理将根据该设置使用相应的语言进行回复。
 
 ![语言设置](/screenshots/language-config-ui.png)
 _语言设置_
 
-### 4.4 插件管理 {#plugin-management}
+### 6.4 插件管理 {#plugin-management}
 
 Wave 支持通过插件系统扩展功能，用户可以在配置界面中管理插件的安装、更新和卸载。
 
@@ -427,7 +673,7 @@ Wave 支持通过插件系统扩展功能，用户可以在配置界面中管理
 - **插件更新**：支持对已安装的插件进行更新，确保使用最新版本的功能。
 - **插件市场管理**：添加、更新和移除插件市场源（支持 GitHub 仓库、本地路径等）。
 
-#### 4.4.1 探索新插件 {#explore-plugins}
+#### 6.4.1 探索新插件 {#explore-plugins}
 
 在"探索新插件"标签页中，用户可以通过顶部的搜索框按关键词过滤插件列表。搜索支持对插件名称和描述进行不区分大小写的匹配。对于尚未在当前环境激活的插件，用户可以选择安装作用域后点击"安装"按钮。已安装但未在当前作用域激活的插件也会在此列出，并带有"已安装"标识。
 
@@ -437,14 +683,14 @@ _探索新插件（支持关键词搜索）_
 ![关键词过滤效果](/screenshots/plugin-search-filtered.png)
 _关键词过滤效果_
 
-#### 4.4.2 已激活插件 {#installed-plugins}
+#### 6.4.2 已激活插件 {#installed-plugins}
 
 在"已激活插件"标签页中，用户可以查看当前作用域下所有已激活的插件。用户可以对这些插件进行"更新"或"卸载"操作。每个插件会显示其激活的作用域（User、Project 或 Local）。
 
 ![已激活插件管理](/screenshots/spec-plugin-installed.png)
 _已激活插件管理_
 
-#### 4.4.3 插件市场 {#plugin-marketplaces}
+#### 6.4.3 插件市场 {#plugin-marketplaces}
 
 在"插件市场"标签页中，用户可以添加自定义的插件市场源，支持 GitHub 仓库（owner/repo 格式）、Git URL 或本地文件路径。添加后可以从该市场源安装插件，也可以更新或移除市场源。
 
@@ -453,9 +699,9 @@ _插件市场管理_
 
 ---
 
-## 5. 内置 Skills 与 Subagents {#builtin-skills-subagents}
+## 7. 内置 Skills 与 Subagents {#builtin-skills-subagents}
 
-### 5.1 Settings Skill {#settings-skill}
+### 7.1 Settings Skill {#settings-skill}
 
 Wave 提供了一个强大的内置 `/settings` skill，作为用户与 Wave 配置系统交互的自然语言入口。用户无需手动编辑配置文件，只需用自然语言描述需求，AI 即可帮助查看、修改和引导配置。
 
@@ -488,6 +734,9 @@ Wave 提供了一个强大的内置 `/settings` skill，作为用户与 Wave 配
 | `Stop` | Wave 完成响应周期（无更多工具调用）时 |
 | `SubagentStop` | 子代理完成响应周期时 |
 | `WorktreeCreate` | 创建新 worktree 时 |
+| `WorktreeRemove` | 离开或删除 worktree 时 |
+| `SessionStart` | 会话开始时（来源：`startup` 启动 / `resume` 恢复 / `compact` 压缩后新会话） |
+| `SessionEnd` | 会话结束时（来源：`exit` 退出 / `stop` 中止 / `compact` 压缩） |
 
 **钩子配置要点：**
 
@@ -533,13 +782,29 @@ Wave 提供了一个强大的内置 `/settings` skill，作为用户与 Wave 配
 
 #### 模型配置 {#settings-models}
 
-在 `models` 字段中定义 AI 模型及其专属参数（如 `temperature`、`reasoning_effort`、`thinking`），灵活适配不同模型的行为。
+在 `models` 字段中定义 AI 模型及其专属参数，支持任意模型参数（以下为常见示例）：
+
+- `temperature`：控制输出的随机性
+- `reasoning_effort`：推理强度（`low`/`medium`/`high`），适用于支持推理的模型
+- `thinking`：是否开启思考模式及预算 tokens，如 `{"type": "enabled", "budget_tokens": 2048}`
+
+此外还支持 `fastModel` 配置，用于子代理（Explore）和网页抓取摘要等轻量场景，可通过 `WAVE_FAST_MODEL` 环境变量设置。
 
 **使用示例：**
 
 - "给 claude-3-7-sonnet 开启 thinking，预算设为 2048 tokens"
 - "把 o3-mini 的推理强度设为 high"
 - "帮我查看当前有哪些模型配置"
+- "设置快速模型为 claude-3-5-haiku"
+
+#### Prompt 缓存 {#settings-prompt-cache}
+
+SDK 默认对名称包含 `claude` 的模型自动启用 Prompt Cache（提示词缓存），通过在消息内容中插入 `ephemeral` 缓存标记来复用上下文，降低 API 调用成本。
+
+对于其他支持 Prompt Cache 的模型（如 qwen3.6-plus 等），可通过设置环境变量 `WAVE_PROMPT_CACHE_REGEX` 来匹配模型名称，例如：
+
+- `WAVE_PROMPT_CACHE_REGEX="qwen"` — 匹配 qwen 系列模型
+- `WAVE_PROMPT_CACHE_REGEX="(qwen|claude)"` — 同时匹配 qwen 和 claude
 
 #### MCP 协议 {#settings-mcp}
 
@@ -609,7 +874,7 @@ Wave 提供了一个强大的内置 `/settings` skill，作为用户与 Wave 配
 - "关闭自动记忆功能"
 - "调整自动记忆的触发频率"
 
-### 5.2 其他内置 Skills {#other-builtin-skills}
+### 7.2 其他内置 Skills {#other-builtin-skills}
 
 #### init — 代码库初始化 {#skill-init}
 
@@ -631,9 +896,14 @@ Wave 提供了一个强大的内置 `/settings` skill，作为用户与 Wave 配
 - `/loop 30m check the deploy` — 每 30 分钟检查部署
 - `/loop check the deploy` — 默认每 10 分钟执行
 
-循环任务 7 天后自动过期，可通过 `CronDelete` 提前取消。
+**底层工具**：由 `CronCreate`、`CronDelete`、`CronList` 三个工具实现：
+- `CronCreate`：创建定时任务，支持 5 字段 cron 表达式（本地时区）、recurring（循环，默认）和一次性（`recurring: false`）任务
+- `CronDelete`：按 `id` 删除指定定时任务
+- `CronList`：列出所有已注册的定时任务
 
-### 5.3 内置 Subagents {#builtin-subagents}
+**限制**：循环任务 7 天后自动过期；最多支持 50 个定时任务。
+
+### 7.3 内置 Subagents {#builtin-subagents}
 
 #### Bash — 命令执行 {#subagent-bash}
 
