@@ -3,13 +3,13 @@ import * as path from 'path';
 
 export interface WebviewManagerCallbacks {
     onMessage: (message: any, viewType: 'sidebar' | 'tab' | 'window', windowId?: string) => Promise<void>;
-    onTabDispose: () => void;
+    onTabDispose: (tabId: string) => void;
     onWindowDispose: (windowId: string) => void;
 }
 
 export class WebviewManager {
     private sidebarView: vscode.WebviewView | undefined;
-    private tabPanel: vscode.WebviewPanel | undefined;
+    private tabPanels: Map<string, vscode.WebviewPanel> = new Map();
     private windowPanels: Map<string, vscode.WebviewPanel> = new Map();
     private context: vscode.ExtensionContext;
     private callbacks: WebviewManagerCallbacks;
@@ -28,8 +28,8 @@ export class WebviewManager {
         return this.sidebarView;
     }
 
-    public createTabPanel(viewType: string, title: string, column: vscode.ViewColumn): vscode.WebviewPanel {
-        this.tabPanel = vscode.window.createWebviewPanel(
+    public createTabPanel(viewType: string, title: string, tabId: string, column: vscode.ViewColumn): vscode.WebviewPanel {
+        const panel = vscode.window.createWebviewPanel(
             viewType,
             title,
             {
@@ -43,18 +43,23 @@ export class WebviewManager {
             }
         );
 
-        this.setupWebview(this.tabPanel.webview, 'tab');
+        this.tabPanels.set(tabId, panel);
+        this.setupWebview(panel.webview, 'tab', tabId);
 
-        this.tabPanel.onDidDispose(() => {
-            this.tabPanel = undefined;
-            this.callbacks.onTabDispose();
+        panel.onDidDispose(() => {
+            this.tabPanels.delete(tabId);
+            this.callbacks.onTabDispose(tabId);
         });
 
-        return this.tabPanel;
+        return panel;
     }
 
-    public getTabPanel(): vscode.WebviewPanel | undefined {
-        return this.tabPanel;
+    public getTabPanel(tabId: string): vscode.WebviewPanel | undefined {
+        return this.tabPanels.get(tabId);
+    }
+
+    public getAllTabPanels(): Map<string, vscode.WebviewPanel> {
+        return this.tabPanels;
     }
 
     public createWindowPanel(viewType: string, title: string, windowId: string): vscode.WebviewPanel {
@@ -105,8 +110,11 @@ export class WebviewManager {
         if (viewType) {
             if (viewType === 'sidebar' && this.sidebarView) {
                 this.sidebarView.webview.postMessage(message);
-            } else if (viewType === 'tab' && this.tabPanel) {
-                this.tabPanel.webview.postMessage(message);
+            } else if (viewType === 'tab' && windowId) {
+                const panel = this.tabPanels.get(windowId);
+                if (panel) {
+                    panel.webview.postMessage(message);
+                }
             } else if (viewType === 'window' && windowId) {
                 const panel = this.windowPanels.get(windowId);
                 if (panel) {
@@ -120,9 +128,7 @@ export class WebviewManager {
         if (this.sidebarView) {
             this.sidebarView.webview.postMessage(message);
         }
-        if (this.tabPanel) {
-            this.tabPanel.webview.postMessage(message);
-        }
+        this.tabPanels.forEach(panel => panel.webview.postMessage(message));
         this.windowPanels.forEach(panel => panel.webview.postMessage(message));
     }
 
@@ -151,9 +157,8 @@ export class WebviewManager {
     }
 
     public dispose() {
-        if (this.tabPanel) {
-            this.tabPanel.dispose();
-        }
+        this.tabPanels.forEach(panel => panel.dispose());
+        this.tabPanels.clear();
         this.windowPanels.forEach(panel => panel.dispose());
         this.windowPanels.clear();
     }

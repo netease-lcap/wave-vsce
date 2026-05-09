@@ -22,7 +22,7 @@ export class ChatProvider implements vscode.WebviewViewProvider {
     private context: vscode.ExtensionContext;
     
     private sidebarSession: ChatSession;
-    private tabSession: ChatSession;
+    private tabSessions: Map<string, ChatSession> = new Map();
     private windowSessions: Map<string, ChatSession> = new Map();
 
     private configService: ConfigurationService;
@@ -45,9 +45,14 @@ export class ChatProvider implements vscode.WebviewViewProvider {
             onMessage: async (message, viewType, windowId) => {
                 await this.messageHandler.handleMessage(message, viewType, windowId);
             },
-            onTabDispose: () => {
-                console.log('标签页面板被关闭 - 销毁 agent 和清理资源');
-                this.tabSession.destroy();
+            onTabDispose: (tabId) => {
+                console.log(`标签页面板被关闭 - 销毁 agent 和清理资源，TabID: ${tabId}`);
+                const session = this.tabSessions.get(tabId);
+                if (session) {
+                    session.destroy().then(() => {
+                        this.tabSessions.delete(tabId);
+                    });
+                }
             },
             onWindowDispose: (windowId) => {
                 console.log(`窗口面板被关闭 - 销毁 agent 和清理资源，窗口ID: ${windowId}`);
@@ -72,14 +77,13 @@ export class ChatProvider implements vscode.WebviewViewProvider {
                 listSessions: (viewType, windowId) => this.listSessions(viewType, windowId),
                 updateAllSessionsConfig: (config) => {
                     this.sidebarSession.updateConfig(config, this.context.extensionMode);
-                    this.tabSession.updateConfig(config, this.context.extensionMode);
+                    this.tabSessions.forEach(session => session.updateConfig(config, this.context.extensionMode));
                     this.windowSessions.forEach(session => session.updateConfig(config, this.context.extensionMode));
                 }
             }
         );
 
         this.sidebarSession = this.createChatSession('sidebar');
-        this.tabSession = this.createChatSession('tab');
 
         console.log('创建了 ChatProvider');
         
@@ -197,8 +201,11 @@ export class ChatProvider implements vscode.WebviewViewProvider {
     private getChatSession(viewType: 'sidebar' | 'tab' | 'window', windowId?: string): ChatSession {
         if (viewType === 'sidebar') {
             return this.sidebarSession;
-        } else if (viewType === 'tab') {
-            return this.tabSession;
+        } else if (viewType === 'tab' && windowId) {
+            if (!this.tabSessions.has(windowId)) {
+                this.tabSessions.set(windowId, this.createChatSession('tab', windowId));
+            }
+            return this.tabSessions.get(windowId)!;
         } else if (viewType === 'window' && windowId) {
             if (!this.windowSessions.has(windowId)) {
                 this.windowSessions.set(windowId, this.createChatSession('window', windowId));
@@ -229,13 +236,16 @@ export class ChatProvider implements vscode.WebviewViewProvider {
             }
         }
 
-        // 2. Check for tab panel
-        const tabPanel = this.webviewManager.getTabPanel();
-        if (tabPanel) {
-            console.log('聚焦标签页视图');
-            tabPanel.reveal(vscode.ViewColumn.Active);
-            tabPanel.webview.postMessage({ command: 'focusInput' });
-            return;
+        // 2. Check for tab panels
+        const tabPanels = this.webviewManager.getAllTabPanels();
+        if (tabPanels.size > 0) {
+            const tabPanel = tabPanels.values().next().value;
+            if (tabPanel) {
+                console.log('聚焦标签页视图');
+                tabPanel.reveal(vscode.ViewColumn.Active);
+                tabPanel.webview.postMessage({ command: 'focusInput' });
+                return;
+            }
         }
 
         // 3. Check for sidebar
@@ -252,12 +262,6 @@ export class ChatProvider implements vscode.WebviewViewProvider {
         // 4. No views are open, create a new tab view
         console.log('未找到活动视图，创建新的标签页视图');
         await this.createOrShowChatPanel('tab');
-        setTimeout(() => {
-            const panel = this.webviewManager.getTabPanel();
-            if (panel) {
-                panel.webview.postMessage({ command: 'focusInput' });
-            }
-        }, 100);
     }
 
 
@@ -288,24 +292,13 @@ export class ChatProvider implements vscode.WebviewViewProvider {
             return;
         }
 
-        if (!this.tabSession.agent) {
-            await this.initializeAgent('tab');
-        }
-
+        // Tab mode: always create a new tab
+        const tabId = `tab_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
         const columnToShowIn = vscode.window.activeTextEditor
             ? vscode.window.activeTextEditor.viewColumn
             : undefined;
-
-        const tabPanel = this.webviewManager.getTabPanel();
-        if (tabPanel) {
-            tabPanel.reveal(columnToShowIn);
-        } else {
-            this.webviewManager.createTabPanel(
-                ChatProvider.viewType,
-                'Wave - 代码智聊',
-                columnToShowIn || vscode.ViewColumn.One
-            );
-        }
+        this.webviewManager.createTabPanel(ChatProvider.viewType, 'Wave - 代码智聊', tabId, columnToShowIn || vscode.ViewColumn.One);
+        await this.initializeAgent('tab', tabId);
     }
 
     private async listSessions(viewType?: 'sidebar' | 'tab' | 'window', windowId?: string) {
@@ -404,7 +397,10 @@ export class ChatProvider implements vscode.WebviewViewProvider {
         
         try {
             await this.sidebarSession.destroy();
-            await this.tabSession.destroy();
+            for (const session of this.tabSessions.values()) {
+                await session.destroy();
+            }
+            this.tabSessions.clear();
             for (const session of this.windowSessions.values()) {
                 await session.destroy();
             }
