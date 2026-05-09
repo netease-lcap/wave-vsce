@@ -96,6 +96,9 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
   const textareaRef = useRef<HTMLDivElement>(null);
   const configButtonRef = useRef<HTMLDivElement>(null);
   const requestIdRef = useRef<string>('');
+  const inputContentTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const selectionChangeTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const lastSelectionChangePosRef = useRef<number>(0);
 
   // Expose focus method to parent component
   useImperativeHandle(ref, () => ({
@@ -888,7 +891,7 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
     }
   }, [slashCommand.isActive, slashCommands, selectedSlashIndex, handleSlashCommandSelect, closeSlashCommandPopup, atMention.isActive, atMention.filterText, suggestions, selectedIndex, handleFileSelect, handleFileUpload, closeDropdown, handleSend, isComposing, permissionMode, vscode, onSendQueuedMessage, onToggleTaskList]);
 
-  // Handle cursor position changes
+  // Handle cursor position changes - debounced to wait for user to stop moving cursor
   const handleSelectionChange = useCallback(() => {
     if (!textareaRef.current) return;
 
@@ -900,26 +903,51 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
     preCaretRange.selectNodeContents(textareaRef.current);
     preCaretRange.setEnd(range.endContainer, range.endOffset);
     
-    const textBeforeCursor = preCaretRange.toString();
-    const currentText = textareaRef.current.innerText;
+    const cursorPos = preCaretRange.toString().length;
+    
+    // Skip if cursor position hasn't changed (avoid redundant work)
+    if (cursorPos === lastSelectionChangePosRef.current) {
+      return;
+    }
+    lastSelectionChangePosRef.current = cursorPos;
 
-    // Use textBeforeCursor for detection as it's more reliable for cursor position
-    const mentionState = detectAtMention(textBeforeCursor, textBeforeCursor.length);
-    const slashCommandState = detectSlashCommand(textBeforeCursor, textBeforeCursor.length);
-
-    if (!mentionState.isActive) {
-      closeDropdown();
-    } else {
-      setAtMention(mentionState);
-      setDropdownPosition(calculateDropdownPosition());
+    // Debounce: reset timer on each cursor change, only execute when user stops
+    if (selectionChangeTimerRef.current) {
+      clearTimeout(selectionChangeTimerRef.current);
     }
 
-    if (!slashCommandState.isActive) {
-      closeSlashCommandPopup();
-    } else {
-      setSlashCommand(slashCommandState);
-      setSlashPopupPosition(calculateDropdownPosition());
-    }
+    selectionChangeTimerRef.current = setTimeout(() => {
+      if (!textareaRef.current) return;
+
+      const sel = window.getSelection();
+      if (!sel || sel.rangeCount === 0) return;
+
+      const rng = sel.getRangeAt(0);
+      const pre = rng.cloneRange();
+      pre.selectNodeContents(textareaRef.current!);
+      pre.setEnd(rng.endContainer, rng.endOffset);
+      
+      const textBeforeCursor = pre.toString();
+
+      // Use textBeforeCursor for detection as it's more reliable for cursor position
+      const mentionState = detectAtMention(textBeforeCursor, textBeforeCursor.length);
+      const slashCommandState = detectSlashCommand(textBeforeCursor, textBeforeCursor.length);
+
+      if (!mentionState.isActive) {
+        closeDropdown();
+      } else {
+        setAtMention(mentionState);
+        setDropdownPosition(calculateDropdownPosition());
+      }
+
+      if (!slashCommandState.isActive) {
+        closeSlashCommandPopup();
+      } else {
+        setSlashCommand(slashCommandState);
+        setSlashPopupPosition(calculateDropdownPosition());
+      }
+      selectionChangeTimerRef.current = null;
+    }, 100);
   }, [detectAtMention, detectSlashCommand, closeDropdown, closeSlashCommandPopup, calculateDropdownPosition]);
 
   const handleInput = useCallback((event: React.FormEvent<HTMLDivElement>) => {
@@ -927,21 +955,25 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
     const newValue = target.innerText;
     
     setMessage(newValue);
-    
-    // Send updated content to extension for persistence
-    vscode.postMessage({
-      command: 'updateInputContent',
-      content: newValue
-    });
+
+    // Debounce sending updated content to extension for persistence
+    if (inputContentTimerRef.current) {
+      clearTimeout(inputContentTimerRef.current);
+    }
+    inputContentTimerRef.current = setTimeout(() => {
+      vscode.postMessage({
+        command: 'updateInputContent',
+        content: target.innerText
+      });
+      inputContentTimerRef.current = null;
+    }, 150);
 
     // Auto-resize textarea height
     target.style.height = 'auto';
     target.style.height = target.scrollHeight + 'px';
 
-    // Use setTimeout to ensure selection is updated after DOM changes
-    setTimeout(() => {
-      handleSelectionChange();
-    }, 0);
+    // Debounced selection change detection (for @mention and /command)
+    handleSelectionChange();
   }, [handleSelectionChange, vscode]);
 
   // Handle configuration button click
@@ -1100,6 +1132,18 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
       textarea.removeEventListener('paste', pasteHandler);
     };
   }, [handlePaste]);
+
+  // Cleanup timers on unmount
+  useEffect(() => {
+    return () => {
+      if (inputContentTimerRef.current) {
+        clearTimeout(inputContentTimerRef.current);
+      }
+      if (selectionChangeTimerRef.current) {
+        clearTimeout(selectionChangeTimerRef.current);
+      }
+    };
+  }, []);
 
   return (
     <div className="input-container" data-testid="input-container">
