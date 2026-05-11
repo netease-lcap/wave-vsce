@@ -21,6 +21,10 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({ toolBlock, toolName, par
   const changes = useMemo(() => {
     try {
       if (toolBlock) {
+        // Skip parsing during streaming - parameters are still being received and incomplete
+        if (toolBlock.stage === 'streaming') {
+          return [];
+        }
         return transformToolBlockToChanges(toolBlock);
       } else if (toolName && parameters) {
         return transformParametersToChanges(toolName, parameters);
