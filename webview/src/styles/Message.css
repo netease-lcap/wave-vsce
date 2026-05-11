@@ -458,6 +458,7 @@
 /* Markdown Styling for Message Content */
 .markdown-content {
     white-space: normal; /* Override pre-wrap for markdown content */
+    overflow-x: auto;
 }
 
 /* Markdown Headers */
