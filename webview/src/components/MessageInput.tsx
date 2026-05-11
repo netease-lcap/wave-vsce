@@ -116,21 +116,6 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
     }
   }, []);
 
-  // ResizeObserver fallback for auto-height (field-sizing: content handles modern Chromium)
-  useEffect(() => {
-    const el = textareaRef.current;
-    if (!el) return;
-
-    const observer = new ResizeObserver(() => {
-      // Only adjust if content exceeds current height (grow) or shrinks below it
-      if (el.scrollHeight > el.clientHeight) {
-        el.style.height = el.scrollHeight + 'px';
-      }
-    });
-
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
 
   // Initialize message from inputContent prop
   useEffect(() => {
@@ -958,7 +943,7 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
   const handleInput = useCallback((event: React.FormEvent<HTMLDivElement>) => {
     const target = event.currentTarget;
     const newValue = target.innerText;
-    
+
     setMessage(newValue);
 
     // Debounce sending updated content to extension for persistence

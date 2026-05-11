@@ -117,4 +117,41 @@ test.describe('Input Auto Resize', () => {
     expect(afterSendHeight).toBeLessThan(expandedHeight);
     expect(afterSendHeight).toBe(initialHeight);
   });
+
+  test('should shrink height after deleting content that exceeded max-height', async ({ webviewPage }) => {
+    const input = webviewPage.getByTestId('message-input');
+    await input.focus();
+
+    // Get initial height (single line)
+    const initialHeight = await input.evaluate(el => el.clientHeight);
+
+    // Paste a large amount of multiline text to exceed max-height (200px)
+    const manyLines = Array.from({ length: 30 }, (_, i) => `line ${i + 1}`).join('\n');
+    await input.evaluate((el: HTMLElement, text: string) => {
+      el.innerText = text;
+      const inputEvent = new Event('input', { bubbles: true });
+      el.dispatchEvent(inputEvent);
+    }, manyLines);
+
+    await webviewPage.waitForTimeout(100);
+
+    // Height should be capped at max-height (200px CSS → ~198 clientHeight due to padding/border)
+    const maxHeightHeight = await input.evaluate(el => el.clientHeight);
+    expect(maxHeightHeight).toBeGreaterThanOrEqual(195); // near max-height
+
+    // Now clear the content to a small amount
+    await input.evaluate((el: HTMLElement) => {
+      el.innerText = 'just one line';
+      const inputEvent = new Event('input', { bubbles: true });
+      el.dispatchEvent(inputEvent);
+    });
+
+    await webviewPage.waitForTimeout(100);
+
+    // Height should have shrunk back below max-height
+    const afterShrinkHeight = await input.evaluate(el => el.clientHeight);
+    expect(afterShrinkHeight).toBeLessThan(maxHeightHeight);
+    expect(afterShrinkHeight).toBeLessThan(100); // should be close to single-line height
+    expect(afterShrinkHeight).toBeGreaterThanOrEqual(initialHeight - 5); // not smaller than natural height
+  });
 });
