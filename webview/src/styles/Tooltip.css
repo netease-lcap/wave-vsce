@@ -5,14 +5,14 @@
 }
 
 .tooltip-box {
-  position: absolute;
+  position: fixed;
   background-color: var(--vscode-editorWidget-background);
   color: var(--vscode-editorWidget-foreground);
   padding: 4px 8px;
   border-radius: 2px;
   font-size: 12px;
   white-space: nowrap;
-  z-index: 1000;
+  z-index: 10000;
   pointer-events: none;
   box-shadow: 0 2px 8px var(--vscode-widget-shadow);
   border: 1px solid var(--vscode-editorWidget-border);
@@ -32,53 +32,7 @@
   visibility: visible;
 }
 
-/* 定位逻辑 */
-.tooltip-top { 
-  bottom: 100%; 
-  left: 50%; 
-  transform: translateX(-50%) translateY(calc(-1 * var(--tooltip-offset))); 
-}
-.tooltip-bottom { 
-  top: 100%; 
-  left: 50%; 
-  transform: translateX(-50%) translateY(var(--tooltip-offset)); 
-}
-.tooltip-left { 
-  right: 100%; 
-  top: 50%; 
-  transform: translateY(-50%) translateX(calc(-1 * var(--tooltip-offset))); 
-}
-.tooltip-right { 
-  left: 100%; 
-  top: 50%; 
-  transform: translateY(-50%) translateX(var(--tooltip-offset)); 
-}
-
-.tooltip-bottom-left {
-  top: 100%;
-  right: 0;
-  transform: translateY(var(--tooltip-offset));
-}
-
-.tooltip-bottom-right {
-  top: 100%;
-  left: 0;
-  transform: translateY(var(--tooltip-offset));
-}
-
-.tooltip-top-left {
-  bottom: 100%;
-  right: 0;
-  transform: translateY(calc(-1 * var(--tooltip-offset)));
-}
-
-.tooltip-top-right {
-  bottom: 100%;
-  left: 0;
-  transform: translateY(calc(-1 * var(--tooltip-offset)));
-}
-
-/* 箭头 */
+/* 箭头 - 由 JS 计算定位，CSS 只负责箭头方向 */
 .tooltip-box::after {
   content: '';
   position: absolute;
