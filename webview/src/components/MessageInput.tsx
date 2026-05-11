@@ -116,6 +116,22 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
     }
   }, []);
 
+  // ResizeObserver fallback for auto-height (field-sizing: content handles modern Chromium)
+  useEffect(() => {
+    const el = textareaRef.current;
+    if (!el) return;
+
+    const observer = new ResizeObserver(() => {
+      // Only adjust if content exceeds current height (grow) or shrinks below it
+      if (el.scrollHeight > el.clientHeight) {
+        el.style.height = el.scrollHeight + 'px';
+      }
+    });
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   // Initialize message from inputContent prop
   useEffect(() => {
     if (inputContent !== undefined && inputContent !== message) {
@@ -124,13 +140,7 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
         textareaRef.current.innerText = inputContent;
       }
       
-      // Adjust textarea height after setting message
-      setTimeout(() => {
-        if (textareaRef.current) {
-          textareaRef.current.style.height = 'auto';
-          textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px';
-        }
-      }, 0);
+
     }
   }, [inputContent]);
   
@@ -180,11 +190,7 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
       command: 'updateInputContent',
       content: prompt
     });
-    
-    // Adjust textarea height
-    textareaRef.current.style.height = 'auto';
-    textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px';
-    
+
     // Focus and move cursor to end
     textareaRef.current.focus();
     const range = document.createRange();
@@ -764,7 +770,6 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
       
       // Clear contenteditable
       textareaRef.current.innerHTML = '';
-      textareaRef.current.style.height = 'auto';
       setMessage('');
       // Clear persisted input content
       vscode.postMessage({
@@ -967,10 +972,6 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
       });
       inputContentTimerRef.current = null;
     }, 150);
-
-    // Auto-resize textarea height
-    target.style.height = 'auto';
-    target.style.height = target.scrollHeight + 'px';
 
     // Debounced selection change detection (for @mention and /command)
     handleSelectionChange();
