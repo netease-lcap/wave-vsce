@@ -118,14 +118,15 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
 
 
   // Initialize message from inputContent prop
+  // Use a ref to avoid re-running effect on every local message change
+  const inputContentRef = useRef(inputContent);
   useEffect(() => {
-    if (inputContent !== undefined && inputContent !== message) {
+    if (inputContent !== undefined && inputContent !== inputContentRef.current) {
+      inputContentRef.current = inputContent;
       setMessage(inputContent);
       if (textareaRef.current) {
         textareaRef.current.innerText = inputContent;
       }
-      
-
     }
   }, [inputContent]);
   
@@ -518,7 +519,7 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
 
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
-  }, [insertUploadedFilePaths, insertSelectionTag, message, atMention, closeDropdown]);
+  }, [insertUploadedFilePaths, insertSelectionTag, closeDropdown]);
 
   // Handle image preview
   const handleImagePreview = useCallback((url: string, name: string) => {
