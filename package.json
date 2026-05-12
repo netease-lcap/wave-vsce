@@ -102,7 +102,8 @@
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
     "preinstall:vsix": "npm run package",
-    "install:vsix": "code --install-extension releases/*.vsix"
+    "install:vsix": "code --install-extension releases/*.vsix",
+    "push:tag": "git push origin $(git describe --tags --abbrev=0)"
   },
   "devDependencies": {
     "@playwright/test": "^1.58.2",
