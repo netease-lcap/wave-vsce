@@ -6,6 +6,7 @@ import { FileService } from '../services/fileService';
 import { SessionService } from '../services/sessionService';
 import { PluginService } from '../services/pluginService';
 import { SessionMetadata, PromptHistoryManager } from 'wave-agent-sdk';
+import { AuthService } from 'wave-agent-sdk/dist/services/authService';
 
 export interface MessageHandlerContext {
     getChatSession: (viewType: 'sidebar' | 'tab' | 'window', windowId?: string) => ChatSession;
@@ -134,6 +135,15 @@ export class MessageHandler {
                 break;
             case 'searchHistory':
                 await this.handleSearchHistory(message.query, viewType, windowId);
+                break;
+            case 'getAuthStatus':
+                await this.handleGetAuthStatus(viewType, windowId);
+                break;
+            case 'login':
+                await this.handleLogin(viewType, windowId);
+                break;
+            case 'logout':
+                await this.handleLogout(viewType, windowId);
                 break;
         }
     }
@@ -601,6 +611,81 @@ export class MessageHandler {
             this.context.postMessage({
                 command: 'slashCommandsError',
                 error: '获取指令失败: ' + error
+            }, viewType, windowId);
+        }
+    }
+
+    private async handleGetAuthStatus(viewType?: 'sidebar' | 'tab' | 'window', windowId?: string) {
+        try {
+            const authService = AuthService.getInstance();
+            const isAuthenticated = authService.isSSOAuthenticated();
+            const user = authService.getAuthUser();
+            this.context.postMessage({
+                command: 'authStatusResponse',
+                isAuthenticated,
+                user
+            }, viewType, windowId);
+        } catch (error) {
+            console.error('获取认证状态失败:', error);
+            this.context.postMessage({
+                command: 'authStatusResponse',
+                isAuthenticated: false,
+                user: null
+            }, viewType, windowId);
+        }
+    }
+
+    private async handleLogin(viewType?: 'sidebar' | 'tab' | 'window', windowId?: string) {
+        try {
+            const authService = AuthService.getInstance();
+
+            // Open browser via VS Code
+            const onAuthUrl = async (url: string) => {
+                await vscode.env.openExternal(vscode.Uri.parse(url));
+            };
+
+            const token = await authService.login({ onAuthUrl });
+            const user = authService.getAuthUser();
+
+            this.context.postMessage({
+                command: 'loginResponse',
+                success: true,
+                user
+            }, viewType, windowId);
+
+            // After successful login, reinitialize all sessions to pick up SSO config
+            const config = await this.configService.loadConfiguration();
+            this.context.updateAllSessionsConfig(config);
+        } catch (error) {
+            console.error('登录失败:', error);
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            this.context.postMessage({
+                command: 'loginResponse',
+                success: false,
+                error: errorMessage
+            }, viewType, windowId);
+        }
+    }
+
+    private async handleLogout(viewType?: 'sidebar' | 'tab' | 'window', windowId?: string) {
+        try {
+            const authService = AuthService.getInstance();
+            authService.clearAuth();
+
+            this.context.postMessage({
+                command: 'logoutResponse',
+                success: true
+            }, viewType, windowId);
+
+            // After logout, reinitialize all sessions to revert to direct LLM mode
+            const config = await this.configService.loadConfiguration();
+            this.context.updateAllSessionsConfig(config);
+        } catch (error) {
+            console.error('登出失败:', error);
+            this.context.postMessage({
+                command: 'logoutResponse',
+                success: false,
+                error: String(error)
             }, viewType, windowId);
         }
     }

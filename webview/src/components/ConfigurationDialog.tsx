@@ -23,6 +23,7 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps & { vscode: any }> 
   const [activePluginTab, setActivePluginTab] = useState<'explore' | 'installed' | 'marketplaces'>('explore');
   
   const [formData, setFormData] = useState<ConfigurationData>({
+    adminUrl: '',
     apiKey: '',
     headers: '',
     baseURL: '',
@@ -38,6 +39,12 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps & { vscode: any }> 
   const [selectedPlugin, setSelectedPlugin] = useState<PluginInfo | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Auth state
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [authUser, setAuthUser] = useState<{ id: string; email?: string } | null>(null);
+  const [authLoading, setAuthLoading] = useState(false);
+  const [authMessage, setAuthMessage] = useState('');
+
   useEffect(() => {
     if (isVisible && activeTab === 'plugins') {
       if (activePluginTab === 'explore' || activePluginTab === 'installed') {
@@ -46,8 +53,12 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps & { vscode: any }> 
         vscode?.postMessage({ command: 'listMarketplaces' });
       }
     }
+    if (isVisible && activeTab === 'general') {
+      vscode?.postMessage({ command: 'getAuthStatus' });
+    }
     setSearchQuery('');
     setSelectedPlugin(null);
+    setAuthMessage('');
   }, [isVisible, activeTab, activePluginTab, vscode]);
 
   useEffect(() => {
@@ -59,6 +70,26 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps & { vscode: any }> 
           break;
         case 'listMarketplacesResponse':
           setMarketplaces(message.marketplaces || []);
+          break;
+        case 'authStatusResponse':
+          setIsAuthenticated(message.isAuthenticated || false);
+          setAuthUser(message.user || null);
+          break;
+        case 'loginResponse':
+          if (message.success) {
+            setIsAuthenticated(true);
+            setAuthUser(message.user || null);
+            setAuthLoading(false);
+            setAuthMessage('登录成功');
+          } else {
+            setAuthLoading(false);
+            setAuthMessage(message.error || '登录失败');
+          }
+          break;
+        case 'logoutResponse':
+          setIsAuthenticated(false);
+          setAuthUser(null);
+          setAuthMessage('已登出');
           break;
       }
     };
@@ -92,6 +123,16 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps & { vscode: any }> 
 
   const handleUpdateMarketplace = (name?: string) => {
     vscode?.postMessage({ command: 'updateMarketplace', name });
+  };
+
+  const handleLogin = () => {
+    setAuthLoading(true);
+    setAuthMessage('');
+    vscode?.postMessage({ command: 'login' });
+  };
+
+  const handleLogout = () => {
+    vscode?.postMessage({ command: 'logout' });
   };
 
   const filteredPlugins = plugins.filter(p => {
@@ -184,13 +225,61 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps & { vscode: any }> 
           <form onSubmit={handleSubmit} className="configuration-form">
             <div className="configuration-fields-scroll-area">
               <div className="configuration-field">
+                <label htmlFor="adminUrl">Admin URL:</label>
+                <input
+                  id="adminUrl"
+                  type="url"
+                  value={formData.adminUrl || ''}
+                  onChange={(e) => handleInputChange('adminUrl', e.target.value)}
+                  placeholder={configurationData?.envAdminUrl || 'https://wave-admin.example.com (或设置 WAVE_ADMIN_URL)'}
+                  disabled={isLoading}
+                />
+              </div>
+
+              <div className="sso-auth-section">
+                <label>SSO 认证:</label>
+                {isAuthenticated ? (
+                  <div className="sso-authenticated">
+                    <div className="sso-user-info">
+                      {authUser?.email && <span className="sso-email">{authUser.email}</span>}
+                      <span className="sso-user-id">ID: {authUser?.id}</span>
+                    </div>
+                    <button
+                      type="button"
+                      className="sso-logout-btn"
+                      onClick={handleLogout}
+                      disabled={authLoading}
+                    >
+                      登出
+                    </button>
+                  </div>
+                ) : (
+                  <div className="sso-not-authenticated">
+                    <button
+                      type="button"
+                      className="sso-login-btn"
+                      onClick={handleLogin}
+                      disabled={authLoading || (!formData.adminUrl && !configurationData?.envAdminUrl)}
+                    >
+                      {authLoading ? '登录中...' : 'SSO 登录'}
+                    </button>
+                    {authMessage && (
+                      <div className={`sso-message ${authMessage.includes('成功') ? 'success' : authMessage.includes('失败') ? 'error' : ''}`}>
+                        {authMessage}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              <div className="configuration-field">
                 <label htmlFor="apiKey">API Key:</label>
                 <input
                   id="apiKey"
                   type="password"
                   value={formData.apiKey || ''}
                   onChange={(e) => handleInputChange('apiKey', e.target.value)}
-                  placeholder="输入 API Key (或设置 WAVE_API_KEY 环境变量)"
+                  placeholder={configurationData?.envApiKey || '输入 API Key (或设置 WAVE_API_KEY 环境变量)'}
                   disabled={isLoading}
                 />
               </div>
@@ -201,7 +290,7 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps & { vscode: any }> 
                   id="headers"
                   value={formData.headers || ''}
                   onChange={(e) => handleInputChange('headers', e.target.value)}
-                  placeholder={`Authorization: Bearer ...\nX-AIGW-APP: your_app_code\n(或设置 WAVE_CUSTOM_HEADERS)`}
+                  placeholder={configurationData?.envHeaders || `Authorization: Bearer ...\nX-AIGW-APP: your_app_code\n(或设置 WAVE_CUSTOM_HEADERS)`}
                   disabled={isLoading}
                   className="configuration-textarea"
                   rows={3}
@@ -215,7 +304,7 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps & { vscode: any }> 
                   type="url"
                   value={formData.baseURL || ''}
                   onChange={(e) => handleInputChange('baseURL', e.target.value)}
-                  placeholder="https://api.example.com/v1 (或设置 WAVE_BASE_URL)"
+                  placeholder={configurationData?.envBaseUrl || 'https://api.example.com/v1 (或设置 WAVE_BASE_URL)'}
                   disabled={isLoading}
                 />
               </div>
@@ -227,7 +316,7 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps & { vscode: any }> 
                   type="text"
                   value={formData.model || ''}
                   onChange={(e) => handleInputChange('model', e.target.value)}
-                  placeholder="请输入模型名称 (或设置 WAVE_MODEL)"
+                  placeholder={configurationData?.envModel || '请输入模型名称 (或设置 WAVE_MODEL)'}
                   disabled={isLoading}
                 />
               </div>
@@ -239,7 +328,7 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps & { vscode: any }> 
                   type="text"
                   value={formData.fastModel || ''}
                   onChange={(e) => handleInputChange('fastModel', e.target.value)}
-                  placeholder="请输入快速模型名称 (或设置 WAVE_FAST_MODEL)"
+                  placeholder={configurationData?.envFastModel || '请输入快速模型名称 (或设置 WAVE_FAST_MODEL)'}
                   disabled={isLoading}
                 />
               </div>
