@@ -2,7 +2,7 @@
   "name": "wave-vscode-chat",
   "displayName": "Wave 代码智聊",
   "description": "Wave code for VS Code",
-  "version": "0.4.5",
+  "version": "0.4.6",
   "publisher": "wave-code",
   "icon": "LOGO.png",
   "repository": {
@@ -127,6 +127,6 @@
     "dompurify": "^3.3.0",
     "marked": "^9.1.6",
     "mermaid": "^11.12.2",
-    "wave-agent-sdk": "^0.15.8"
+    "wave-agent-sdk": "^0.16.1"
   }
 }
