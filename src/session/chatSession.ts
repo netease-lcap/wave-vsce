@@ -62,8 +62,9 @@ export class ChatSession {
             }
             
             const isAuthValid = (!!config.apiKey || !!process.env.WAVE_API_KEY) 
-                || (!!config.headers || !!process.env.WAVE_CUSTOM_HEADERS);
-            const isBaseURLValid = !!config.baseURL || !!process.env.WAVE_BASE_URL;
+                || (!!config.headers || !!process.env.WAVE_CUSTOM_HEADERS)
+                || (!!config.adminUrl || !!process.env.WAVE_ADMIN_URL);
+            const isBaseURLValid = !!config.baseURL || !!process.env.WAVE_BASE_URL || !!config.adminUrl || !!process.env.WAVE_ADMIN_URL;
 
             const agentCallbacks: AgentCallbacks = {
                 onMessagesChange: (messages: Message[]) => {
@@ -108,6 +109,7 @@ export class ChatSession {
                     apiKey: config.apiKey || undefined,
                     defaultHeaders: this.parseHeaders(config.headers),
                     baseURL: config.baseURL || undefined,
+                    adminUrl: config.adminUrl || undefined,
                     model: config.model,
                     fastModel: config.fastModel,
                     language: config.language,

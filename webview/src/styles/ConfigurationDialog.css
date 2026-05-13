@@ -579,3 +579,97 @@ input:checked + .slider:before {
     color: var(--vscode-descriptionForeground);
     line-height: 1.4;
 }
+
+/* SSO Auth Section */
+.sso-auth-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex-shrink: 0;
+    padding: 8px;
+    background-color: var(--vscode-sideBar-background);
+    border: 1px solid var(--vscode-panel-border);
+    border-radius: 4px;
+}
+
+.sso-auth-section > label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--vscode-editor-foreground);
+}
+
+.sso-authenticated {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.sso-user-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.sso-email {
+    font-size: 13px;
+    color: var(--vscode-editor-foreground);
+    font-weight: 500;
+}
+
+.sso-user-id {
+    font-size: 11px;
+    color: var(--vscode-descriptionForeground);
+}
+
+.sso-logout-btn {
+    background-color: var(--vscode-button-secondaryBackground);
+    color: var(--vscode-button-secondaryForeground);
+    border: 1px solid var(--vscode-button-border, transparent);
+    padding: 4px 12px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.sso-logout-btn:hover {
+    background-color: var(--vscode-button-secondaryHoverBackground);
+}
+
+.sso-not-authenticated {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.sso-login-btn {
+    background-color: var(--vscode-button-background);
+    color: var(--vscode-button-foreground);
+    border: none;
+    padding: 6px 12px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 12px;
+    align-self: flex-start;
+}
+
+.sso-login-btn:hover {
+    background-color: var(--vscode-button-hoverBackground);
+}
+
+.sso-login-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.sso-message {
+    font-size: 12px;
+    color: var(--vscode-descriptionForeground);
+}
+
+.sso-message.success {
+    color: var(--vscode-testing-iconPassed);
+}
+
+.sso-message.error {
+    color: var(--vscode-errorForeground);
+}
