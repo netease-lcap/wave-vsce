@@ -594,9 +594,9 @@ Wave 在后台自动维护项目记忆，帮助 AI 持续了解项目演变：
 
 **主要特性：**
 
-- **Admin URL**：配置 wave-admin 实例地址，用于 SSO 认证。支持环境变量 `WAVE_ADMIN_URL` 作为 fallback。
-- **SSO 登录/登出**：当配置了 Admin URL 后，用户可通过 SSO 认证进行登录，无需手动配置 API Key。登录后所有 API 请求自动通过 wave-admin 代理路由。
-  - **浏览器登录**：点击"SSO 登录"后自动打开浏览器，用户在 wave-admin 登录页完成认证（支持 SSO 企业身份提供商或账号密码登录），授权码通过 localhost 回调自动交换为 JWT 并保存。VS Code Remote SSH 环境会自动转发端口，远程服务器体验与本地一致。
+- **AI URL**：配置 Wave AI 实例地址，用于 SSO 认证。支持环境变量 `WAVE_AI_URL` 作为 fallback。
+- **SSO 登录/登出**：当配置了 AI URL 后，用户可通过 SSO 认证进行登录，无需手动配置 API Key。登录后所有 API 请求自动通过 Wave AI 代理路由。
+  - **浏览器登录**：点击"SSO 登录"后自动打开浏览器，用户在 Wave AI 登录页完成认证（支持 SSO 企业身份提供商或账号密码登录），授权码通过 localhost 回调自动交换为 JWT 并保存。VS Code Remote SSH 环境会自动转发端口，远程服务器体验与本地一致。
   - **登录状态显示**：已认证时显示用户邮箱/ID 和登出按钮；登出后自动恢复为直接 LLM API 模式。
 
 ![配置设置](/screenshots/spec-configuration.png)

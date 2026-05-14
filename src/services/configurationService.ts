@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 
 export interface ConfigurationData {
-    adminUrl?: string;
+    aiUrl?: string;
     apiKey?: string;
     headers?: string;
     baseURL?: string;
@@ -9,7 +9,7 @@ export interface ConfigurationData {
     fastModel?: string;
     language?: string;
     /** Environment variable values (read-only, for placeholder display) */
-    envAdminUrl?: string;
+    envAiUrl?: string;
     envApiKey?: string;
     envHeaders?: string;
     envBaseUrl?: string;
@@ -22,14 +22,14 @@ export class ConfigurationService {
 
     public async loadConfiguration(): Promise<ConfigurationData> {
         return {
-            adminUrl: this.context.globalState.get<string>('adminUrl') || '',
+            aiUrl: this.context.globalState.get<string>('aiUrl') || '',
             apiKey: this.context.globalState.get<string>('apiKey') || '',
             headers: this.context.globalState.get<string>('headers') || '',
             baseURL: this.context.globalState.get<string>('baseURL') || '',
             model: this.context.globalState.get<string>('model') || '',
             fastModel: this.context.globalState.get<string>('fastModel') || '',
             language: this.context.globalState.get<string>('language') || 'Chinese',
-            envAdminUrl: process.env.WAVE_ADMIN_URL || undefined,
+            envAiUrl: process.env.WAVE_AI_URL || undefined,
             envApiKey: process.env.WAVE_API_KEY || undefined,
             envHeaders: process.env.WAVE_CUSTOM_HEADERS || undefined,
             envBaseUrl: process.env.WAVE_BASE_URL || undefined,

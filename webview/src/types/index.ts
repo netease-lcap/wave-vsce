@@ -287,8 +287,8 @@ export interface ConfirmationDialogProps {
  * Maps to VS Code global state
  */
 export interface ConfigurationData {
-  /** Wave admin URL for SSO authentication (user-configured value) */
-  adminUrl?: string;
+  /** Wave AI URL for SSO authentication (user-configured value) */
+  aiUrl?: string;
   /** API key for authentication */
   apiKey?: string;
   /** Headers for authentication */
@@ -302,7 +302,7 @@ export interface ConfigurationData {
   /** Preferred language for agent communication */
   language?: string;
   /** Environment variable values (read-only, for placeholder display) */
-  envAdminUrl?: string;
+  envAiUrl?: string;
   envApiKey?: string;
   envHeaders?: string;
   envBaseUrl?: string;
