@@ -23,7 +23,7 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps & { vscode: any }> 
   const [activePluginTab, setActivePluginTab] = useState<'explore' | 'installed' | 'marketplaces'>('explore');
   
   const [formData, setFormData] = useState<ConfigurationData>({
-    adminUrl: '',
+    aiUrl: '',
     apiKey: '',
     headers: '',
     baseURL: '',
@@ -225,13 +225,13 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps & { vscode: any }> 
           <form onSubmit={handleSubmit} className="configuration-form">
             <div className="configuration-fields-scroll-area">
               <div className="configuration-field">
-                <label htmlFor="adminUrl">Admin URL:</label>
+                <label htmlFor="aiUrl">AI URL:</label>
                 <input
-                  id="adminUrl"
+                  id="aiUrl"
                   type="url"
-                  value={formData.adminUrl || ''}
-                  onChange={(e) => handleInputChange('adminUrl', e.target.value)}
-                  placeholder={configurationData?.envAdminUrl || 'https://wave-admin.example.com (或设置 WAVE_ADMIN_URL)'}
+                  value={formData.aiUrl || ''}
+                  onChange={(e) => handleInputChange('aiUrl', e.target.value)}
+                  placeholder={configurationData?.envAiUrl || 'https://wave-ai.example.com (或设置 WAVE_AI_URL)'}
                   disabled={isLoading}
                 />
               </div>
@@ -259,7 +259,7 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps & { vscode: any }> 
                       type="button"
                       className="sso-login-btn"
                       onClick={handleLogin}
-                      disabled={authLoading || (!formData.adminUrl && !configurationData?.envAdminUrl)}
+                      disabled={authLoading || (!formData.aiUrl && !configurationData?.envAiUrl)}
                     >
                       {authLoading ? '登录中...' : 'SSO 登录'}
                     </button>
