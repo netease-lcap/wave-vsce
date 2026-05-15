@@ -225,13 +225,13 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps & { vscode: any }> 
           <form onSubmit={handleSubmit} className="configuration-form">
             <div className="configuration-fields-scroll-area">
               <div className="configuration-field">
-                <label htmlFor="aiUrl">AI URL:</label>
+                <label htmlFor="aiUrl">服务端链接:</label>
                 <input
                   id="aiUrl"
                   type="url"
                   value={formData.aiUrl || ''}
                   onChange={(e) => handleInputChange('aiUrl', e.target.value)}
-                  placeholder={configurationData?.envAiUrl || 'https://wave-ai.example.com (或设置 WAVE_AI_URL)'}
+                  placeholder={configurationData?.envAiUrl || '请联系管理员获取'}
                   disabled={isLoading}
                 />
               </div>
