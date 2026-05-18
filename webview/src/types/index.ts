@@ -287,6 +287,8 @@ export interface ConfirmationDialogProps {
  * Maps to VS Code global state
  */
 export interface ConfigurationData {
+  /** Authentication method: 'sso' | 'apiKey' | 'headers' */
+  authMethod?: 'sso' | 'apiKey' | 'headers';
   /** Wave AI URL for SSO authentication (user-configured value) */
   aiUrl?: string;
   /** API key for authentication */
