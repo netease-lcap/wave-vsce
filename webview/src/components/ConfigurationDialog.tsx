@@ -171,7 +171,7 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps & { vscode: any }> 
     setAuthMethod(method);
     // Clear fields not relevant to the selected method and update formData.authMethod
     if (method === 'sso') {
-      setFormData(prev => ({ ...prev, authMethod: 'sso', apiKey: '', headers: '', baseURL: '', model: '', fastModel: '' }));
+      setFormData(prev => ({ ...prev, authMethod: 'sso', apiKey: '', headers: '', baseURL: '' }));
     } else if (method === 'apiKey') {
       setFormData(prev => ({ ...prev, authMethod: 'apiKey', aiUrl: '', headers: '' }));
     } else {
@@ -338,6 +338,34 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps & { vscode: any }> 
                         )}
                       </div>
                     )}
+                  </div>
+                </>
+              )}
+
+              {authMethod === 'sso' && (
+                <>
+                  <div className="configuration-field">
+                    <label htmlFor="model">Model:</label>
+                    <input
+                      id="model"
+                      type="text"
+                      value={formData.model || ''}
+                      onChange={(e) => handleInputChange('model', e.target.value)}
+                      placeholder={configurationData?.envModel || '请输入模型名称 (或设置 WAVE_MODEL)'}
+                      disabled={isLoading}
+                    />
+                  </div>
+
+                  <div className="configuration-field">
+                    <label htmlFor="fastModel">Fast Model:</label>
+                    <input
+                      id="fastModel"
+                      type="text"
+                      value={formData.fastModel || ''}
+                      onChange={(e) => handleInputChange('fastModel', e.target.value)}
+                      placeholder={configurationData?.envFastModel || '请输入快速模型名称 (或设置 WAVE_FAST_MODEL)'}
+                      disabled={isLoading}
+                    />
                   </div>
                 </>
               )}
