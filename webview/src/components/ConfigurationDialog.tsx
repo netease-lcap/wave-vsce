@@ -21,8 +21,12 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps & { vscode: any }> 
 }) => {
   const [activeTab, setActiveTab] = useState<'general' | 'plugins'>('general');
   const [activePluginTab, setActivePluginTab] = useState<'explore' | 'installed' | 'marketplaces'>('explore');
-  
+
+  // Auth method: 'sso' | 'apiKey' | 'headers'
+  const [authMethod, setAuthMethod] = useState<'sso' | 'apiKey' | 'headers'>('sso');
+
   const [formData, setFormData] = useState<ConfigurationData>({
+    authMethod: 'sso',
     aiUrl: '',
     apiKey: '',
     headers: '',
@@ -149,8 +153,31 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps & { vscode: any }> 
   useEffect(() => {
     if (configurationData) {
       setFormData(configurationData);
+      // Derive auth method from existing values or use saved value
+      const savedMethod = configurationData.authMethod;
+      if (savedMethod) {
+        setAuthMethod(savedMethod);
+      } else if (configurationData.apiKey) {
+        setAuthMethod('apiKey');
+      } else if (configurationData.headers) {
+        setAuthMethod('headers');
+      } else {
+        setAuthMethod('sso');
+      }
     }
   }, [configurationData]);
+
+  const handleAuthMethodChange = (method: 'sso' | 'apiKey' | 'headers') => {
+    setAuthMethod(method);
+    // Clear fields not relevant to the selected method and update formData.authMethod
+    if (method === 'sso') {
+      setFormData(prev => ({ ...prev, authMethod: 'sso', apiKey: '', headers: '', baseURL: '', model: '', fastModel: '' }));
+    } else if (method === 'apiKey') {
+      setFormData(prev => ({ ...prev, authMethod: 'apiKey', aiUrl: '', headers: '' }));
+    } else {
+      setFormData(prev => ({ ...prev, authMethod: 'headers', aiUrl: '', apiKey: '' }));
+    }
+  };
 
   // Handle clicking outside to close dialog
   useEffect(() => {
@@ -225,113 +252,180 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps & { vscode: any }> 
           <form onSubmit={handleSubmit} className="configuration-form">
             <div className="configuration-fields-scroll-area">
               <div className="configuration-field">
-                <label htmlFor="aiUrl">服务端链接:</label>
-                <input
-                  id="aiUrl"
-                  type="url"
-                  value={formData.aiUrl || ''}
-                  onChange={(e) => handleInputChange('aiUrl', e.target.value)}
-                  placeholder={configurationData?.envAiUrl || '请联系管理员获取'}
-                  disabled={isLoading}
-                />
+                <label>认证方式:</label>
+                <div className="auth-method-radio-group">
+                  <label className="radio-label">
+                    <input
+                      type="radio"
+                      name="authMethod"
+                      value="sso"
+                      checked={authMethod === 'sso'}
+                      onChange={() => handleAuthMethodChange('sso')}
+                      disabled={isLoading}
+                    />
+                    SSO 登录
+                  </label>
+                  <label className="radio-label">
+                    <input
+                      type="radio"
+                      name="authMethod"
+                      value="apiKey"
+                      checked={authMethod === 'apiKey'}
+                      onChange={() => handleAuthMethodChange('apiKey')}
+                      disabled={isLoading}
+                    />
+                    API Key
+                  </label>
+                  <label className="radio-label">
+                    <input
+                      type="radio"
+                      name="authMethod"
+                      value="headers"
+                      checked={authMethod === 'headers'}
+                      onChange={() => handleAuthMethodChange('headers')}
+                      disabled={isLoading}
+                    />
+                    Headers
+                  </label>
+                </div>
               </div>
 
-              <div className="sso-auth-section">
-                <label>SSO 认证:</label>
-                {isAuthenticated ? (
-                  <div className="sso-authenticated">
-                    <div className="sso-user-info">
-                      {authUser?.email && <span className="sso-email">{authUser.email}</span>}
-                      <span className="sso-user-id">ID: {authUser?.id}</span>
-                    </div>
-                    <button
-                      type="button"
-                      className="sso-logout-btn"
-                      onClick={handleLogout}
-                      disabled={authLoading}
-                    >
-                      登出
-                    </button>
+              {authMethod === 'sso' && (
+                <>
+                  <div className="configuration-field">
+                    <label htmlFor="aiUrl">服务端链接:</label>
+                    <input
+                      id="aiUrl"
+                      type="url"
+                      value={formData.aiUrl || ''}
+                      onChange={(e) => handleInputChange('aiUrl', e.target.value)}
+                      placeholder={configurationData?.envAiUrl || '请联系管理员获取'}
+                      disabled={isLoading}
+                    />
                   </div>
-                ) : (
-                  <div className="sso-not-authenticated">
-                    <button
-                      type="button"
-                      className="sso-login-btn"
-                      onClick={handleLogin}
-                      disabled={authLoading || (!formData.aiUrl && !configurationData?.envAiUrl)}
-                    >
-                      {authLoading ? '登录中...' : 'SSO 登录'}
-                    </button>
-                    {authMessage && (
-                      <div className={`sso-message ${authMessage.includes('成功') ? 'success' : authMessage.includes('失败') ? 'error' : ''}`}>
-                        {authMessage}
+
+                  <div className="sso-auth-section">
+                    <label>SSO 认证:</label>
+                    {isAuthenticated ? (
+                      <div className="sso-authenticated">
+                        <div className="sso-user-info">
+                          {authUser?.email && <span className="sso-email">{authUser.email}</span>}
+                          <span className="sso-user-id">ID: {authUser?.id}</span>
+                        </div>
+                        <button
+                          type="button"
+                          className="sso-logout-btn"
+                          onClick={handleLogout}
+                          disabled={authLoading}
+                        >
+                          登出
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="sso-not-authenticated">
+                        <button
+                          type="button"
+                          className="sso-login-btn"
+                          onClick={handleLogin}
+                          disabled={authLoading || (!formData.aiUrl && !configurationData?.envAiUrl)}
+                        >
+                          {authLoading ? '登录中...' : 'SSO 登录'}
+                        </button>
+                        {authMessage && (
+                          <div className={`sso-message ${authMessage.includes('成功') ? 'success' : authMessage.includes('失败') ? 'error' : ''}`}>
+                            {authMessage}
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
-                )}
-              </div>
+                </>
+              )}
 
-              <div className="configuration-field">
-                <label htmlFor="apiKey">API Key:</label>
-                <input
-                  id="apiKey"
-                  type="password"
-                  value={formData.apiKey || ''}
-                  onChange={(e) => handleInputChange('apiKey', e.target.value)}
-                  placeholder={configurationData?.envApiKey || '输入 API Key (或设置 WAVE_API_KEY 环境变量)'}
-                  disabled={isLoading}
-                />
-              </div>
+              {authMethod === 'apiKey' && (
+                <>
+                  <div className="configuration-field">
+                    <label htmlFor="baseURL">Base URL:</label>
+                    <input
+                      id="baseURL"
+                      type="url"
+                      value={formData.baseURL || ''}
+                      onChange={(e) => handleInputChange('baseURL', e.target.value)}
+                      placeholder={configurationData?.envBaseUrl || 'https://api.example.com/v1 (或设置 WAVE_BASE_URL)'}
+                      disabled={isLoading}
+                    />
+                  </div>
 
-              <div className="configuration-field">
-                <label htmlFor="headers">Headers:</label>
-                <textarea
-                  id="headers"
-                  value={formData.headers || ''}
-                  onChange={(e) => handleInputChange('headers', e.target.value)}
-                  placeholder={configurationData?.envHeaders || `Authorization: Bearer ...\nX-AIGW-APP: your_app_code\n(或设置 WAVE_CUSTOM_HEADERS)`}
-                  disabled={isLoading}
-                  className="configuration-textarea"
-                  rows={3}
-                />
-              </div>
+                  <div className="configuration-field">
+                    <label htmlFor="apiKey">API Key:</label>
+                    <input
+                      id="apiKey"
+                      type="password"
+                      value={formData.apiKey || ''}
+                      onChange={(e) => handleInputChange('apiKey', e.target.value)}
+                      placeholder={configurationData?.envApiKey || '输入 API Key (或设置 WAVE_API_KEY 环境变量)'}
+                      disabled={isLoading}
+                    />
+                  </div>
+                </>
+              )}
 
-              <div className="configuration-field">
-                <label htmlFor="baseURL">Base URL:</label>
-                <input
-                  id="baseURL"
-                  type="url"
-                  value={formData.baseURL || ''}
-                  onChange={(e) => handleInputChange('baseURL', e.target.value)}
-                  placeholder={configurationData?.envBaseUrl || 'https://api.example.com/v1 (或设置 WAVE_BASE_URL)'}
-                  disabled={isLoading}
-                />
-              </div>
+              {authMethod === 'headers' && (
+                <>
+                  <div className="configuration-field">
+                    <label htmlFor="baseURL">Base URL:</label>
+                    <input
+                      id="baseURL"
+                      type="url"
+                      value={formData.baseURL || ''}
+                      onChange={(e) => handleInputChange('baseURL', e.target.value)}
+                      placeholder={configurationData?.envBaseUrl || 'https://api.example.com/v1 (或设置 WAVE_BASE_URL)'}
+                      disabled={isLoading}
+                    />
+                  </div>
 
-              <div className="configuration-field">
-                <label htmlFor="model">Model:</label>
-                <input
-                  id="model"
-                  type="text"
-                  value={formData.model || ''}
-                  onChange={(e) => handleInputChange('model', e.target.value)}
-                  placeholder={configurationData?.envModel || '请输入模型名称 (或设置 WAVE_MODEL)'}
-                  disabled={isLoading}
-                />
-              </div>
+                  <div className="configuration-field">
+                    <label htmlFor="headers">Headers:</label>
+                    <textarea
+                      id="headers"
+                      value={formData.headers || ''}
+                      onChange={(e) => handleInputChange('headers', e.target.value)}
+                      placeholder={configurationData?.envHeaders || `Authorization: Bearer ...\nX-AIGW-APP: your_app_code\n(或设置 WAVE_CUSTOM_HEADERS)`}
+                      disabled={isLoading}
+                      className="configuration-textarea"
+                      rows={3}
+                    />
+                  </div>
+                </>
+              )}
 
-              <div className="configuration-field">
-                <label htmlFor="fastModel">Fast Model:</label>
-                <input
-                  id="fastModel"
-                  type="text"
-                  value={formData.fastModel || ''}
-                  onChange={(e) => handleInputChange('fastModel', e.target.value)}
-                  placeholder={configurationData?.envFastModel || '请输入快速模型名称 (或设置 WAVE_FAST_MODEL)'}
-                  disabled={isLoading}
-                />
-              </div>
+              {(authMethod === 'apiKey' || authMethod === 'headers') && (
+                <>
+                  <div className="configuration-field">
+                    <label htmlFor="model">Model:</label>
+                    <input
+                      id="model"
+                      type="text"
+                      value={formData.model || ''}
+                      onChange={(e) => handleInputChange('model', e.target.value)}
+                      placeholder={configurationData?.envModel || '请输入模型名称 (或设置 WAVE_MODEL)'}
+                      disabled={isLoading}
+                    />
+                  </div>
+
+                  <div className="configuration-field">
+                    <label htmlFor="fastModel">Fast Model:</label>
+                    <input
+                      id="fastModel"
+                      type="text"
+                      value={formData.fastModel || ''}
+                      onChange={(e) => handleInputChange('fastModel', e.target.value)}
+                      placeholder={configurationData?.envFastModel || '请输入快速模型名称 (或设置 WAVE_FAST_MODEL)'}
+                      disabled={isLoading}
+                    />
+                  </div>
+                </>
+              )}
 
               <div className="configuration-field">
                 <label htmlFor="language">语言 (Language):</label>

@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 
 export interface ConfigurationData {
+    authMethod?: 'sso' | 'apiKey' | 'headers';
     aiUrl?: string;
     apiKey?: string;
     headers?: string;
@@ -28,6 +29,7 @@ export class ConfigurationService {
 
     public async loadConfiguration(): Promise<ConfigurationData> {
         return {
+            authMethod: this.context.globalState.get<'sso' | 'apiKey' | 'headers'>('authMethod') || 'sso',
             aiUrl: this.context.globalState.get<string>('aiUrl') || '',
             apiKey: this.context.globalState.get<string>('apiKey') || '',
             headers: this.context.globalState.get<string>('headers') || '',
@@ -46,6 +48,8 @@ export class ConfigurationService {
 
     public async saveConfiguration(configData: Partial<ConfigurationData>): Promise<void> {
         try {
+            if (configData.authMethod !== undefined) await this.context.globalState.update('authMethod', configData.authMethod);
+            if (configData.aiUrl !== undefined) await this.context.globalState.update('aiUrl', configData.aiUrl);
             if (configData.apiKey !== undefined) await this.context.globalState.update('apiKey', configData.apiKey);
             if (configData.headers !== undefined) await this.context.globalState.update('headers', configData.headers);
             if (configData.baseURL !== undefined) await this.context.globalState.update('baseURL', configData.baseURL);
