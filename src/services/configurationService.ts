@@ -37,7 +37,7 @@ export class ConfigurationService {
             model: this.context.globalState.get<string>('model') || '',
             fastModel: this.context.globalState.get<string>('fastModel') || '',
             language: this.context.globalState.get<string>('language') || 'Chinese',
-            envAiUrl: process.env.WAVE_AI_URL || undefined,
+            envAiUrl: process.env.WAVE_SERVER_URL || undefined,
             envApiKey: process.env.WAVE_API_KEY ? maskSecret(process.env.WAVE_API_KEY) : undefined,
             envHeaders: process.env.WAVE_CUSTOM_HEADERS || undefined,
             envBaseUrl: process.env.WAVE_BASE_URL || undefined,
