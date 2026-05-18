@@ -17,6 +17,12 @@ export interface ConfigurationData {
     envFastModel?: string;
 }
 
+/** Mask a secret value, keeping first 4 and last 4 characters visible */
+function maskSecret(value: string): string {
+    if (value.length <= 10) return '****';
+    return value.slice(0, 4) + '****' + value.slice(-4);
+}
+
 export class ConfigurationService {
     constructor(private context: vscode.ExtensionContext) {}
 
@@ -30,7 +36,7 @@ export class ConfigurationService {
             fastModel: this.context.globalState.get<string>('fastModel') || '',
             language: this.context.globalState.get<string>('language') || 'Chinese',
             envAiUrl: process.env.WAVE_AI_URL || undefined,
-            envApiKey: process.env.WAVE_API_KEY || undefined,
+            envApiKey: process.env.WAVE_API_KEY ? maskSecret(process.env.WAVE_API_KEY) : undefined,
             envHeaders: process.env.WAVE_CUSTOM_HEADERS || undefined,
             envBaseUrl: process.env.WAVE_BASE_URL || undefined,
             envModel: process.env.WAVE_MODEL || undefined,
