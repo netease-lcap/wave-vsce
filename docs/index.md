@@ -50,7 +50,7 @@ X-Access-Token: your_access_token
 
 | 环境变量 | 对应配置项 |
 | --- | --- |
-| `WAVE_AI_URL` | 服务端链接 |
+| `WAVE_SERVER_URL` | 服务端链接 |
 | `WAVE_API_KEY` | API Key（占位符中显示为 `****`） |
 | `WAVE_CUSTOM_HEADERS` | Headers |
 | `WAVE_BASE_URL` | Base URL |
