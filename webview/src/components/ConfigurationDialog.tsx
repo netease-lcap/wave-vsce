@@ -426,12 +426,6 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps & { vscode: any }> 
                           <span className="mcp-tool-count">{server.toolCount} tools</span>
                         )}
                       </div>
-                      {server.config.command && (
-                        <div className="mcp-server-command">{server.config.command}{server.config.args ? ` ${server.config.args.join(' ')}` : ''}</div>
-                      )}
-                      {server.config.url && (
-                        <div className="mcp-server-command">{server.config.url}</div>
-                      )}
                       {server.error && (
                         <div className="mcp-server-error">{server.error}</div>
                       )}
