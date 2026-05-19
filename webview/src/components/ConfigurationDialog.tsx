@@ -7,7 +7,7 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
-import { ConfigurationDialogProps, ConfigurationData, PluginInfo, MarketplaceInfo, PluginScope } from '../types';
+import { ConfigurationDialogProps, ConfigurationData, PluginInfo, MarketplaceInfo, PluginScope, McpServerStatus } from '../types';
 import '../styles/ConfigurationDialog.css';
 
 const ConfigurationDialog: React.FC<ConfigurationDialogProps & { vscode: any }> = ({
@@ -19,7 +19,7 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps & { vscode: any }> 
   onCancel,
   vscode
 }) => {
-  const [activeTab, setActiveTab] = useState<'general' | 'plugins'>('general');
+  const [activeTab, setActiveTab] = useState<'general' | 'plugins' | 'mcp'>('general');
   const [activePluginTab, setActivePluginTab] = useState<'explore' | 'installed' | 'marketplaces'>('explore');
 
   const [formData, setFormData] = useState<ConfigurationData>({
@@ -39,6 +39,10 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps & { vscode: any }> 
   const [selectedPlugin, setSelectedPlugin] = useState<PluginInfo | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
+  // MCP state
+  const [mcpServers, setMcpServers] = useState<McpServerStatus[]>([]);
+  const [mcpConnecting, setMcpConnecting] = useState<Record<string, boolean>>({});
+
   // SSO auth state
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [authUser, setAuthUser] = useState<{ id: string; email?: string } | null>(null);
@@ -55,6 +59,9 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps & { vscode: any }> 
     }
     if (isVisible && activeTab === 'general') {
       vscode?.postMessage({ command: 'getAuthStatus' });
+    }
+    if (isVisible && activeTab === 'mcp') {
+      vscode?.postMessage({ command: 'getMcpServers' });
     }
     setSearchQuery('');
     setSelectedPlugin(null);
@@ -90,6 +97,10 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps & { vscode: any }> 
           setIsAuthenticated(false);
           setAuthUser(null);
           setAuthMessage('已登出');
+          break;
+        case 'mcpServersResponse':
+          setMcpServers(message.servers || []);
+          setMcpConnecting({});
           break;
       }
     };
@@ -133,6 +144,17 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps & { vscode: any }> 
 
   const handleLogout = () => {
     vscode?.postMessage({ command: 'logout' });
+  };
+
+  // MCP handlers
+  const handleConnectMcpServer = (serverName: string) => {
+    setMcpConnecting(prev => ({ ...prev, [serverName]: true }));
+    vscode?.postMessage({ command: 'connectMcpServer', serverName });
+  };
+
+  const handleDisconnectMcpServer = (serverName: string) => {
+    setMcpConnecting(prev => ({ ...prev, [serverName]: true }));
+    vscode?.postMessage({ command: 'disconnectMcpServer', serverName });
   };
 
   const filteredPlugins = plugins.filter(p => {
@@ -206,17 +228,23 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps & { vscode: any }> 
         <div className="configuration-dialog-header">
           <h3>配置设置</h3>
           <div className="configuration-tabs">
-            <button 
+            <button
               className={`tab-button ${activeTab === 'general' ? 'active' : ''}`}
               onClick={() => setActiveTab('general')}
             >
               常规设置
             </button>
-            <button 
+            <button
               className={`tab-button ${activeTab === 'plugins' ? 'active' : ''}`}
               onClick={() => setActiveTab('plugins')}
             >
               插件
+            </button>
+            <button
+              className={`tab-button ${activeTab === 'mcp' ? 'active' : ''}`}
+              onClick={() => setActiveTab('mcp')}
+            >
+              MCP 服务器
             </button>
           </div>
         </div>
@@ -372,6 +400,75 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps & { vscode: any }> 
               </button>
             </div>
           </form>
+        ) : activeTab === 'mcp' ? (
+          <div className="mcp-container">
+            {mcpServers.length === 0 ? (
+              <div className="empty-state">
+                <p>未配置 MCP 服务器</p>
+                <p className="mcp-hint">在项目根目录创建 <code>.mcp.json</code> 文件来添加服务器</p>
+              </div>
+            ) : (
+              <div className="mcp-server-list">
+                {mcpServers.map(server => (
+                  <div key={server.name} className="mcp-server-item">
+                    <div className="mcp-server-info">
+                      <div className="mcp-server-header">
+                        <span className={`mcp-status-icon mcp-status-${server.status}`} title={server.status}>
+                          {server.status === 'connected' ? '●' : server.status === 'connecting' ? '⟳' : server.status === 'error' ? '✗' : '○'}
+                        </span>
+                        <span className="mcp-server-name">{server.name}</span>
+                        {server.toolCount !== undefined && server.status === 'connected' && (
+                          <span className="mcp-tool-count">{server.toolCount} tools</span>
+                        )}
+                      </div>
+                      {server.config.command && (
+                        <div className="mcp-server-command">{server.config.command}{server.config.args ? ` ${server.config.args.join(' ')}` : ''}</div>
+                      )}
+                      {server.config.url && (
+                        <div className="mcp-server-command">{server.config.url}</div>
+                      )}
+                      {server.error && (
+                        <div className="mcp-server-error">{server.error}</div>
+                      )}
+                      {server.lastConnected && (
+                        <div className="mcp-server-last-connected">最近连接: {new Date(server.lastConnected).toLocaleTimeString()}</div>
+                      )}
+                    </div>
+                    <div className="mcp-server-actions">
+                      {(server.status === 'disconnected' || server.status === 'error') && (
+                        <button
+                          className="mcp-connect-btn"
+                          onClick={() => handleConnectMcpServer(server.name)}
+                          disabled={mcpConnecting[server.name]}
+                        >
+                          {mcpConnecting[server.name] ? '连接中...' : '连接'}
+                        </button>
+                      )}
+                      {server.status === 'connected' && (
+                        <button
+                          className="mcp-disconnect-btn"
+                          onClick={() => handleDisconnectMcpServer(server.name)}
+                          disabled={mcpConnecting[server.name]}
+                        >
+                          {mcpConnecting[server.name] ? '断开中...' : '断开'}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="configuration-actions">
+              <button
+                type="button"
+                onClick={onCancel}
+                className="configuration-cancel-btn"
+              >
+                关闭
+              </button>
+            </div>
+          </div>
         ) : (
           <div className="plugins-container">
             <div className="plugin-tabs">

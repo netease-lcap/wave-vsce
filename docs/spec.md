@@ -376,12 +376,23 @@ _Skill 系统_
 
 ### 6.3 MCP 协议集成 {#mcp-integration}
 
-支持 Model Context Protocol (MCP)，允许 AI 连接到外部的 MCP 服务器，从而获取更多的上下文信息或调用外部工具。
+支持 Model Context Protocol (MCP)，允许 AI 连接到外部的 MCP 服务器，从而获取更多的上下文信息或调用外部工具。用户可通过配置弹窗中的 **MCP 服务器** 标签页查看和管理所有已配置的 MCP 服务器。
 
-**提示：**用户可以通过内置的 `/settings` skill 来管理 MCP 配置，例如输入 `/settings 增加mcp：xxx` 即可快速添加新的 MCP 服务。
+**主要特性：**
+
+- **服务器列表**：展示所有通过 `.mcp.json` 配置的 MCP 服务器，包括名称、连接状态（○ 未连接 / ● 已连接 / ⟳ 连接中 / ✗ 错误）、工具数量和连接命令/URL。
+- **连接/断开控制**：支持一键连接或断开 MCP 服务器，连接状态实时刷新。
+- **错误信息展示**：连接失败的服务器会显示具体错误原因。
+- **空状态引导**：未配置任何服务器时，提示用户创建 `.mcp.json` 文件。
+- **配置方式**：在项目根目录创建 `.mcp.json` 文件，支持 stdio（本地进程）和 SSE/HTTP（远程服务）两种连接方式。
+
+**提示：**用户也可以通过内置的 `/settings` skill 来管理 MCP 配置，例如输入 `/settings 增加mcp：xxx` 即可快速添加新的 MCP 服务。
 
 ![MCP 集成](/screenshots/spec-mcp.png)
 _MCP 集成_
+
+![MCP 服务器管理](/screenshots/spec-mcp-server-tab.png)
+_MCP 服务器管理（配置弹窗中的 MCP 标签页）_
 
 ### 6.4 内置 Skills {#builtin-skills}
 
@@ -590,15 +601,18 @@ Wave 在后台自动维护项目记忆，帮助 AI 持续了解项目演变：
 
 ### 10.1 配置设置 {#configuration-settings}
 
-用户可以自定义 AI 模型、API Key、Base URL 等关键参数，以适配不同的 AI 服务提供商。配置界面中的表单字段仅显示用户手动输入的值，不会被环境变量填充；但如果设置了相应的环境变量（如 `WAVE_BASE_URL`），其值会作为 placeholder 提示显示在输入框中。服务端链接字段默认 placeholder 为"请联系管理员获取"。
+用户可以自定义 AI 模型、API Key、Base URL 等关键参数，以适配不同的 AI 服务提供商。配置界面包含三个标签页：**常规设置**、**插件** 和 **MCP 服务器**。配置界面中的表单字段仅显示用户手动输入的值，不会被环境变量填充；但如果设置了相应的环境变量（如 `WAVE_BASE_URL`），其值会作为 placeholder 提示显示在输入框中。服务端链接字段默认 placeholder 为"请联系管理员获取"。
 
 **主要特性：**
 
-- **服务端链接**：配置 Wave AI 服务端地址，用于 SSO 认证。支持环境变量 `WAVE_SERVER_URL` 作为 fallback，默认 placeholder 提示"请联系管理员获取"。
-- **Model / Fast Model**：SSO 模式下也可配置主模型和快速模型名称，支持环境变量 `WAVE_MODEL` / `WAVE_FAST_MODEL` 作为 placeholder 提示。
-- **SSO 登录/登出**：当配置了服务端链接后，用户可通过 SSO 认证进行登录，无需手动配置 API Key。登录后所有 API 请求自动通过 Wave AI 代理路由。
-  - **浏览器登录**：点击"SSO 登录"后自动打开浏览器，用户在 Wave AI 登录页完成认证（支持 SSO 企业身份提供商或账号密码登录），授权码通过 localhost 回调自动交换为 JWT 并保存。VS Code Remote SSH 环境会自动转发端口，远程服务器体验与本地一致。
-  - **登录状态显示**：已认证时显示用户邮箱/ID 和登出按钮；登出后自动恢复为直接 LLM API 模式。
+- **常规设置**：配置 AI 模型、API Key、Base URL、Headers、语言等。
+  - **服务端链接**：配置 Wave AI 服务端地址，用于 SSO 认证。支持环境变量 `WAVE_SERVER_URL` 作为 fallback，默认 placeholder 提示"请联系管理员获取"。
+  - **Model / Fast Model**：SSO 模式下也可配置主模型和快速模型名称，支持环境变量 `WAVE_MODEL` / `WAVE_FAST_MODEL` 作为 placeholder 提示。
+  - **SSO 登录/登出**：当配置了服务端链接后，用户可通过 SSO 认证进行登录，无需手动配置 API Key。登录后所有 API 请求自动通过 Wave AI 代理路由。
+    - **浏览器登录**：点击"SSO 登录"后自动打开浏览器，用户在 Wave AI 登录页完成认证（支持 SSO 企业身份提供商或账号密码登录），授权码通过 localhost 回调自动交换为 JWT 并保存。VS Code Remote SSH 环境会自动转发端口，远程服务器体验与本地一致。
+    - **登录状态显示**：已认证时显示用户邮箱/ID 和登出按钮；登出后自动恢复为直接 LLM API 模式。
+- **插件**：管理插件的安装、更新、卸载和插件市场（详见 [第 11 章 插件系统](#plugin-system)）。
+- **MCP 服务器**：查看和管理 MCP 服务器连接状态（详见 [第 6.3 节 MCP 协议集成](#mcp-integration)）。
 
 ![配置设置](/screenshots/spec-configuration.png)
 _配置设置_
