@@ -24,7 +24,6 @@ test.describe('Product Specification Screenshots - Confirmations', () => {
             isStreaming: false,
             sessions: [],
             configurationData: {
-                authMethod: 'apiKey',
                 apiKey: 'sk-xxxxxxxxxxxxxxxx',
                 baseURL: 'https://api.openai.com/v1',
                 model: 'gpt-4',
@@ -90,7 +89,6 @@ test.describe('Product Specification Screenshots - Confirmations', () => {
         // Update config
         await injector.simulateExtensionMessage('configurationResponse', {
             configurationData: {
-                authMethod: 'apiKey',
                 apiKey: 'sk-xxxxxxxxxxxxxxxx',
                 baseURL: 'https://api.openai.com/v1',
                 model: 'gpt-4',

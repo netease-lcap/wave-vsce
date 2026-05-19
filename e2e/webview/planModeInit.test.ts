@@ -18,7 +18,6 @@ test.describe('Plan Mode Initialization', () => {
                 baseURL: 'https://api.example.com',
                 model: 'gpt-4',
                 fastModel: 'gpt-3.5',
-                authMethod: 'apiKey',
                 apiKey: 'test-key'
             },
             permissionMode: 'plan'

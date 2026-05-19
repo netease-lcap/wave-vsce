@@ -12,7 +12,6 @@ test.describe('Bash Permission Fix', () => {
             isStreaming: false,
             sessions: [],
             configurationData: {
-                authMethod: 'apiKey',
                 apiKey: 'test-key',
                 baseURL: 'https://api.example.com',
                 model: 'gpt-4'

@@ -20,7 +20,6 @@ test.describe('Product Specification Screenshots - Message Queuing', () => {
             isStreaming: true,
             sessions: [],
             configurationData: {
-                authMethod: 'apiKey',
                 apiKey: 'sk-xxxxxxxxxxxxxxxx',
                 baseURL: 'https://api.openai.com/v1',
                 model: 'gpt-4',

@@ -8,7 +8,6 @@ test.describe('Configuration Popup Demo', () => {
             (window as any).simulateExtensionMessage({
                 command: 'showConfiguration',
                 configurationData: {
-                    authMethod: 'apiKey',
                     apiKey: '',
                     baseURL: '',
                     model: 'gemini-3-flash',
