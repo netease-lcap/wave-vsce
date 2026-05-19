@@ -673,3 +673,140 @@ input:checked + .slider:before {
 .sso-message.error {
     color: var(--vscode-errorForeground);
 }
+
+/* MCP Server Management */
+.mcp-container {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 12px;
+    min-height: 0;
+}
+
+.mcp-server-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    overflow-y: auto;
+    flex: 1;
+    min-height: 0;
+}
+
+.mcp-server-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 10px;
+    background-color: var(--vscode-sideBar-background);
+    border: 1px solid var(--vscode-panel-border);
+    border-radius: 4px;
+}
+
+.mcp-server-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+    min-width: 0;
+}
+
+.mcp-server-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.mcp-status-icon {
+    font-size: 12px;
+    flex-shrink: 0;
+}
+
+.mcp-status-connected {
+    color: var(--vscode-testing-iconPassed);
+}
+
+.mcp-status-connecting {
+    color: var(--vscode-charts-yellow);
+}
+
+.mcp-status-error {
+    color: var(--vscode-errorForeground);
+}
+
+.mcp-status-disconnected {
+    color: var(--vscode-descriptionForeground);
+}
+
+.mcp-server-name {
+    font-weight: 600;
+    font-size: 13px;
+}
+
+.mcp-tool-count {
+    font-size: 11px;
+    color: var(--vscode-testing-iconPassed);
+    background-color: var(--vscode-badge-background);
+    color: var(--vscode-badge-foreground);
+    padding: 1px 6px;
+    border-radius: 3px;
+}
+
+.mcp-server-command {
+    font-size: 11px;
+    color: var(--vscode-descriptionForeground);
+    font-family: var(--vscode-editor-font-family, monospace);
+    word-break: break-all;
+}
+
+.mcp-server-error {
+    font-size: 11px;
+    color: var(--vscode-errorForeground);
+    word-break: break-all;
+}
+
+.mcp-server-last-connected {
+    font-size: 11px;
+    color: var(--vscode-descriptionForeground);
+}
+
+.mcp-server-actions {
+    display: flex;
+    gap: 4px;
+    flex-shrink: 0;
+    margin-left: 8px;
+}
+
+.mcp-connect-btn, .mcp-disconnect-btn {
+    background-color: var(--vscode-button-secondaryBackground);
+    color: var(--vscode-button-secondaryForeground);
+    border: 1px solid var(--vscode-button-border, transparent);
+    padding: 4px 10px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 11px;
+    transition: background-color 0.15s ease;
+    white-space: nowrap;
+}
+
+.mcp-connect-btn:hover, .mcp-disconnect-btn:hover {
+    background-color: var(--vscode-button-secondaryHoverBackground);
+}
+
+.mcp-connect-btn:disabled, .mcp-disconnect-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.mcp-hint {
+    font-size: 12px;
+    color: var(--vscode-descriptionForeground);
+    margin-top: 4px;
+}
+
+.mcp-hint code {
+    background-color: var(--vscode-textCodeBlock-background);
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-family: var(--vscode-editor-font-family, monospace);
+    font-size: 12px;
+}

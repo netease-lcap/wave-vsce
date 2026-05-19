@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { Agent, Message, PermissionDecision, ToolPermissionContext, AgentCallbacks, PermissionMode, Task, PromptHistoryManager, TextBlock, QueuedMessage } from 'wave-agent-sdk';
+import { Agent, Message, PermissionDecision, ToolPermissionContext, AgentCallbacks, PermissionMode, Task, PromptHistoryManager, TextBlock, QueuedMessage, McpServerStatus } from 'wave-agent-sdk';
 import { ConfigurationData } from '../services/configurationService';
 import { VscodeLspAdapter } from '../services/lspAdapter';
 
@@ -358,7 +358,7 @@ export class ChatSession {
             clearTimeout(this.updateTimer);
             this.updateTimer = undefined;
         }
-        
+
         if (this.agent) {
             try {
                 await this.agent.destroy();
@@ -367,7 +367,7 @@ export class ChatSession {
             }
             this.agent = undefined;
         }
-        
+
         this.messages = [];
         this.tasks = [];
         this.inputContent = '';
@@ -377,5 +377,27 @@ export class ChatSession {
         this.isCommandRunning = false;
         this.pendingUpdate = false;
         this.messageQueue = [];
+    }
+
+    // MCP server management
+    public getMcpServers(): McpServerStatus[] {
+        if (!this.agent) {
+            return [];
+        }
+        return this.agent.getMcpServers();
+    }
+
+    public async connectMcpServer(serverName: string): Promise<boolean> {
+        if (!this.agent) {
+            return false;
+        }
+        return this.agent.connectMcpServer(serverName);
+    }
+
+    public async disconnectMcpServer(serverName: string): Promise<boolean> {
+        if (!this.agent) {
+            return false;
+        }
+        return this.agent.disconnectMcpServer(serverName);
     }
 }

@@ -145,6 +145,15 @@ export class MessageHandler {
             case 'logout':
                 await this.handleLogout(viewType, windowId);
                 break;
+            case 'getMcpServers':
+                await this.handleGetMcpServers(viewType, windowId);
+                break;
+            case 'connectMcpServer':
+                await this.handleConnectMcpServer(message.serverName, viewType, windowId);
+                break;
+            case 'disconnectMcpServer':
+                await this.handleDisconnectMcpServer(message.serverName, viewType, windowId);
+                break;
         }
     }
 
@@ -689,6 +698,51 @@ export class MessageHandler {
                 success: false,
                 error: String(error)
             }, viewType, windowId);
+        }
+    }
+
+    private async handleGetMcpServers(viewType?: 'sidebar' | 'tab' | 'window', windowId?: string) {
+        const session = this.context.getChatSession(viewType || 'tab', windowId);
+        const servers = session.getMcpServers();
+        this.context.postMessage({
+            command: 'mcpServersResponse',
+            servers
+        }, viewType, windowId);
+    }
+
+    private async handleConnectMcpServer(serverName: string, viewType?: 'sidebar' | 'tab' | 'window', windowId?: string) {
+        const session = this.context.getChatSession(viewType || 'tab', windowId);
+        try {
+            const success = await session.connectMcpServer(serverName);
+            const servers = session.getMcpServers();
+            this.context.postMessage({
+                command: 'mcpServersResponse',
+                servers
+            }, viewType, windowId);
+            if (success) {
+                vscode.window.showInformationMessage(`MCP 服务器 "${serverName}" 已连接`);
+            }
+        } catch (error) {
+            console.error('连接 MCP 服务器失败:', error);
+            vscode.window.showErrorMessage('连接 MCP 服务器失败: ' + error);
+        }
+    }
+
+    private async handleDisconnectMcpServer(serverName: string, viewType?: 'sidebar' | 'tab' | 'window', windowId?: string) {
+        const session = this.context.getChatSession(viewType || 'tab', windowId);
+        try {
+            const success = await session.disconnectMcpServer(serverName);
+            const servers = session.getMcpServers();
+            this.context.postMessage({
+                command: 'mcpServersResponse',
+                servers
+            }, viewType, windowId);
+            if (success) {
+                vscode.window.showInformationMessage(`MCP 服务器 "${serverName}" 已断开`);
+            }
+        } catch (error) {
+            console.error('断开 MCP 服务器失败:', error);
+            vscode.window.showErrorMessage('断开 MCP 服务器失败: ' + error);
         }
     }
 }
