@@ -18,6 +18,17 @@ import { WebviewManager } from './session/webviewManager';
 import { MessageHandler } from './session/messageHandler';
 
 export class ChatProvider implements vscode.WebviewViewProvider {
+    private static formatConfigError(error: any): string {
+        const field = (error as any).field;
+        switch (field) {
+            case 'model':
+                return '请设置主模型（Model）配置';
+            case 'fastModel':
+                return '请设置快速模型（Fast Model）配置';
+            default:
+                return error.message || String(error);
+        }
+    }
     public static readonly viewType = 'waveChatView';
     private context: vscode.ExtensionContext;
     
@@ -159,7 +170,12 @@ export class ChatProvider implements vscode.WebviewViewProvider {
                 return this.handleToolPermissionRequest(context, viewType, windowId);
             },
             onError: (error) => {
-                vscode.window.showErrorMessage(`智能体错误: ` + error);
+                const isConfigError = error && typeof error === 'object' && 'name' in error && error.name === 'ConfigurationError';
+                if (isConfigError) {
+                    vscode.window.showErrorMessage(ChatProvider.formatConfigError(error));
+                } else {
+                    vscode.window.showErrorMessage(`智能体错误: ` + error);
+                }
             },
             onMcpServersChange: (servers) => {
                 this.webviewManager.postMessage({ command: 'mcpServersUpdate', servers }, viewType, windowId);
@@ -196,7 +212,12 @@ export class ChatProvider implements vscode.WebviewViewProvider {
             await session.initialize(config, this.context.extensionMode, restoreSessionId);
         } catch (error) {
             console.error(`初始化 ${viewType} 智能体失败:`, error);
-            vscode.window.showErrorMessage(`初始化 ${viewType} AI 智能体失败: ` + error);
+            const isConfigError = error && typeof error === 'object' && 'name' in error && error.name === 'ConfigurationError';
+            if (isConfigError) {
+                vscode.window.showErrorMessage(ChatProvider.formatConfigError(error));
+            } else {
+                vscode.window.showErrorMessage(`初始化 ${viewType} AI 智能体失败: ` + error);
+            }
         }
     }
 
