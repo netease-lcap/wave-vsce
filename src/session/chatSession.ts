@@ -13,6 +13,7 @@ export interface ChatSessionCallbacks {
     onPermissionModeChange: (mode: PermissionMode) => void;
     onToolPermissionRequest: (context: ToolPermissionContext) => Promise<PermissionDecision>;
     onError: (error: any) => void;
+    onMcpServersChange?: (servers: McpServerStatus[]) => void;
 }
 
 export class ChatSession {
@@ -92,6 +93,9 @@ export class ChatSession {
                 onQueuedMessagesChange: (messages: QueuedMessage[]) => {
                     this.messageQueue = messages;
                     this.callbacks.onQueueChange(messages);
+                },
+                onMcpServersChange: (servers: McpServerStatus[]) => {
+                    this.callbacks.onMcpServersChange?.(servers);
                 }
             };
 

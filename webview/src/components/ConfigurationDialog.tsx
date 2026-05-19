@@ -102,6 +102,11 @@ const ConfigurationDialog: React.FC<ConfigurationDialogProps & { vscode: any }> 
           setMcpServers(message.servers || []);
           setMcpConnecting({});
           break;
+        case 'mcpServersUpdate':
+          // Push update from backend (e.g., after connect/disconnect completes)
+          setMcpServers(message.servers || []);
+          setMcpConnecting({});
+          break;
       }
     };
     window.addEventListener('message', handleMessage);
