@@ -17,7 +17,6 @@ test.describe('Product Specification Screenshots - UI Basic', () => {
             isStreaming: false,
             sessions: [],
             configurationData: {
-                authMethod: 'apiKey',
                 apiKey: 'sk-xxxxxxxxxxxxxxxx',
                 baseURL: 'https://api.openai.com/v1',
                 model: 'gpt-4',

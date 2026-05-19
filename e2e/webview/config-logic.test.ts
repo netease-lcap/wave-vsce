@@ -15,14 +15,14 @@ test.describe('Configuration Logic', () => {
             apiKey: '',
             headers: '',
             baseURL: '',
-            authMethod: 'apiKey'
+            serverUrl: ''
         };
 
-        const isAuthValid = config.authMethod === 'apiKey' 
-            ? (!!config.apiKey || !!process.env.WAVE_API_KEY)
-            : (!!config.headers || !!process.env.WAVE_CUSTOM_HEADERS);
+        const isAuthValid = (!!config.apiKey || !!process.env.WAVE_API_KEY)
+            || (!!config.headers || !!process.env.WAVE_CUSTOM_HEADERS)
+            || (!!config.serverUrl || !!process.env.WAVE_SERVER_URL);
             
-        const isBaseURLValid = !!config.baseURL || !!process.env.WAVE_BASE_URL;
+        const isBaseURLValid = !!config.baseURL || !!process.env.WAVE_BASE_URL || !!config.serverUrl || !!process.env.WAVE_SERVER_URL;
 
         expect(isAuthValid).toBe(true);
         expect(isBaseURLValid).toBe(true);
@@ -36,20 +36,22 @@ test.describe('Configuration Logic', () => {
         // Ensure env vars are empty
         delete process.env.WAVE_API_KEY;
         delete process.env.WAVE_BASE_URL;
+        delete process.env.WAVE_CUSTOM_HEADERS;
+        delete process.env.WAVE_SERVER_URL;
         
         // Mock empty VS Code configuration
         const config = {
             apiKey: '',
             headers: '',
             baseURL: '',
-            authMethod: 'apiKey'
+            serverUrl: ''
         };
 
-        const isAuthValid = config.authMethod === 'apiKey' 
-            ? (!!config.apiKey || !!process.env.WAVE_API_KEY)
-            : (!!config.headers || !!process.env.WAVE_CUSTOM_HEADERS);
+        const isAuthValid = (!!config.apiKey || !!process.env.WAVE_API_KEY)
+            || (!!config.headers || !!process.env.WAVE_CUSTOM_HEADERS)
+            || (!!config.serverUrl || !!process.env.WAVE_SERVER_URL);
             
-        const isBaseURLValid = !!config.baseURL || !!process.env.WAVE_BASE_URL;
+        const isBaseURLValid = !!config.baseURL || !!process.env.WAVE_BASE_URL || !!config.serverUrl || !!process.env.WAVE_SERVER_URL;
 
         expect(isAuthValid).toBe(false);
         expect(isBaseURLValid).toBe(false);

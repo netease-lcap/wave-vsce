@@ -1,8 +1,7 @@
 import * as vscode from 'vscode';
 
 export interface ConfigurationData {
-    authMethod?: 'sso' | 'apiKey' | 'headers';
-    aiUrl?: string;
+    serverUrl?: string;
     apiKey?: string;
     headers?: string;
     baseURL?: string;
@@ -10,7 +9,7 @@ export interface ConfigurationData {
     fastModel?: string;
     language?: string;
     /** Environment variable values (read-only, for placeholder display) */
-    envAiUrl?: string;
+    envServerUrl?: string;
     envApiKey?: string;
     envHeaders?: string;
     envBaseUrl?: string;
@@ -29,15 +28,14 @@ export class ConfigurationService {
 
     public async loadConfiguration(): Promise<ConfigurationData> {
         return {
-            authMethod: this.context.globalState.get<'sso' | 'apiKey' | 'headers'>('authMethod') || 'sso',
-            aiUrl: this.context.globalState.get<string>('aiUrl') || '',
+            serverUrl: this.context.globalState.get<string>('serverUrl') || '',
             apiKey: this.context.globalState.get<string>('apiKey') || '',
             headers: this.context.globalState.get<string>('headers') || '',
             baseURL: this.context.globalState.get<string>('baseURL') || '',
             model: this.context.globalState.get<string>('model') || '',
             fastModel: this.context.globalState.get<string>('fastModel') || '',
             language: this.context.globalState.get<string>('language') || 'Chinese',
-            envAiUrl: process.env.WAVE_SERVER_URL || undefined,
+            envServerUrl: process.env.WAVE_SERVER_URL || undefined,
             envApiKey: process.env.WAVE_API_KEY ? maskSecret(process.env.WAVE_API_KEY) : undefined,
             envHeaders: process.env.WAVE_CUSTOM_HEADERS || undefined,
             envBaseUrl: process.env.WAVE_BASE_URL || undefined,
@@ -48,8 +46,7 @@ export class ConfigurationService {
 
     public async saveConfiguration(configData: Partial<ConfigurationData>): Promise<void> {
         try {
-            if (configData.authMethod !== undefined) await this.context.globalState.update('authMethod', configData.authMethod);
-            if (configData.aiUrl !== undefined) await this.context.globalState.update('aiUrl', configData.aiUrl);
+            if (configData.serverUrl !== undefined) await this.context.globalState.update('serverUrl', configData.serverUrl);
             if (configData.apiKey !== undefined) await this.context.globalState.update('apiKey', configData.apiKey);
             if (configData.headers !== undefined) await this.context.globalState.update('headers', configData.headers);
             if (configData.baseURL !== undefined) await this.context.globalState.update('baseURL', configData.baseURL);

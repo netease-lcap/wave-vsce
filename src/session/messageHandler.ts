@@ -645,8 +645,8 @@ export class MessageHandler {
                 await vscode.env.openExternal(vscode.Uri.parse(url));
             };
 
-            // Use configured aiUrl first, fallback to env var
-            const serverUrl = config.aiUrl || process.env.WAVE_SERVER_URL;
+            // Use configured serverUrl first, fallback to env var
+            const serverUrl = config.serverUrl || process.env.WAVE_SERVER_URL;
             const token = await authService.login({ onAuthUrl, serverUrl });
             const user = authService.getAuthUser();
 
