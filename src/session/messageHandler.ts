@@ -714,13 +714,9 @@ export class MessageHandler {
         const session = this.context.getChatSession(viewType || 'tab', windowId);
         try {
             const success = await session.connectMcpServer(serverName);
-            const servers = session.getMcpServers();
-            this.context.postMessage({
-                command: 'mcpServersResponse',
-                servers
-            }, viewType, windowId);
+            // SDK's onMcpServersChange callback will push the updated state to frontend
             if (success) {
-                vscode.window.showInformationMessage(`MCP 服务器 "${serverName}" 已连接`);
+                vscode.window.showInformationMessage(`MCP 服务器 "${serverName}" 连接请求已发送`);
             }
         } catch (error) {
             console.error('连接 MCP 服务器失败:', error);
@@ -732,13 +728,9 @@ export class MessageHandler {
         const session = this.context.getChatSession(viewType || 'tab', windowId);
         try {
             const success = await session.disconnectMcpServer(serverName);
-            const servers = session.getMcpServers();
-            this.context.postMessage({
-                command: 'mcpServersResponse',
-                servers
-            }, viewType, windowId);
+            // SDK's onMcpServersChange callback will push the updated state to frontend
             if (success) {
-                vscode.window.showInformationMessage(`MCP 服务器 "${serverName}" 已断开`);
+                vscode.window.showInformationMessage(`MCP 服务器 "${serverName}" 断开请求已发送`);
             }
         } catch (error) {
             console.error('断开 MCP 服务器失败:', error);

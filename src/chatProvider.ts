@@ -160,6 +160,9 @@ export class ChatProvider implements vscode.WebviewViewProvider {
             },
             onError: (error) => {
                 this.sendErrorToView(error, viewType, windowId);
+            },
+            onMcpServersChange: (servers) => {
+                this.webviewManager.postMessage({ command: 'mcpServersUpdate', servers }, viewType, windowId);
             }
         });
     }
