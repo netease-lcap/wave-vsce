@@ -638,13 +638,16 @@ export class MessageHandler {
     private async handleLogin(viewType?: 'sidebar' | 'tab' | 'window', windowId?: string) {
         try {
             const authService = AuthService.getInstance();
+            const config = await this.configService.loadConfiguration();
 
             // Open browser via VS Code
             const onAuthUrl = async (url: string) => {
                 await vscode.env.openExternal(vscode.Uri.parse(url));
             };
 
-            const token = await authService.login({ onAuthUrl });
+            // Use configured aiUrl first, fallback to env var
+            const serverUrl = config.aiUrl || process.env.WAVE_SERVER_URL;
+            const token = await authService.login({ onAuthUrl, serverUrl });
             const user = authService.getAuthUser();
 
             this.context.postMessage({
@@ -654,7 +657,6 @@ export class MessageHandler {
             }, viewType, windowId);
 
             // After successful login, reinitialize all sessions to pick up SSO config
-            const config = await this.configService.loadConfiguration();
             this.context.updateAllSessionsConfig(config);
         } catch (error) {
             console.error('登录失败:', error);
