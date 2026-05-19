@@ -1,8 +1,8 @@
 import { test, expect } from '../utils/webviewTestHarness.js';
 import { MessageInjector } from '../utils/messageInjector.js';
 import { UIStateVerifier } from '../utils/uiStateVerifier.js';
-import { 
-    EDIT_TOOL_NAME, 
+import {
+    EDIT_TOOL_NAME,
     BASH_TOOL_NAME,
     ASK_USER_QUESTION_TOOL_NAME,
     ENTER_PLAN_MODE_TOOL_NAME,
@@ -201,7 +201,27 @@ test.describe('Product Specification Screenshots - Confirmations', () => {
         await webviewPage.click('.confirmation-close-btn');
         await editConfirmDialog.waitFor({ state: 'detached' });
 
-        // 17. Bash运行确认对话框 - 只显示确认对话框组件
+        // 17. MCP 工具确认对话框
+        await injector.simulateExtensionMessage('showConfirmation', {
+            confirmationId: 'mcp-confirm-001',
+            confirmationType: 'MCP 工具确认',
+            toolName: 'mcp__wave_requirements__create_requirement',
+            toolInput: {
+                title: '前端改动',
+                description: '在需求管理界面添加列表页',
+                priority: 'high',
+                tags: ['frontend', 'ui']
+            }
+        });
+        const mcpConfirmDialog = webviewPage.locator('.confirmation-dialog');
+        await mcpConfirmDialog.waitFor({ state: 'visible' });
+        await mcpConfirmDialog.screenshot({ path: 'docs/public/screenshots/spec-mcp-tool-confirm.png' });
+
+        // 关闭当前确认对话框
+        await webviewPage.click('.confirmation-close-btn');
+        await mcpConfirmDialog.waitFor({ state: 'detached' });
+
+        // 18. Bash运行确认对话框 - 只显示确认对话框组件
         await injector.simulateExtensionMessage('showConfirmation', {
             confirmationId: 'bash-confirm-001',
             confirmationType: 'Bash 命令执行确认', 
