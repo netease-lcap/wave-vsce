@@ -446,10 +446,6 @@ export class MessageHandler {
         } catch (error) {
             console.error(`恢复 ${viewType} 会话失败:`, error);
             vscode.window.showErrorMessage('恢复会话失败: ' + error);
-            this.context.postMessage({
-                command: 'sessionsError',
-                error: '恢复会话失败: ' + error
-            }, viewType, windowId);
         }
     }
 

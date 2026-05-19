@@ -8,7 +8,6 @@ export const SessionSelector: React.FC<SessionSelectorProps> = ({
   currentSession,
   onSessionSelect,
   loading,
-  error,
   disabled
 }) => {
   const handleSessionChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -47,7 +46,7 @@ export const SessionSelector: React.FC<SessionSelectorProps> = ({
         data-testid="session-dropdown"
       >
         <option value="" disabled>
-          {loading ? '加载会话...' : error ? '会话加载失败' : '选择会话'}
+          {loading ? '加载会话...' : '选择会话'}
         </option>
         {shouldRenderCurrentSession && (
           <option key={currentSession.id} value={currentSession.id}>
@@ -60,11 +59,6 @@ export const SessionSelector: React.FC<SessionSelectorProps> = ({
           </option>
         ))}
       </select>
-      {error && (
-        <div className="session-error" data-testid="session-error">
-          {error}
-        </div>
-      )}
     </div>
   );
 };

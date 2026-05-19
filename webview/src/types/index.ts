@@ -209,7 +209,6 @@ export interface ChatHeaderProps {
   currentSession?: SessionMetadata;
   onSessionSelect: (sessionId: string) => void;
   sessionsLoading: boolean;
-  sessionsError?: string;
 }
 
 // Session selector component props
@@ -218,7 +217,6 @@ export interface SessionSelectorProps {
   currentSession?: SessionMetadata;
   onSessionSelect: (sessionId: string) => void;
   loading: boolean;
-  error?: string;
   disabled: boolean;
 }
 
@@ -246,7 +244,6 @@ export interface ChatState {
   sessions: SessionMetadata[];
   currentSession?: SessionMetadata;
   sessionsLoading: boolean;
-  sessionsError?: string;
   pendingConfirmations: ConfirmationRequest[];
   queuedMessages: QueuedMessage[];
   // Configuration state
@@ -372,7 +369,6 @@ export type ChatAction =
   | { type: 'SET_SESSIONS'; payload: SessionMetadata[] }
   | { type: 'SET_CURRENT_SESSION'; payload: SessionMetadata | undefined }
   | { type: 'SET_SESSIONS_LOADING'; payload: boolean }
-  | { type: 'SET_SESSIONS_ERROR'; payload: string | undefined }
   | { type: 'SHOW_CONFIRMATION'; payload: ConfirmationRequest }
   | { type: 'HIDE_CONFIRMATION'; payload: string }
   | { type: 'SHOW_CONFIGURATION'; payload: { data: ConfigurationData; error?: string } }

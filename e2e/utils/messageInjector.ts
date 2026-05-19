@@ -156,13 +156,6 @@ export class MessageInjector {
     }
 
     /**
-     * Simulate sessions error
-     */
-    async setSessionsError(error: string) {
-        await this.simulateExtensionMessage('sessionsError', { error });
-    }
-
-    /**
      * Simulate webview ready initialization with existing messages and session
      */
     async simulateWebviewReady(messages: Message[], currentSession?: SessionMetadata) {
