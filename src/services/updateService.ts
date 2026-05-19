@@ -176,14 +176,17 @@ async function downloadAndInstall(vsixUrl: string, context: vscode.ExtensionCont
 /**
  * Check for updates and show a native VS Code notification if a new version is available.
  * Uses globalState to cache: checks at most once per 24 hours, and dismisses ignored versions.
+ * @param skipCooldown - When true (e.g. manual check), bypass the 24-hour cooldown.
  */
-export async function checkAndNotify(context: vscode.ExtensionContext): Promise<void> {
+export async function checkAndNotify(context: vscode.ExtensionContext, skipCooldown = false): Promise<void> {
     const now = Date.now();
-    const lastCheckTime = context.globalState.get<number>('wave.lastUpdateCheck', 0);
     const twentyFourHours = 24 * 60 * 60 * 1000;
 
-    if (now - lastCheckTime < twentyFourHours) {
-        return;
+    if (!skipCooldown) {
+        const lastCheckTime = context.globalState.get<number>('wave.lastUpdateCheck', 0);
+        if (now - lastCheckTime < twentyFourHours) {
+            return;
+        }
     }
 
     // Record check time immediately to avoid duplicate checks
@@ -193,11 +196,19 @@ export async function checkAndNotify(context: vscode.ExtensionContext): Promise<
     const updateInfo = await checkForUpdate(context.extension.packageJSON.version);
 
     if (!updateInfo) {
+        if (skipCooldown) {
+            vscode.window.showInformationMessage('当前已是最新版本');
+        }
         return;
     }
 
     // Skip if user previously ignored this version
     if (updateInfo.latestVersion === ignoredVersion) {
+        if (skipCooldown) {
+            vscode.window.showInformationMessage(
+                `当前已忽略 v${updateInfo.latestVersion}，最新版本为 v${updateInfo.latestVersion}`
+            );
+        }
         return;
     }
 
