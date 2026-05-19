@@ -462,6 +462,11 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
               {confirmation.toolInput.command}
             </div>
           )}
+          {confirmation.toolName.startsWith('mcp__') && confirmation.toolInput && (
+            <div className="confirmation-mcp-params">
+              <pre>{JSON.stringify(confirmation.toolInput, null, 2)}</pre>
+            </div>
+          )}
           <div className="confirmation-details">
             <strong>工具:</strong> {confirmation.toolName}
           </div>

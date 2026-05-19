@@ -263,7 +263,19 @@ _代码修改确认_
 ![命令执行确认](/screenshots/spec-bash-confirm.png)
 _命令执行确认_
 
-### 4.4 计划执行确认 (Plan Confirmation) {#plan-confirmation}
+### 4.4 MCP 工具确认 (MCP Tool Confirmation) {#mcp-tool-confirmation}
+
+当 AI 调用通过 MCP（Model Context Protocol）连接的外部服务工具时，确认框会展示该工具的完整参数，让用户了解即将传递给 MCP 服务器的数据。
+
+**主要特性：**
+- **参数展示**：以格式化的 JSON 显示 MCP 工具的全部输入参数，方便用户审核。
+- **持久化规则**：支持为特定 MCP 工具设置"不再询问"规则（按工具名匹配，如 `mcp__wave_requirements__create_requirement`）。
+- **反馈机制**：支持用户拒绝并提供反馈，指导 AI 调整参数后重新调用。
+
+![MCP 工具确认](/screenshots/spec-mcp-tool-confirm.png)
+_MCP 工具确认_
+
+### 4.5 计划执行确认 (Plan Confirmation) {#plan-confirmation}
 
 当 AI 制定了详细的执行计划并准备退出计划模式时，会向用户展示计划内容并请求确认。用户可以选择批准执行、自动接受后续修改，或提供反馈意见。
 
@@ -276,7 +288,7 @@ _命令执行确认_
 ![计划执行确认](/screenshots/spec-plan-confirm.png)
 _计划执行确认_
 
-### 4.5 进入计划模式确认 (Enter Plan Mode Confirmation) {#enter-plan-mode}
+### 4.6 进入计划模式确认 (Enter Plan Mode Confirmation) {#enter-plan-mode}
 
 当 AI 判断当前任务较为复杂时，会主动请求用户确认是否进入计划模式。与计划执行确认不同，进入计划模式确认仅提供两个选项：批准进入计划模式，或拒绝并直接开始实现。
 
@@ -292,7 +304,7 @@ _计划执行确认_
 ![进入计划模式确认](/screenshots/spec-enter-plan-mode.png)
 _进入计划模式确认_
 
-### 4.6 错误消息展示 {#error-message-display}
+### 4.7 错误消息展示 {#error-message-display}
 
 当工具执行出错或 AI 返回错误信息时，Wave 会以醒目的方式展示错误内容。为了防止过长的错误消息占据过多屏幕空间，错误消息区域设置了最大高度，并支持内部滚动。
 
@@ -385,6 +397,7 @@ _Skill 系统_
 - **错误信息展示**：连接失败的服务器会显示具体错误原因。
 - **空状态引导**：未配置任何服务器时，提示用户创建 `.mcp.json` 文件。
 - **配置方式**：在项目根目录创建 `.mcp.json` 文件，支持 stdio（本地进程）和 SSE/HTTP（远程服务）两种连接方式。
+- **工具确认**：AI 调用 MCP 工具时，确认框会展示格式化的 JSON 参数，用户可审核后再批准（详见 [第 4.4 节 MCP 工具确认](#mcp-tool-confirmation)）。
 
 **提示：**用户也可以通过内置的 `/settings` skill 来管理 MCP 配置，例如输入 `/settings 增加mcp：xxx` 即可快速添加新的 MCP 服务。
 
