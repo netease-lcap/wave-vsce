@@ -97,8 +97,7 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
       return {
         ...state,
         sessions: action.payload,
-        sessionsLoading: false,
-        sessionsError: undefined
+        sessionsLoading: false
       };
     case 'SET_CURRENT_SESSION':
       return {
