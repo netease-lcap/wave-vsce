@@ -315,16 +315,4 @@ export class UIStateVerifier {
             await expect(this.sessionSelector).toBeEnabled();
         }
     }
-
-    /**
-     * Verify session error is displayed
-     */
-    async verifySessionError(errorText?: string) {
-        const sessionError = this.page.getByTestId('session-error');
-        if (errorText) {
-            await expect(sessionError).toContainText(errorText);
-        } else {
-            await expect(sessionError).toBeVisible();
-        }
-    }
 }

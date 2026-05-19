@@ -29,7 +29,6 @@ const initialState: ChatState = {
   sessions: [],
   currentSession: undefined,
   sessionsLoading: false,
-  sessionsError: undefined,
   pendingConfirmations: [],
   queuedMessages: [],
   // Configuration state
@@ -110,12 +109,6 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
       return {
         ...state,
         sessionsLoading: action.payload
-      };
-    case 'SET_SESSIONS_ERROR':
-      return {
-        ...state,
-        sessionsError: action.payload,
-        sessionsLoading: false
       };
     case 'SHOW_CONFIRMATION':
       return {
@@ -258,9 +251,6 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
           break;
         case 'updateCurrentSession':
           dispatch({ type: 'SET_CURRENT_SESSION', payload: message.session });
-          break;
-        case 'sessionsError':
-          dispatch({ type: 'SET_SESSIONS_ERROR', payload: message.error });
           break;
         case 'showConfirmation':
           dispatch({
@@ -522,7 +512,6 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
         currentSession={state.currentSession}
         onSessionSelect={handleSessionSelect}
         sessionsLoading={state.sessionsLoading}
-        sessionsError={state.sessionsError}
       />
       
       <MessageList 

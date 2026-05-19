@@ -159,7 +159,7 @@ export class ChatProvider implements vscode.WebviewViewProvider {
                 return this.handleToolPermissionRequest(context, viewType, windowId);
             },
             onError: (error) => {
-                this.sendErrorToView(error, viewType, windowId);
+                vscode.window.showErrorMessage(`智能体错误: ` + error);
             },
             onMcpServersChange: (servers) => {
                 this.webviewManager.postMessage({ command: 'mcpServersUpdate', servers }, viewType, windowId);
@@ -197,7 +197,6 @@ export class ChatProvider implements vscode.WebviewViewProvider {
         } catch (error) {
             console.error(`初始化 ${viewType} 智能体失败:`, error);
             vscode.window.showErrorMessage(`初始化 ${viewType} AI 智能体失败: ` + error);
-            this.sendErrorToView(error, viewType, windowId);
         }
     }
 
@@ -268,13 +267,6 @@ export class ChatProvider implements vscode.WebviewViewProvider {
     }
 
 
-    private sendErrorToView(error: any, viewType: 'sidebar' | 'tab' | 'window', windowId?: string) {
-        const errorMessage = {
-            command: 'sessionsError',
-            error: `初始化${viewType}智能体失败: ` + error
-        };
-        this.webviewManager.postMessage(errorMessage, viewType, windowId);
-    }
 
     public async createOrShowChatPanel(mode: 'sidebar' | 'tab' | 'window' = 'tab') {
         console.log(`调用了 createOrShowChatPanel，模式: ${mode}`);
@@ -325,10 +317,7 @@ export class ChatProvider implements vscode.WebviewViewProvider {
                     sessions: []
                 }, viewType, windowId);
             } else {
-                this.webviewManager.postMessage({
-                    command: 'sessionsError',
-                    error: '获取会话列表失败: ' + error
-                }, viewType, windowId);
+                vscode.window.showErrorMessage('获取会话列表失败: ' + error);
             }
         }
     }

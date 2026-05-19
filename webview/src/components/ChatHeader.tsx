@@ -11,8 +11,7 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
   sessions,
   currentSession,
   onSessionSelect,
-  sessionsLoading,
-  sessionsError
+  sessionsLoading
 }) => {
   return (
     <div className="chat-header" data-testid="chat-header">
@@ -22,7 +21,6 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
           currentSession={currentSession}
           onSessionSelect={onSessionSelect}
           loading={sessionsLoading}
-          error={sessionsError}
           disabled={isStreaming}
         />
       </div>
