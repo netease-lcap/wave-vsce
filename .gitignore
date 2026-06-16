@@ -12,6 +12,9 @@ webview/dist/
 *.vsix
 *.zip
 
+# SDK dev pack
+wave-agent-sdk-0.0.0-dev.tgz
+
 # Binaries
 vendor/
 builtin/
