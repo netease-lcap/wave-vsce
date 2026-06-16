@@ -135,24 +135,27 @@ test.describe('Product Specification Screenshots - Rich Content', () => {
         // 14. Session Selector - 使用 SDK 的 SessionMetadata 类型
         const now = Date.now();
         const sessions: SessionMetadata[] = [
-            { 
+            {
                 id: 'session-1',
                 sessionType: 'main',
                 workdir: '/project',
+                createdAt: new Date(now - 1000 * 60 * 60), // 1小时前创建
                 lastActiveAt: new Date(now - 1000 * 60 * 30), // 30分钟前
                 latestTotalTokens: 1500
             },
-            { 
+            {
                 id: 'session-2',
-                sessionType: 'main', 
+                sessionType: 'main',
                 workdir: '/project',
+                createdAt: new Date(now - 1000 * 60 * 60 * 3), // 3小时前创建
                 lastActiveAt: new Date(now - 1000 * 60 * 60 * 2), // 2小时前
                 latestTotalTokens: 2200
             },
-            { 
+            {
                 id: 'session-3',
                 sessionType: 'main',
-                workdir: '/project', 
+                workdir: '/project',
+                createdAt: new Date(now - 1000 * 60 * 60 * 48), // 2天前创建
                 lastActiveAt: new Date(now - 1000 * 60 * 60 * 24), // 1天前
                 latestTotalTokens: 800
             }
