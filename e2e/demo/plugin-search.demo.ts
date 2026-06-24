@@ -2,26 +2,17 @@ import { test, expect } from '../utils/webviewTestHarness.js';
 
 test.describe('Plugin Search UI Demo', () => {
     test('should show search input and filter plugins by keyword', async ({ webviewPage }) => {
-        // 1. Open the configuration dialog
+        // 1. Open the plugin management dialog
         await webviewPage.evaluate(() => {
             (window as any).simulateExtensionMessage({
-                command: 'showConfiguration',
-                configurationData: {
-                    apiKey: 'test-key',
-                    baseURL: 'https://api.example.com',
-                    model: 'test-model',
-                    fastModel: 'fast-model',
-                    language: 'Chinese'
-                }
+                command: 'showDialog',
+                dialogType: 'plugin'
             });
         });
 
-        await expect(webviewPage.getByText('配置设置', { exact: true })).toBeVisible();
+        await expect(webviewPage.getByText('插件管理', { exact: true })).toBeVisible();
 
-        // 2. Click on "插件" tab
-        await webviewPage.getByText('插件', { exact: true }).click();
-
-        // 3. Simulate receiving plugins list
+        // 2. Simulate receiving plugins list
         await webviewPage.evaluate(() => {
             window.postMessage({
                 command: 'listPluginsResponse',
@@ -62,7 +53,7 @@ test.describe('Plugin Search UI Demo', () => {
             }, '*');
         });
 
-        // 4. Verify search input is visible
+        // 3. Verify search input is visible
         const searchInput = webviewPage.locator('.plugin-search input');
         await expect(searchInput).toBeVisible();
         await expect(searchInput).toHaveAttribute('placeholder', '搜索插件...');
@@ -70,7 +61,7 @@ test.describe('Plugin Search UI Demo', () => {
         // Screenshot of search input with all plugins
         await webviewPage.screenshot({ path: 'docs/public/screenshots/plugin-search-input.png' });
 
-        // 5. Type "commit" to filter
+        // 4. Type "commit" to filter
         await searchInput.fill('commit');
 
         // Verify only commit-commands is shown
@@ -81,13 +72,13 @@ test.describe('Plugin Search UI Demo', () => {
 
         await webviewPage.screenshot({ path: 'docs/public/screenshots/plugin-search-filtered.png' });
 
-        // 6. Type a non-matching query
+        // 5. Type a non-matching query
         await searchInput.fill('zzz-nonexistent');
         await expect(webviewPage.getByText('没有找到匹配的插件')).toBeVisible();
 
         await webviewPage.screenshot({ path: 'docs/public/screenshots/plugin-search-no-results.png' });
 
-        // 7. Clear the search
+        // 6. Clear the search
         await searchInput.fill('');
         await expect(webviewPage.locator('.plugin-name', { hasText: 'commit-commands' })).toBeVisible();
         await expect(webviewPage.locator('.plugin-name', { hasText: 'document-skills' })).toBeVisible();

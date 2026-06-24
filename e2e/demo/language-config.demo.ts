@@ -2,7 +2,7 @@ import { test, expect } from '../utils/webviewTestHarness.js';
 
 test.describe('Language Configuration Demo', () => {
     test('should show language field in configuration dialog', async ({ webviewPage }) => {
-        // Simulate the extension sending the showConfiguration command with language
+        // Simulate the extension sending showConfiguration (opens ConfigDialog via /config)
         await webviewPage.evaluate(() => {
             (window as any).simulateExtensionMessage({
                 command: 'showConfiguration',
