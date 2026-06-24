@@ -54,17 +54,17 @@ test.describe('Tool Display Visual Test', () => {
 
         // Check first tool (Read with compactParams)
         const readTool = toolBlocks.nth(0);
-        await expect(readTool).toContainText(`🛠️ ${READ_TOOL_NAME} file.ts`);
+        await expect(readTool).toContainText(`● ${READ_TOOL_NAME} file.ts`);
         await expect(readTool).not.toContainText('file_path'); // Should not show full parameters
 
         // Check second tool (Write with compactParams)  
         const writeTool = toolBlocks.nth(1);
-        await expect(writeTool).toContainText(`🛠️ ${WRITE_TOOL_NAME} config.json`);
+        await expect(writeTool).toContainText(`● ${WRITE_TOOL_NAME} config.json`);
         await expect(writeTool).not.toContainText('content'); // Should not show full parameters
 
         // Check third tool (Bash without compactParams - fallback)
         const bashTool = toolBlocks.nth(2);
-        await expect(bashTool).toContainText(`🛠️ ${BASH_TOOL_NAME}`);
+        await expect(bashTool).toContainText(`● ${BASH_TOOL_NAME}`);
         await expect(bashTool).not.toContainText('npm install'); // Should not show compactParams since we removed it
         await expect(bashTool).not.toContainText('command'); // Should not show full parameters
 

@@ -239,9 +239,16 @@ export const Message: React.FC<MessageProps> = (props) => {
     const compactInfo = toolBlock.stage === 'streaming'
       ? (toolBlock.parameters ? String(toolBlock.parameters).slice(-30) : '')
       : (toolBlock.compactParams || '');
+    const toolStatusColor = toolBlock.stage === 'running' || toolBlock.stage === 'streaming'
+      ? 'var(--vscode-editorWarning-foreground, #cca700)'
+      : toolBlock.success === true
+        ? 'var(--vscode-testing-iconPassed, #73c991)'
+        : (toolBlock.error || toolBlock.success === false)
+          ? 'var(--vscode-testing-iconFailed, #f14c4c)'
+          : 'var(--vscode-descriptionForeground, #888)';
     const toolHeader = (
       <div key={index} className="tool-block">
-        🛠️ {toolBlock.name || 'Tool'}{compactInfo ? <span className="compact-params"> {compactInfo}</span> : ''}
+        <span className="tool-status-dot" style={{ color: toolStatusColor }}>●</span> {toolBlock.name || 'Tool'}{compactInfo ? <span className="compact-params"> {compactInfo}</span> : ''}
       </div>
     );
 

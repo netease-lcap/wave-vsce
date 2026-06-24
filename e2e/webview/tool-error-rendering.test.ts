@@ -31,7 +31,7 @@ test.describe('Tool Block Error Rendering', () => {
     // Verify tool block exists
     const toolBlock = await webviewPage.locator('.tool-block').first();
     await expect(toolBlock).toBeVisible();
-    await expect(toolBlock).toContainText(`🛠️ ${READ_TOOL_NAME}`);
+    await expect(toolBlock).toContainText(`● ${READ_TOOL_NAME}`);
 
     // Verify tool error exists and has proper styling
     const toolError = await webviewPage.locator('.tool-error').first();
@@ -69,7 +69,7 @@ test.describe('Tool Block Error Rendering', () => {
     await webviewPage.waitForSelector('.message.assistant', { timeout: 5000 });
 
     // Verify both tool block and error exist
-    await expect(webviewPage.locator('.tool-block')).toContainText(`🛠️ ${BASH_TOOL_NAME}`);
+    await expect(webviewPage.locator('.tool-block')).toContainText(`● ${BASH_TOOL_NAME}`);
     await expect(webviewPage.locator('.tool-error')).toContainText('bash: invalid-command: command not found');
   });
 
@@ -91,7 +91,7 @@ test.describe('Tool Block Error Rendering', () => {
     await webviewPage.waitForSelector('.message.assistant', { timeout: 5000 });
 
     // Verify tool block and error exist
-    await expect(webviewPage.locator('.tool-block')).toContainText(`🛠️ ${WRITE_TOOL_NAME}`);
+    await expect(webviewPage.locator('.tool-block')).toContainText(`● ${WRITE_TOOL_NAME}`);
     await expect(webviewPage.locator('.tool-error')).toContainText('Permission denied');
     
     // Verify diff viewer is NOT present when there's an error
