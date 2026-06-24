@@ -85,9 +85,8 @@ test.describe('Product Specification Screenshots - Confirmations', () => {
         await webviewPage.keyboard.press('Escape');
         await webviewPage.waitForSelector('.confirmation-dialog', { state: 'hidden' });
 
-        // 11. Configuration Dialog
-        // Update config
-        await injector.simulateExtensionMessage('configurationResponse', {
+        // 11. Configuration Dialog (opened via /config or showConfiguration message)
+        await injector.simulateExtensionMessage('showConfiguration', {
             configurationData: {
                 apiKey: 'sk-xxxxxxxxxxxxxxxx',
                 baseURL: 'https://api.openai.com/v1',
@@ -95,7 +94,6 @@ test.describe('Product Specification Screenshots - Confirmations', () => {
                 fastModel: 'gpt-3.5-turbo'
             }
         });
-        await webviewPage.click('.configuration-button');
         await webviewPage.waitForSelector('.configuration-dialog');
         await webviewPage.screenshot({ path: 'docs/public/screenshots/spec-configuration.png' });
         await webviewPage.keyboard.press('Escape');

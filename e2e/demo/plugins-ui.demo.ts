@@ -1,33 +1,24 @@
 import { test, expect } from '../utils/webviewTestHarness.js';
 
-test.describe('Plugin Configuration UI Demo', () => {
-    test('should show plugin tabs and content in configuration dialog', async ({ webviewPage }) => {
-        // 1. Open the configuration dialog
+test.describe('Plugin Management Dialog Demo', () => {
+    test('should show plugin tabs and content in plugin dialog', async ({ webviewPage }) => {
+        // 1. Open the plugin management dialog via showDialog
         await webviewPage.evaluate(() => {
             (window as any).simulateExtensionMessage({
-                command: 'showConfiguration',
-                configurationData: {
-                    apiKey: 'test-key',
-                    baseURL: 'https://api.example.com',
-                    model: 'test-model',
-                    fastModel: 'fast-model',
-                    language: 'Chinese'
-                }
+                command: 'showDialog',
+                dialogType: 'plugin'
             });
         });
 
         // Verify dialog is visible
-        await expect(webviewPage.getByText('配置设置', { exact: true })).toBeVisible();
-        
-        // 2. Click on "插件" tab
-        await webviewPage.getByText('插件', { exact: true }).click();
-        
+        await expect(webviewPage.getByText('插件管理', { exact: true })).toBeVisible();
+
         // Verify plugin sub-tabs are visible
         await expect(webviewPage.getByText('探索新插件', { exact: true })).toBeVisible();
         await expect(webviewPage.getByText('已安装插件', { exact: true })).toBeVisible();
         await expect(webviewPage.getByText('插件市场', { exact: true })).toBeVisible();
 
-        // 3. Simulate receiving plugins list
+        // 2. Simulate receiving plugins list
         await webviewPage.evaluate(() => {
             window.postMessage({
                 command: 'listPluginsResponse',
@@ -79,9 +70,9 @@ test.describe('Plugin Configuration UI Demo', () => {
         // Take screenshot of "Explore" tab
         await webviewPage.screenshot({ path: 'docs/public/screenshots/plugins-explore-tab.png' });
 
-        // 4. Switch to "已安装插件" tab
+        // 3. Switch to "已安装插件" tab
         await webviewPage.getByText('已安装插件', { exact: true }).click();
-        
+
         // Simulate receiving installed plugins list
         await webviewPage.evaluate(() => {
             window.postMessage({
@@ -103,9 +94,9 @@ test.describe('Plugin Configuration UI Demo', () => {
         await expect(webviewPage.locator('.plugin-name').filter({ hasText: 'Installed Plugin' })).toBeVisible();
         await webviewPage.screenshot({ path: 'docs/public/screenshots/plugins-installed-tab.png' });
 
-        // 5. Switch to "插件市场" tab
+        // 4. Switch to "插件市场" tab
         await webviewPage.getByText('插件市场', { exact: true }).click();
-        
+
         // Simulate receiving marketplaces list
         await webviewPage.evaluate(() => {
             window.postMessage({
@@ -115,7 +106,7 @@ test.describe('Plugin Configuration UI Demo', () => {
                 ]
             }, '*');
         });
-        
+
         await expect(webviewPage.getByText('wave-plugins-official', { exact: true })).toBeVisible();
         await webviewPage.screenshot({ path: 'docs/public/screenshots/plugins-marketplaces-tab.png' });
     });

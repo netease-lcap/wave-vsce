@@ -3,7 +3,7 @@ import { MessageInjector } from '../utils/messageInjector.js';
 
 test.describe('Configuration Popup Demo', () => {
     test('should show configuration dialog when config is missing', async ({ webviewPage }) => {
-        // Simulate the extension sending the showConfiguration command
+        // Simulate the extension sending the showConfiguration command (opens ConfigDialog)
         await webviewPage.evaluate(() => {
             (window as any).simulateExtensionMessage({
                 command: 'showConfiguration',
@@ -25,7 +25,7 @@ test.describe('Configuration Popup Demo', () => {
     });
 
     test('should NOT show configuration dialog when config is provided (simulated)', async ({ webviewPage }) => {
-        // In this case, the extension wouldn't send showConfiguration
+        // The extension wouldn't send showConfiguration when config is valid
         // We just verify the normal chat interface is there
         await expect(webviewPage.getByTestId('chat-container')).toBeVisible();
         await expect(webviewPage.getByText('配置设置', { exact: true })).not.toBeVisible(); // The dialog title

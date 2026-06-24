@@ -1,28 +1,19 @@
 import { test, expect } from '../utils/webviewTestHarness.js';
 
-test.describe('MCP Server Tab Demo', () => {
-    test('should show MCP server tab with configured servers', async ({ webviewPage }) => {
-        // 1. Open the configuration dialog
+test.describe('MCP Server Dialog Demo', () => {
+    test('should show MCP server dialog with configured servers', async ({ webviewPage }) => {
+        // 1. Open the MCP server management dialog via showDialog
         await webviewPage.evaluate(() => {
             (window as any).simulateExtensionMessage({
-                command: 'showConfiguration',
-                configurationData: {
-                    apiKey: 'test-key',
-                    baseURL: 'https://api.example.com',
-                    model: 'test-model',
-                    fastModel: 'fast-model',
-                    language: 'Chinese'
-                }
+                command: 'showDialog',
+                dialogType: 'mcp'
             });
         });
 
         // Verify dialog is visible
-        await expect(webviewPage.getByText('配置设置', { exact: true })).toBeVisible();
+        await expect(webviewPage.getByText('MCP 服务器', { exact: true })).toBeVisible();
 
-        // 2. Click on "MCP 服务器" tab
-        await webviewPage.getByText('MCP 服务器', { exact: true }).click();
-
-        // 3. Simulate receiving MCP servers list
+        // 2. Simulate receiving MCP servers list
         await webviewPage.evaluate(() => {
             window.postMessage({
                 command: 'mcpServersResponse',
@@ -97,24 +88,15 @@ test.describe('MCP Server Tab Demo', () => {
     });
 
     test('should show empty state when no MCP servers configured', async ({ webviewPage }) => {
-        // 1. Open the configuration dialog
+        // 1. Open the MCP server management dialog
         await webviewPage.evaluate(() => {
             (window as any).simulateExtensionMessage({
-                command: 'showConfiguration',
-                configurationData: {
-                    apiKey: 'test-key',
-                    baseURL: 'https://api.example.com',
-                    model: 'test-model',
-                    fastModel: 'fast-model',
-                    language: 'Chinese'
-                }
+                command: 'showDialog',
+                dialogType: 'mcp'
             });
         });
 
-        // 2. Click on "MCP 服务器" tab
-        await webviewPage.getByText('MCP 服务器', { exact: true }).click();
-
-        // 3. Simulate empty servers list
+        // 2. Simulate empty servers list
         await webviewPage.evaluate(() => {
             window.postMessage({
                 command: 'mcpServersResponse',
@@ -130,24 +112,15 @@ test.describe('MCP Server Tab Demo', () => {
     });
 
     test('should handle connect/disconnect actions', async ({ webviewPage }) => {
-        // 1. Open the configuration dialog
+        // 1. Open the MCP server management dialog
         await webviewPage.evaluate(() => {
             (window as any).simulateExtensionMessage({
-                command: 'showConfiguration',
-                configurationData: {
-                    apiKey: 'test-key',
-                    baseURL: 'https://api.example.com',
-                    model: 'test-model',
-                    fastModel: 'fast-model',
-                    language: 'Chinese'
-                }
+                command: 'showDialog',
+                dialogType: 'mcp'
             });
         });
 
-        // 2. Click on "MCP 服务器" tab
-        await webviewPage.getByText('MCP 服务器', { exact: true }).click();
-
-        // 3. Simulate servers list
+        // 2. Simulate servers list
         await webviewPage.evaluate(() => {
             window.postMessage({
                 command: 'mcpServersResponse',
@@ -163,13 +136,10 @@ test.describe('MCP Server Tab Demo', () => {
             }, '*');
         });
 
-        // 4. Click connect button
+        // 3. Click connect button
         await webviewPage.getByRole('button', { name: '连接' }).click();
 
-        // Verify backend receives the connect command
-        // (In demo mode, we verify the UI interaction rather than backend response)
-
-        // 5. Simulate the backend response after connection
+        // 4. Simulate the backend response after connection
         await webviewPage.evaluate(() => {
             window.postMessage({
                 command: 'mcpServersResponse',

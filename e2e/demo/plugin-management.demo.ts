@@ -5,33 +5,18 @@ test.describe('Plugin Management Screenshots', () => {
         // Set viewport size for better screenshots
         await webviewPage.setViewportSize({ width: 500, height: 700 });
 
-        // 1. Open configuration dialog
+        // 1. Open plugin management dialog
         await webviewPage.evaluate(() => {
             (window as any).simulateExtensionMessage({
-                command: 'setInitialState',
-                messages: [],
-                isStreaming: false,
-                sessions: [],
-                configurationData: {
-                    apiKey: 'sk-xxxxxxxxxxxxxxxx',
-                    baseURL: 'https://api.openai.com/v1',
-                    model: 'gpt-4',
-                    fastModel: 'gpt-3.5-turbo',
-                    language: 'Chinese'
-                },
-                permissionMode: 'default'
+                command: 'showDialog',
+                dialogType: 'plugin'
             });
         });
 
-        // Click configuration button
-        await webviewPage.click('.configuration-button');
-        await webviewPage.waitForSelector('.configuration-dialog');
-        
-        // 2. Click "插件" tab
-        await webviewPage.getByText('插件', { exact: true }).click();
+        await expect(webviewPage.getByText('插件管理', { exact: true })).toBeVisible();
         await expect(webviewPage.getByText('探索新插件', { exact: true })).toBeVisible();
 
-        // 3. Explore plugins tab - 展示可安装的插件列表和作用域选择
+        // 2. Explore plugins tab - 展示可安装的插件列表和作用域选择
         await webviewPage.evaluate(() => {
             window.postMessage({
                 command: 'listPluginsResponse',
@@ -85,74 +70,74 @@ test.describe('Plugin Management Screenshots', () => {
         });
 
         await webviewPage.waitForSelector('.plugin-item');
-        
+
         // 确保可以看到可安装的插件列表
         await expect(webviewPage.getByText('GitHub Integration')).toBeVisible();
         await expect(webviewPage.getByText('Docker Helper')).toBeVisible();
-        
+
         // 截图：探索新插件列表页
         await webviewPage.screenshot({ path: 'docs/public/screenshots/spec-plugin-explore-list.png' });
-        
+
         // 点击一个插件查看详情
         await webviewPage.getByText('GitHub Integration').click();
-        
+
         // 等待详情页显示
         await expect(webviewPage.getByText('返回列表')).toBeVisible();
         await expect(webviewPage.getByText('选择安装作用域')).toBeVisible();
         await expect(webviewPage.getByText('为你安装 (user)')).toBeVisible();
         await expect(webviewPage.getByText('为此仓库的所有协作者安装 (project)')).toBeVisible();
         await expect(webviewPage.getByText('仅为你在此仓库中安装 (local)')).toBeVisible();
-        
+
         // 截图：插件详情页，显示安装作用域选择
         await webviewPage.screenshot({ path: 'docs/public/screenshots/spec-plugin-explore.png' });
-        
+
         // 返回列表
         await webviewPage.getByText('返回列表').click();
         await expect(webviewPage.getByText('GitHub Integration')).toBeVisible();
 
-        // 4. Installed plugins tab - 展示已激活插件及更新和卸载按钮
+        // 3. Installed plugins tab - 展示已激活插件及更新和卸载按钮
         await webviewPage.getByText('已安装插件', { exact: true }).click();
-        
+
         // 等待已安装插件渲染
         await webviewPage.waitForSelector('.plugin-item:has-text("Code Reviewer")');
-        
+
         // 确认更新和卸载按钮存在
         await expect(webviewPage.locator('.update-btn').first()).toBeVisible();
         await expect(webviewPage.locator('.uninstall-btn').first()).toBeVisible();
-        
+
         // 截图：已激活插件标签页，显示更新和卸载按钮
         await webviewPage.screenshot({ path: 'docs/public/screenshots/spec-plugin-installed.png' });
 
-        // 5. Marketplaces tab - 展示插件市场管理
+        // 4. Marketplaces tab - 展示插件市场管理
         await webviewPage.getByText('插件市场', { exact: true }).click();
-        
+
         // Simulate marketplace list
         await webviewPage.evaluate(() => {
             window.postMessage({
                 command: 'listMarketplacesResponse',
                 marketplaces: [
-                    { 
-                        name: 'official', 
-                        url: 'https://github.com/wave-ai/official-plugins' 
+                    {
+                        name: 'official',
+                        url: 'https://github.com/wave-ai/official-plugins'
                     },
-                    { 
-                        name: 'community', 
-                        url: 'https://github.com/wave-community/plugins' 
+                    {
+                        name: 'community',
+                        url: 'https://github.com/wave-community/plugins'
                     },
-                    { 
-                        name: 'my-custom', 
-                        url: '/home/user/my-local-plugins' 
+                    {
+                        name: 'my-custom',
+                        url: '/home/user/my-local-plugins'
                     }
                 ]
             }, '*');
         });
 
         await webviewPage.waitForSelector('.marketplace-item');
-        
+
         // 确保输入框和按钮可见
         await expect(webviewPage.locator('input[placeholder*="市场 URL"]')).toBeVisible();
         await expect(webviewPage.getByText('添加', { exact: true })).toBeVisible();
-        
+
         // 截图：插件市场标签页，显示市场列表和管理功能
         await webviewPage.screenshot({ path: 'docs/public/screenshots/spec-plugin-marketplaces.png' });
 
