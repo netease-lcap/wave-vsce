@@ -40,28 +40,6 @@
     color: var(--vscode-editor-foreground);
 }
 
-.configuration-tabs {
-    display: flex;
-    gap: 12px;
-    margin-top: 12px;
-}
-
-.configuration-tabs .tab-button {
-    background: none;
-    border: none;
-    color: var(--vscode-descriptionForeground);
-    padding: 4px 0;
-    cursor: pointer;
-    font-size: 13px;
-    border-bottom: 2px solid transparent;
-}
-
-.configuration-tabs .tab-button.active {
-    color: var(--vscode-button-background);
-    border-bottom-color: var(--vscode-button-background);
-    background: none;
-}
-
 /* Plugins Container */
 .plugins-container {
     display: flex;

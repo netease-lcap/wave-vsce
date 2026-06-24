@@ -162,14 +162,6 @@ export interface MessageInputProps {
   shouldClearInput?: boolean;
   onInputCleared?: () => void;
   vscode: any;
-  // Configuration props
-  showConfiguration: boolean;
-  configurationData?: ConfigurationData;
-  configurationLoading: boolean;
-  configurationError?: string;
-  onConfigurationOpen: () => void;
-  onConfigurationSave: (config: ConfigurationData) => void;
-  onConfigurationCancel: () => void;
   // Selection props
   selection?: SelectionInfo;
   inputContent?: string;
@@ -246,8 +238,8 @@ export interface ChatState {
   sessionsLoading: boolean;
   pendingConfirmations: ConfirmationRequest[];
   queuedMessages: QueuedMessage[];
-  // Configuration state
-  showConfiguration: boolean;
+  // Dialog state
+  activeDialog: 'config' | 'plugin' | 'mcp' | null;
   configurationData?: ConfigurationData;
   configurationLoading: boolean;
   configurationError?: string;
@@ -337,23 +329,28 @@ export interface SelectionInfo {
 }
 
 /**
- * Props for the configuration button component
+ * Props for the general settings dialog component
  */
-export interface ConfigurationButtonProps {
-  onClick: () => void;
-  disabled?: boolean;
-}
-
-/**
- * Props for the configuration dialog component
- */
-export interface ConfigurationDialogProps {
-  isVisible: boolean;
+export interface ConfigDialogProps {
   configurationData: ConfigurationData;
   isLoading: boolean;
   error?: string;
   onSave: (config: ConfigurationData) => void;
   onCancel: () => void;
+}
+
+/**
+ * Props for the plugin management dialog component
+ */
+export interface PluginDialogProps {
+  onClose: () => void;
+}
+
+/**
+ * Props for the MCP server settings dialog component
+ */
+export interface McpDialogProps {
+  onClose: () => void;
 }
 
 export type ChatAction =
@@ -371,8 +368,8 @@ export type ChatAction =
   | { type: 'SET_SESSIONS_LOADING'; payload: boolean }
   | { type: 'SHOW_CONFIRMATION'; payload: ConfirmationRequest }
   | { type: 'HIDE_CONFIRMATION'; payload: string }
-  | { type: 'SHOW_CONFIGURATION'; payload: { data: ConfigurationData; error?: string } }
-  | { type: 'HIDE_CONFIGURATION'; payload?: ConfigurationData }
+  | { type: 'SHOW_DIALOG'; payload: { type: 'config' | 'plugin' | 'mcp'; data?: ConfigurationData; error?: string } }
+  | { type: 'HIDE_DIALOG' }
   | { type: 'SET_CONFIGURATION_LOADING'; payload: boolean }
   | { type: 'SET_CONFIGURATION_ERROR'; payload: string | undefined }
   | { type: 'SET_CONFIGURATION_DATA'; payload: ConfigurationData }

@@ -32,9 +32,9 @@ This file provides guidance to Wave Code when working with code in this reposito
 ### 前端 (Webview)
 - **`webview/src/index.tsx`**: React 应用程序的入口点。
 - **`webview/src/components/ChatApp.tsx`**: 使用 `useReducer` 模式管理聊天状态的主要组件。
-- **`webview/src/components/ConfigurationDialog.tsx`**: 用于管理 AI 设置（API 密钥、模型、语言等）和插件管理的 UI。包含三个主要标签页：
-  - **常规设置**: API 配置、模型选择、语言设置
-  - **插件管理**: 探索新插件、已安装插件、插件市场
+- **`webview/src/components/ConfigDialog.tsx`**: 常规设置弹窗（通过 `/config` 命令唤起），管理 AI 设置（API 密钥、模型、语言等）和 SSO 认证。
+- **`webview/src/components/PluginDialog.tsx`**: 插件管理弹窗（通过 `/plugin` 命令唤起），包含探索新插件、已安装插件、插件市场三个子选项卡。
+- **`webview/src/components/McpDialog.tsx`**: MCP 服务器管理弹窗（通过 `/mcp` 命令唤起），显示服务器状态和连接控制。
 - **通信 (Communication)**: 使用 `vscode.postMessage` 和 `window.addEventListener('message', ...)` 与后端通信。
 - **VS Code API 限制**: `acquireVsCodeApi()` 在整个 Webview 生命周期内只能被调用一次。必须在根组件（如 `index.tsx`）调用并作为 Prop 传递给子组件，严禁在子组件中重复获取，否则会导致 Webview 崩溃。
 
