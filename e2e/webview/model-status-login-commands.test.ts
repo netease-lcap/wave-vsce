@@ -1,0 +1,224 @@
+import { test, expect } from '../utils/webviewTestHarness.js';
+
+/**
+ * Test /model, /status, /login slash commands
+ * These commands are intercepted locally (never sent to agent SDK) and open dialogs.
+ */
+
+test.describe('Model/Status/Login Slash Commands', () => {
+  test('should open model dialog when /model is typed and Enter pressed', async ({ webviewPage }) => {
+    const input = webviewPage.getByTestId('message-input');
+    await input.focus();
+
+    // Simulate extension sending configuration data first
+    await webviewPage.evaluate(() => {
+      (window as any).simulateExtensionMessage({
+        command: 'configurationResponse',
+        configurationData: {
+          model: 'gpt-4',
+          fastModel: 'gpt-4-mini',
+          baseURL: 'https://api.example.com/v1',
+          serverUrl: 'https://wave.example.com'
+        }
+      });
+    });
+
+    // Type /model and press Enter
+    await input.type('/model');
+    await webviewPage.keyboard.press('Enter');
+
+    // Verify model dialog is visible
+    await expect(webviewPage.getByText('模型设置', { exact: true })).toBeVisible();
+
+    // Verify model input is pre-filled
+    const modelInput = webviewPage.locator('#model-select');
+    await expect(modelInput).toHaveValue('gpt-4');
+
+    const fastModelInput = webviewPage.locator('#fast-model-select');
+    await expect(fastModelInput).toHaveValue('gpt-4-mini');
+
+    // Verify sendMessage was NOT sent to extension (it's a local command)
+    const messages = await webviewPage.evaluate(() => (window as any).getTestMessages());
+    expect(messages.some((m: any) => m.command === 'sendMessage')).toBe(false);
+  });
+
+  test('should open status dialog when /status is typed and Enter pressed', async ({ webviewPage }) => {
+    const input = webviewPage.getByTestId('message-input');
+    await input.focus();
+
+    // Type /status and press Enter
+    await input.type('/status');
+    await webviewPage.keyboard.press('Enter');
+
+    // Verify status dialog is visible
+    await expect(webviewPage.getByText('状态信息', { exact: true })).toBeVisible();
+
+    // Simulate extension sending status response
+    await webviewPage.evaluate(() => {
+      (window as any).simulateExtensionMessage({
+        command: 'statusResponse',
+        version: '0.4.15',
+        sessionId: 'test-session-123',
+        workdir: '/home/user/project',
+        configurationData: {
+          model: 'gpt-4',
+          fastModel: 'gpt-4-mini',
+          baseURL: 'https://api.example.com/v1',
+          serverUrl: 'https://wave.example.com'
+        }
+      });
+    });
+
+    // Verify status info is displayed
+    await expect(webviewPage.getByText('0.4.15')).toBeVisible();
+    await expect(webviewPage.getByText('test-session-123')).toBeVisible();
+    await expect(webviewPage.getByText('/home/user/project')).toBeVisible();
+
+    // Verify getStatus message was sent to extension
+    const messages = await webviewPage.evaluate(() => (window as any).getTestMessages());
+    expect(messages.some((m: any) => m.command === 'getStatus')).toBe(true);
+  });
+
+  test('should open login dialog when /login is typed and Enter pressed', async ({ webviewPage }) => {
+    const input = webviewPage.getByTestId('message-input');
+    await input.focus();
+
+    // Simulate extension sending configuration data with serverUrl
+    await webviewPage.evaluate(() => {
+      (window as any).simulateExtensionMessage({
+        command: 'configurationResponse',
+        configurationData: {
+          serverUrl: 'https://wave.example.com'
+        }
+      });
+    });
+
+    // Type /login and press Enter
+    await input.type('/login');
+    await webviewPage.keyboard.press('Enter');
+
+    // Verify login dialog is visible
+    await expect(webviewPage.getByText('SSO 认证', { exact: true })).toBeVisible();
+
+    // Verify server URL is displayed
+    await expect(webviewPage.getByText('https://wave.example.com')).toBeVisible();
+
+    // Verify getAuthStatus message was sent to extension
+    const messages = await webviewPage.evaluate(() => (window as any).getTestMessages());
+    expect(messages.some((m: any) => m.command === 'getAuthStatus')).toBe(true);
+  });
+
+  test('should close dialog on Escape key', async ({ webviewPage }) => {
+    const input = webviewPage.getByTestId('message-input');
+    await input.focus();
+
+    // Open model dialog
+    await input.type('/model');
+    await webviewPage.keyboard.press('Enter');
+
+    await expect(webviewPage.getByText('模型设置', { exact: true })).toBeVisible();
+
+    // Press Escape to close
+    await webviewPage.keyboard.press('Escape');
+
+    // Verify dialog is closed
+    await expect(webviewPage.getByText('模型设置', { exact: true })).not.toBeVisible();
+  });
+
+  test('should save model via setModel message', async ({ webviewPage }) => {
+    const input = webviewPage.getByTestId('message-input');
+    await input.focus();
+
+    // Simulate extension sending configuration data
+    await webviewPage.evaluate(() => {
+      (window as any).simulateExtensionMessage({
+        command: 'configurationResponse',
+        configurationData: {
+          model: 'gpt-4',
+          fastModel: 'gpt-4-mini'
+        }
+      });
+    });
+
+    // Open model dialog
+    await input.type('/model');
+    await webviewPage.keyboard.press('Enter');
+
+    // Change model value
+    const modelInput = webviewPage.locator('#model-select');
+    await modelInput.fill('claude-opus-4');
+
+    // Click save button
+    await webviewPage.getByText('保存', { exact: true }).click();
+
+    // Verify setModel message was sent with correct data
+    const messages = await webviewPage.evaluate(() => (window as any).getTestMessages());
+    const setModelMsg = messages.find((m: any) => m.command === 'setModel');
+    expect(setModelMsg).toBeDefined();
+    expect(setModelMsg.configurationData.model).toBe('claude-opus-4');
+    expect(setModelMsg.configurationData.fastModel).toBe('gpt-4-mini');
+  });
+
+  test('should show login dialog with not-authenticated state', async ({ webviewPage }) => {
+    const input = webviewPage.getByTestId('message-input');
+    await input.focus();
+
+    // Simulate extension sending configuration data
+    await webviewPage.evaluate(() => {
+      (window as any).simulateExtensionMessage({
+        command: 'configurationResponse',
+        configurationData: {
+          serverUrl: 'https://wave.example.com'
+        }
+      });
+    });
+
+    // Type /login and press Enter
+    await input.type('/login');
+    await webviewPage.keyboard.press('Enter');
+
+    // Simulate auth status response (not authenticated)
+    await webviewPage.evaluate(() => {
+      (window as any).simulateExtensionMessage({
+        command: 'authStatusResponse',
+        isAuthenticated: false,
+        user: null
+      });
+    });
+
+    // Verify "SSO 登录" button is visible
+    await expect(webviewPage.getByText('SSO 登录', { exact: true })).toBeVisible();
+  });
+
+  test('should show login dialog with authenticated state', async ({ webviewPage }) => {
+    const input = webviewPage.getByTestId('message-input');
+    await input.focus();
+
+    // Simulate extension sending configuration data
+    await webviewPage.evaluate(() => {
+      (window as any).simulateExtensionMessage({
+        command: 'configurationResponse',
+        configurationData: {
+          serverUrl: 'https://wave.example.com'
+        }
+      });
+    });
+
+    // Type /login and press Enter
+    await input.type('/login');
+    await webviewPage.keyboard.press('Enter');
+
+    // Simulate auth status response (authenticated)
+    await webviewPage.evaluate(() => {
+      (window as any).simulateExtensionMessage({
+        command: 'authStatusResponse',
+        isAuthenticated: true,
+        user: { id: 'user-123', email: 'test@example.com' }
+      });
+    });
+
+    // Verify user email and logout button are visible
+    await expect(webviewPage.getByText('test@example.com')).toBeVisible();
+    await expect(webviewPage.getByText('登出', { exact: true })).toBeVisible();
+  });
+});

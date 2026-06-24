@@ -1,8 +1,8 @@
 /**
  * ConfigDialog - General settings dialog for AI configuration
  *
- * Opened via the /config slash command. Contains SSO authentication
- * and AI model/API configuration fields.
+ * Opened via the /config slash command. Contains server URL,
+ * API key, model, and language configuration fields.
  */
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -15,7 +15,6 @@ const ConfigDialog: React.FC<ConfigDialogProps & { vscode: any }> = ({
   error,
   onSave,
   onCancel,
-  vscode
 }) => {
   const [formData, setFormData] = useState<ConfigurationData>({
     serverUrl: '',
@@ -26,58 +25,6 @@ const ConfigDialog: React.FC<ConfigDialogProps & { vscode: any }> = ({
     fastModel: '',
     language: 'Chinese'
   });
-
-  // SSO auth state
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [authUser, setAuthUser] = useState<{ id: string; email?: string } | null>(null);
-  const [authLoading, setAuthLoading] = useState(false);
-  const [authMessage, setAuthMessage] = useState('');
-
-  // Fetch auth status on mount
-  useEffect(() => {
-    vscode?.postMessage({ command: 'getAuthStatus' });
-    setAuthMessage('');
-  }, [vscode]);
-
-  useEffect(() => {
-    const handleMessage = (event: MessageEvent) => {
-      const message = event.data;
-      switch (message.command) {
-        case 'authStatusResponse':
-          setIsAuthenticated(message.isAuthenticated || false);
-          setAuthUser(message.user || null);
-          break;
-        case 'loginResponse':
-          if (message.success) {
-            setIsAuthenticated(true);
-            setAuthUser(message.user || null);
-            setAuthLoading(false);
-            setAuthMessage('登录成功');
-          } else {
-            setAuthLoading(false);
-            setAuthMessage(message.error || '登录失败');
-          }
-          break;
-        case 'logoutResponse':
-          setIsAuthenticated(false);
-          setAuthUser(null);
-          setAuthMessage('已登出');
-          break;
-      }
-    };
-    window.addEventListener('message', handleMessage);
-    return () => window.removeEventListener('message', handleMessage);
-  }, []);
-
-  const handleLogin = () => {
-    setAuthLoading(true);
-    setAuthMessage('');
-    vscode?.postMessage({ command: 'login' });
-  };
-
-  const handleLogout = () => {
-    vscode?.postMessage({ command: 'logout' });
-  };
 
   const dialogRef = useRef<HTMLDivElement>(null);
 
@@ -145,42 +92,6 @@ const ConfigDialog: React.FC<ConfigDialogProps & { vscode: any }> = ({
                 placeholder={configurationData?.envServerUrl || 'WAVE_SERVER_URL'}
                 disabled={isLoading}
               />
-            </div>
-
-            <div className="configuration-field sso-auth-section">
-              <label>SSO 认证:</label>
-              {isAuthenticated ? (
-                <div className="sso-authenticated">
-                  <div className="sso-user-info">
-                    {authUser?.email && <span className="sso-email">{authUser.email}</span>}
-                    <span className="sso-user-id">ID: {authUser?.id}</span>
-                  </div>
-                  <button
-                    type="button"
-                    className="sso-logout-btn"
-                    onClick={handleLogout}
-                    disabled={authLoading}
-                  >
-                    登出
-                  </button>
-                </div>
-              ) : (
-                <div className="sso-not-authenticated">
-                  <button
-                    type="button"
-                    className="sso-login-btn"
-                    onClick={handleLogin}
-                    disabled={authLoading || (!formData.serverUrl && !configurationData?.envServerUrl)}
-                  >
-                    {authLoading ? '登录中...' : 'SSO 登录'}
-                  </button>
-                  {authMessage && (
-                    <div className={`sso-message ${authMessage.includes('成功') ? 'success' : authMessage.includes('失败') ? 'error' : ''}`}>
-                      {authMessage}
-                    </div>
-                  )}
-                </div>
-              )}
             </div>
 
             <div className="configuration-field">
