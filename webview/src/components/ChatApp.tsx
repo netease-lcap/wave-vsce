@@ -5,7 +5,9 @@ import { ChatHeader } from './ChatHeader';
 import { TaskList } from './TaskList';
 import { QueuedMessageList } from './QueuedMessageList';
 import { ConfirmationDialog } from './ConfirmationDialog';
-import ConfigurationDialog from './ConfigurationDialog';
+import ConfigDialog from './ConfigDialog';
+import PluginDialog from './PluginDialog';
+import McpDialog from './McpDialog';
 import type {
   ChatAppProps,
   ChatState,
@@ -31,8 +33,8 @@ const initialState: ChatState = {
   sessionsLoading: false,
   pendingConfirmations: [],
   queuedMessages: [],
-  // Configuration state
-  showConfiguration: false,
+  // Dialog state
+  activeDialog: null,
   configurationData: undefined,
   configurationLoading: false,
   configurationError: undefined,
@@ -119,21 +121,20 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
         ...state,
         pendingConfirmations: state.pendingConfirmations.filter(c => c.confirmationId !== action.payload)
       };
-    case 'SHOW_CONFIGURATION':
+    case 'SHOW_DIALOG':
       return {
         ...state,
-        showConfiguration: true,
-        configurationData: action.payload.data,
+        activeDialog: action.payload.type,
+        configurationData: action.payload.data ?? state.configurationData,
         configurationLoading: false,
         configurationError: action.payload.error
       };
-	    case 'HIDE_CONFIGURATION':
-	      return {
-	        ...state,
-	        showConfiguration: false,
-	        configurationData: action.payload || state.configurationData,
-	        configurationError: undefined
-	      };
+    case 'HIDE_DIALOG':
+      return {
+        ...state,
+        activeDialog: null,
+        configurationError: undefined
+      };
     case 'SET_CONFIGURATION_LOADING':
       return {
         ...state,
@@ -300,15 +301,19 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
           break;
         case 'showConfiguration':
           dispatch({
-            type: 'SHOW_CONFIGURATION',
+            type: 'SHOW_DIALOG',
             payload: {
+              type: 'config' as const,
               data: message.configurationData || stateRef.current.configurationData || {},
               error: message.error
             }
           });
           break;
+        case 'showDialog':
+          dispatch({ type: 'SHOW_DIALOG', payload: { type: message.dialogType } });
+          break;
         case 'configurationUpdated':
-          dispatch({ type: 'HIDE_CONFIGURATION' });
+          dispatch({ type: 'HIDE_DIALOG' });
           break;
         case 'configurationError':
           dispatch({ type: 'SET_CONFIGURATION_ERROR', payload: message.error });
@@ -335,6 +340,21 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
   const handleSendMessage = useCallback((text: string, images?: Array<{ data: string; mediaType: string; }>, force: boolean = false) => {
     const trimmedText = text.trim();
     if (!trimmedText && (!images || images.length === 0)) return;
+
+    // Intercept local slash commands — open dialogs instead of sending to agent
+    if (trimmedText === '/config') {
+      dispatch({ type: 'SHOW_DIALOG', payload: { type: 'config', data: stateRef.current.configurationData || {} } });
+      vscode.postMessage({ command: 'getConfiguration' });
+      return;
+    }
+    if (trimmedText === '/plugin') {
+      dispatch({ type: 'SHOW_DIALOG', payload: { type: 'plugin' } });
+      return;
+    }
+    if (trimmedText === '/mcp') {
+      dispatch({ type: 'SHOW_DIALOG', payload: { type: 'mcp' } });
+      return;
+    }
 
     // Send to extension
     vscode.postMessage({
@@ -387,16 +407,6 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
   }, [state.queuedMessages, handleSendMessage, handleDeleteQueuedMessage]);
 
   // Configuration handlers
-  const handleConfigurationOpen = useCallback(() => {
-    dispatch({ 
-      type: 'SHOW_CONFIGURATION', 
-      payload: { data: state.configurationData || {} } 
-    });
-    vscode.postMessage({
-      command: 'getConfiguration'
-    });
-  }, [vscode, state.configurationData]);
-
   const handleConfigurationSave = useCallback((configData: any) => {
     dispatch({ type: 'SET_CONFIGURATION_LOADING', payload: true });
     vscode.postMessage({
@@ -405,8 +415,8 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
     });
   }, [vscode]);
 
-  const handleConfigurationCancel = useCallback(() => {
-    dispatch({ type: 'HIDE_CONFIGURATION' });
+  const handleDialogClose = useCallback(() => {
+    dispatch({ type: 'HIDE_DIALOG' });
   }, []);
 
   const handleToggleTaskList = useCallback(() => {
@@ -552,13 +562,6 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
             shouldClearInput={state.shouldClearInput}
             onInputCleared={handleInputCleared}
             vscode={vscode}
-            showConfiguration={state.showConfiguration}
-            configurationData={state.configurationData}
-            configurationLoading={state.configurationLoading}
-            configurationError={state.configurationError}
-            onConfigurationOpen={handleConfigurationOpen}
-            onConfigurationSave={handleConfigurationSave}
-            onConfigurationCancel={handleConfigurationCancel}
             selection={state.selection}
             inputContent={state.inputContent}
             permissionMode={state.permissionMode}
@@ -579,15 +582,22 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
         )}
       </div>
 
-      <ConfigurationDialog
-        isVisible={state.showConfiguration}
-        configurationData={state.configurationData || {}}
-        isLoading={state.configurationLoading}
-        error={state.configurationError}
-        onSave={handleConfigurationSave}
-        onCancel={handleConfigurationCancel}
-        vscode={vscode}
-      />
+      {state.activeDialog === 'config' && (
+        <ConfigDialog
+          configurationData={state.configurationData || {}}
+          isLoading={state.configurationLoading}
+          error={state.configurationError}
+          onSave={handleConfigurationSave}
+          onCancel={handleDialogClose}
+          vscode={vscode}
+        />
+      )}
+      {state.activeDialog === 'plugin' && (
+        <PluginDialog vscode={vscode} onClose={handleDialogClose} />
+      )}
+      {state.activeDialog === 'mcp' && (
+        <McpDialog vscode={vscode} onClose={handleDialogClose} />
+      )}
     </div>
   );
 };

@@ -593,7 +593,17 @@ export class MessageHandler {
     private async handleSlashCommandsRequest(filterText: string, viewType?: 'sidebar' | 'tab' | 'window', windowId?: string) {
         const session = this.context.getChatSession(viewType || 'tab', windowId);
         try {
-            const allCommands = session.getSlashCommands();
+            const sdkCommands = session.getSlashCommands();
+
+            // Local UI slash commands (not in SDK, intercepted in webview)
+            const localCommands = [
+                { id: 'config', name: 'config', description: '打开配置设置' },
+                { id: 'plugin', name: 'plugin', description: '打开插件管理' },
+                { id: 'mcp', name: 'mcp', description: '打开 MCP 服务器管理' }
+            ];
+
+            const allCommands = [...sdkCommands, ...localCommands];
+
             let filteredCommands = allCommands;
             if (filterText && filterText.trim().length > 0) {
                 const filter = filterText.toLowerCase();

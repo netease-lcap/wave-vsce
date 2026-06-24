@@ -8,7 +8,6 @@ import { FileSuggestionDropdown } from './FileSuggestionDropdown';
 import { SlashCommandsPopup } from './SlashCommandsPopup';
 import { HistorySearchPopup } from './HistorySearchPopup';
 import { AttachedImages } from './AttachedImages';
-import ConfigurationButton from './ConfigurationButton';
 import '../styles/MessageInput.css';
 import '../styles/HistorySearchPopup.css';
 
@@ -36,13 +35,6 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
     shouldClearInput,
     onInputCleared,
     vscode,
-    showConfiguration,
-    configurationData,
-    configurationLoading,
-    configurationError,
-    onConfigurationOpen,
-    onConfigurationSave,
-    onConfigurationCancel,
     selection,
     inputContent,
     permissionMode,
@@ -94,7 +86,6 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
   });
 
   const textareaRef = useRef<HTMLDivElement>(null);
-  const configButtonRef = useRef<HTMLDivElement>(null);
   const requestIdRef = useRef<string>('');
   const inputContentTimerRef = useRef<NodeJS.Timeout | null>(null);
   const selectionChangeTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -717,6 +708,17 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
           range.setStart(textNode, lastSlashIndex);
           range.deleteContents();
 
+          // Local commands (config/plugin/mcp) open dialog directly without inserting text
+          const localCommands = ['config', 'plugin', 'mcp'];
+          if (localCommands.includes(command.name)) {
+            // Restore cursor after removing the slash
+            selection.removeAllRanges();
+            selection.addRange(range);
+            closeSlashCommandPopup();
+            onSendMessage(`/${command.name}`);
+            return;
+          }
+
           // Insert the command text
           const commandText = `/${command.name} `;
           const newNode = document.createTextNode(commandText);
@@ -736,7 +738,7 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
     }
 
     closeSlashCommandPopup();
-  }, [closeSlashCommandPopup]);
+  }, [closeSlashCommandPopup, onSendMessage]);
 
   const handleSend = useCallback(() => {
     if (!textareaRef.current) return;
@@ -963,11 +965,6 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
     handleSelectionChange();
   }, [handleSelectionChange, vscode]);
 
-  // Handle configuration button click
-  const handleConfigurationClick = useCallback(() => {
-    onConfigurationOpen();
-  }, [onConfigurationOpen]);
-
   // Handle IME composition events
   const handleCompositionStart = useCallback(() => {
     setIsComposing(true);
@@ -1168,13 +1165,6 @@ export const MessageInput = forwardRef<{ focus: () => void }, MessageInputProps>
                 <option value="plan">计划模式</option>
               </select>
             </Tooltip>
-          </div>
-
-          <div ref={configButtonRef}>
-            <ConfigurationButton
-              onClick={handleConfigurationClick}
-              disabled={disabled}
-            />
           </div>
 
           <div className="button-spacer" />
