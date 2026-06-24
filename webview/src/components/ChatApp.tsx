@@ -8,6 +8,9 @@ import { ConfirmationDialog } from './ConfirmationDialog';
 import ConfigDialog from './ConfigDialog';
 import PluginDialog from './PluginDialog';
 import McpDialog from './McpDialog';
+import ModelDialog from './ModelDialog';
+import StatusDialog from './StatusDialog';
+import LoginDialog from './LoginDialog';
 import type {
   ChatAppProps,
   ChatState,
@@ -315,6 +318,11 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
         case 'configurationUpdated':
           dispatch({ type: 'HIDE_DIALOG' });
           break;
+        case 'statusResponse':
+          if (message.configurationData) {
+            dispatch({ type: 'SET_CONFIGURATION_DATA', payload: message.configurationData });
+          }
+          break;
         case 'configurationError':
           dispatch({ type: 'SET_CONFIGURATION_ERROR', payload: message.error });
           break;
@@ -353,6 +361,19 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
     }
     if (trimmedText === '/mcp') {
       dispatch({ type: 'SHOW_DIALOG', payload: { type: 'mcp' } });
+      return;
+    }
+    if (trimmedText === '/model') {
+      dispatch({ type: 'SHOW_DIALOG', payload: { type: 'model', data: stateRef.current.configurationData || {} } });
+      vscode.postMessage({ command: 'getConfiguration' });
+      return;
+    }
+    if (trimmedText === '/status') {
+      dispatch({ type: 'SHOW_DIALOG', payload: { type: 'status', data: stateRef.current.configurationData || {} } });
+      return;
+    }
+    if (trimmedText === '/login') {
+      dispatch({ type: 'SHOW_DIALOG', payload: { type: 'login', data: stateRef.current.configurationData || {} } });
       return;
     }
 
@@ -411,6 +432,13 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
     dispatch({ type: 'SET_CONFIGURATION_LOADING', payload: true });
     vscode.postMessage({
       command: 'updateConfiguration',
+      configurationData: configData
+    });
+  }, [vscode]);
+
+  const handleModelSave = useCallback((configData: any) => {
+    vscode.postMessage({
+      command: 'setModel',
       configurationData: configData
     });
   }, [vscode]);
@@ -597,6 +625,28 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
       )}
       {state.activeDialog === 'mcp' && (
         <McpDialog vscode={vscode} onClose={handleDialogClose} />
+      )}
+      {state.activeDialog === 'model' && (
+        <ModelDialog
+          configurationData={state.configurationData || {}}
+          onSave={handleModelSave}
+          onClose={handleDialogClose}
+          vscode={vscode}
+        />
+      )}
+      {state.activeDialog === 'status' && (
+        <StatusDialog
+          configurationData={state.configurationData || {}}
+          onClose={handleDialogClose}
+          vscode={vscode}
+        />
+      )}
+      {state.activeDialog === 'login' && (
+        <LoginDialog
+          configurationData={state.configurationData || {}}
+          onClose={handleDialogClose}
+          vscode={vscode}
+        />
       )}
     </div>
   );

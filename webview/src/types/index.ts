@@ -239,7 +239,7 @@ export interface ChatState {
   pendingConfirmations: ConfirmationRequest[];
   queuedMessages: QueuedMessage[];
   // Dialog state
-  activeDialog: 'config' | 'plugin' | 'mcp' | null;
+  activeDialog: 'config' | 'plugin' | 'mcp' | 'model' | 'status' | 'login' | null;
   configurationData?: ConfigurationData;
   configurationLoading: boolean;
   configurationError?: string;
@@ -353,6 +353,31 @@ export interface McpDialogProps {
   onClose: () => void;
 }
 
+/**
+ * Props for the model selector dialog component
+ */
+export interface ModelDialogProps {
+  configurationData: ConfigurationData;
+  onSave: (config: Partial<ConfigurationData>) => void;
+  onClose: () => void;
+}
+
+/**
+ * Props for the status info dialog component
+ */
+export interface StatusDialogProps {
+  configurationData: ConfigurationData;
+  onClose: () => void;
+}
+
+/**
+ * Props for the SSO login dialog component
+ */
+export interface LoginDialogProps {
+  configurationData: ConfigurationData;
+  onClose: () => void;
+}
+
 export type ChatAction =
   | { type: 'SET_MESSAGES'; payload: Message[] }
   | { type: 'SET_TASKS'; payload: Task[] }
@@ -368,7 +393,7 @@ export type ChatAction =
   | { type: 'SET_SESSIONS_LOADING'; payload: boolean }
   | { type: 'SHOW_CONFIRMATION'; payload: ConfirmationRequest }
   | { type: 'HIDE_CONFIRMATION'; payload: string }
-  | { type: 'SHOW_DIALOG'; payload: { type: 'config' | 'plugin' | 'mcp'; data?: ConfigurationData; error?: string } }
+  | { type: 'SHOW_DIALOG'; payload: { type: 'config' | 'plugin' | 'mcp' | 'model' | 'status' | 'login'; data?: ConfigurationData; error?: string } }
   | { type: 'HIDE_DIALOG' }
   | { type: 'SET_CONFIGURATION_LOADING'; payload: boolean }
   | { type: 'SET_CONFIGURATION_ERROR'; payload: string | undefined }

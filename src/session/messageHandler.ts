@@ -145,6 +145,12 @@ export class MessageHandler {
             case 'logout':
                 await this.handleLogout(viewType, windowId);
                 break;
+            case 'getStatus':
+                await this.handleGetStatus(viewType, windowId);
+                break;
+            case 'setModel':
+                await this.handleSetModel(message.configurationData, viewType, windowId);
+                break;
             case 'getMcpServers':
                 await this.handleGetMcpServers(viewType, windowId);
                 break;
@@ -599,7 +605,10 @@ export class MessageHandler {
             const localCommands = [
                 { id: 'config', name: 'config', description: '打开配置设置' },
                 { id: 'plugin', name: 'plugin', description: '打开插件管理' },
-                { id: 'mcp', name: 'mcp', description: '打开 MCP 服务器管理' }
+                { id: 'mcp', name: 'mcp', description: '打开 MCP 服务器管理' },
+                { id: 'model', name: 'model', description: '切换 AI 模型' },
+                { id: 'status', name: 'status', description: '查看当前状态' },
+                { id: 'login', name: 'login', description: 'SSO 登录/登出' }
             ];
 
             const allCommands = [...sdkCommands, ...localCommands];
@@ -703,6 +712,40 @@ export class MessageHandler {
                 command: 'logoutResponse',
                 success: false,
                 error: String(error)
+            }, viewType, windowId);
+        }
+    }
+
+    private async handleGetStatus(viewType?: 'sidebar' | 'tab' | 'window', windowId?: string) {
+        const session = this.context.getChatSession(viewType || 'tab', windowId);
+        const config = await this.configService.loadConfiguration();
+        const version = vscode.extensions.getExtension('wave-code.wave-code')?.packageJSON?.version || '';
+
+        this.context.postMessage({
+            command: 'statusResponse',
+            version,
+            sessionId: session.sessionId || '',
+            workdir: session.agent?.workingDirectory || '',
+            configurationData: config
+        }, viewType, windowId);
+    }
+
+    private async handleSetModel(configData: any, viewType?: 'sidebar' | 'tab' | 'window', windowId?: string) {
+        try {
+            const currentConfig = await this.configService.loadConfiguration();
+            const mergedConfig = { ...currentConfig, ...configData };
+            await this.configService.saveConfiguration(mergedConfig);
+            const config = await this.configService.loadConfiguration();
+
+            this.context.updateAllSessionsConfig(config);
+
+            this.context.postMessage({ command: 'configurationUpdated' }, viewType, windowId);
+            this.context.postMessage({ command: 'focusInput' }, viewType, windowId);
+        } catch (error) {
+            console.error(`Failed to set model for ${viewType}:`, error);
+            this.context.postMessage({
+                command: 'configurationError',
+                error: 'Failed to save model: ' + error
             }, viewType, windowId);
         }
     }
