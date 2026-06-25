@@ -23,6 +23,14 @@ test.describe('Model/Status/Login Slash Commands', () => {
       });
     });
 
+    // Simulate extension sending configured models list
+    await webviewPage.evaluate(() => {
+      (window as any).simulateExtensionMessage({
+        command: 'configuredModelsResponse',
+        models: ['gpt-4', 'gpt-4-mini', 'gpt-4-turbo']
+      });
+    });
+
     // Type /model and press Enter
     await input.type('/model');
     await webviewPage.keyboard.press('Enter');
@@ -30,12 +38,12 @@ test.describe('Model/Status/Login Slash Commands', () => {
     // Verify model dialog is visible
     await expect(webviewPage.getByText('模型设置', { exact: true })).toBeVisible();
 
-    // Verify model input is pre-filled
-    const modelInput = webviewPage.locator('#model-select');
-    await expect(modelInput).toHaveValue('gpt-4');
+    // Verify model select is pre-selected
+    const modelSelect = webviewPage.locator('#model-select');
+    await expect(modelSelect).toHaveValue('gpt-4');
 
-    const fastModelInput = webviewPage.locator('#fast-model-select');
-    await expect(fastModelInput).toHaveValue('gpt-4-mini');
+    const fastModelSelect = webviewPage.locator('#fast-model-select');
+    await expect(fastModelSelect).toHaveValue('gpt-4-mini');
 
     // Verify sendMessage was NOT sent to extension (it's a local command)
     const messages = await webviewPage.evaluate(() => (window as any).getTestMessages());
@@ -141,13 +149,21 @@ test.describe('Model/Status/Login Slash Commands', () => {
       });
     });
 
+    // Simulate extension sending configured models list
+    await webviewPage.evaluate(() => {
+      (window as any).simulateExtensionMessage({
+        command: 'configuredModelsResponse',
+        models: ['gpt-4', 'gpt-4-mini', 'claude-opus-4']
+      });
+    });
+
     // Open model dialog
     await input.type('/model');
     await webviewPage.keyboard.press('Enter');
 
-    // Change model value
-    const modelInput = webviewPage.locator('#model-select');
-    await modelInput.fill('claude-opus-4');
+    // Change model via dropdown
+    const modelSelect = webviewPage.locator('#model-select');
+    await modelSelect.selectOption('claude-opus-4');
 
     // Click save button
     await webviewPage.getByText('保存', { exact: true }).click();

@@ -151,6 +151,9 @@ export class MessageHandler {
             case 'setModel':
                 await this.handleSetModel(message.configurationData, viewType, windowId);
                 break;
+            case 'getConfiguredModels':
+                await this.handleGetConfiguredModels(viewType, windowId);
+                break;
             case 'getMcpServers':
                 await this.handleGetMcpServers(viewType, windowId);
                 break;
@@ -747,6 +750,31 @@ export class MessageHandler {
             this.context.postMessage({
                 command: 'configurationError',
                 error: 'Failed to save model: ' + error
+            }, viewType, windowId);
+        }
+    }
+
+    private async handleGetConfiguredModels(viewType?: 'sidebar' | 'tab' | 'window', windowId?: string) {
+        try {
+            const session = this.context.getChatSession(viewType || 'tab', windowId);
+            // Get models from the agent instance (like wave-agent does)
+            // The agent's getConfiguredModels() reads from SDK's ConfigurationService which has remote models
+            const models = session.agent?.getConfiguredModels() || [];
+            // Also get the current model values from the agent (these include remote config)
+            const modelConfig = session.agent?.getModelConfig() || { model: '', fastModel: '' };
+            this.context.postMessage({
+                command: 'configuredModelsResponse',
+                models,
+                currentModel: modelConfig.model || '',
+                currentFastModel: modelConfig.fastModel || ''
+            }, viewType, windowId);
+        } catch (error) {
+            console.error(`Failed to get configured models for ${viewType}:`, error);
+            this.context.postMessage({
+                command: 'configuredModelsResponse',
+                models: [],
+                currentModel: '',
+                currentFastModel: ''
             }, viewType, windowId);
         }
     }

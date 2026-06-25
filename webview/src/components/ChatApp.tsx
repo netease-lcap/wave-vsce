@@ -41,6 +41,9 @@ const initialState: ChatState = {
   configurationData: undefined,
   configurationLoading: false,
   configurationError: undefined,
+  configuredModels: [],
+  currentModel: '',
+  currentFastModel: '',
   // Permission mode state
   permissionMode: 'default',
   // Attached images state
@@ -154,6 +157,22 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
         ...state,
         configurationData: action.payload,
         configurationLoading: false
+      };
+    case 'SET_CONFIGURED_MODELS':
+      return {
+        ...state,
+        configuredModels: action.payload
+      };
+    case 'SET_CURRENT_MODELS':
+      return {
+        ...state,
+        currentModel: action.payload.model,
+        currentFastModel: action.payload.fastModel,
+        configurationData: {
+          ...state.configurationData,
+          model: action.payload.model || state.configurationData?.model,
+          fastModel: action.payload.fastModel || state.configurationData?.fastModel
+        }
       };
     case 'SET_INITIAL_STATE':
       return {
@@ -281,6 +300,22 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
             payload: message.configurationData
           });
           break;
+        case 'configuredModelsResponse':
+          dispatch({
+            type: 'SET_CONFIGURED_MODELS',
+            payload: message.models || []
+          });
+          // Also update current model values from agent
+          if (message.currentModel !== undefined || message.currentFastModel !== undefined) {
+            dispatch({
+              type: 'SET_CURRENT_MODELS',
+              payload: {
+                model: message.currentModel || '',
+                fastModel: message.currentFastModel || ''
+              }
+            });
+          }
+          break;
         case 'setInitialState':
           dispatch({
             type: 'SET_INITIAL_STATE',
@@ -381,6 +416,7 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
     if (trimmedText === '/model') {
       dispatch({ type: 'SHOW_DIALOG', payload: { type: 'model', data: stateRef.current.configurationData || {} } });
       vscode.postMessage({ command: 'getConfiguration' });
+      vscode.postMessage({ command: 'getConfiguredModels' });
       return;
     }
     if (trimmedText === '/status') {
@@ -636,6 +672,7 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
       {state.activeDialog === 'model' && (
         <ModelDialog
           configurationData={state.configurationData || {}}
+          configuredModels={state.configuredModels}
           onSave={handleModelSave}
           onClose={handleDialogClose}
           vscode={vscode}

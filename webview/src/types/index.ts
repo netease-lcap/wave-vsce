@@ -243,6 +243,9 @@ export interface ChatState {
   configurationData?: ConfigurationData;
   configurationLoading: boolean;
   configurationError?: string;
+  configuredModels: string[];
+  currentModel: string;
+  currentFastModel: string;
   // Permission mode state
   permissionMode?: PermissionMode;
   // Attached images state
@@ -358,6 +361,7 @@ export interface McpDialogProps {
  */
 export interface ModelDialogProps {
   configurationData: ConfigurationData;
+  configuredModels: string[];
   onSave: (config: Partial<ConfigurationData>) => void;
   onClose: () => void;
 }
@@ -398,6 +402,8 @@ export type ChatAction =
   | { type: 'SET_CONFIGURATION_LOADING'; payload: boolean }
   | { type: 'SET_CONFIGURATION_ERROR'; payload: string | undefined }
   | { type: 'SET_CONFIGURATION_DATA'; payload: ConfigurationData }
+  | { type: 'SET_CONFIGURED_MODELS'; payload: string[] }
+  | { type: 'SET_CURRENT_MODELS'; payload: { model: string; fastModel: string } }
   | { type: 'UPDATE_SELECTION'; payload: SelectionInfo | undefined }
   | { type: 'SET_PERMISSION_MODE'; payload: PermissionMode }
   | { type: 'SET_COMMAND_RUNNING'; payload: boolean }
