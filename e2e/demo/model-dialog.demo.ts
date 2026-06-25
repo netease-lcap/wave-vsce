@@ -21,10 +21,18 @@ test.describe('Model Dialog Demo', () => {
             });
         });
 
+        // 3. Simulate extension sending configured models list
+        await webviewPage.evaluate(() => {
+            (window as any).simulateExtensionMessage({
+                command: 'configuredModelsResponse',
+                models: ['claude-sonnet-4-20250514', 'claude-haiku-4-20250514', 'gpt-4', 'gpt-4-mini']
+            });
+        });
+
         // Verify dialog is visible
         await expect(webviewPage.getByText('模型设置', { exact: true })).toBeVisible();
 
-        // Verify model input is pre-filled
+        // Verify model select is pre-selected
         await expect(webviewPage.locator('#model-select')).toHaveValue('claude-sonnet-4-20250514');
         await expect(webviewPage.locator('#fast-model-select')).toHaveValue('claude-haiku-4-20250514');
 
@@ -53,11 +61,19 @@ test.describe('Model Dialog Demo', () => {
             });
         });
 
+        // Simulate configured models (even with env vars, models list comes from SDK)
+        await webviewPage.evaluate(() => {
+            (window as any).simulateExtensionMessage({
+                command: 'configuredModelsResponse',
+                models: ['gpt-4', 'gpt-4-mini']
+            });
+        });
+
         await expect(webviewPage.getByText('模型设置', { exact: true })).toBeVisible();
 
-        // Verify placeholders are shown
-        const modelInput = webviewPage.locator('#model-select');
-        await expect(modelInput).toHaveAttribute('placeholder', /WAVE_MODEL/);
+        // Verify select is shown with first option selected
+        const modelSelect = webviewPage.locator('#model-select');
+        await expect(modelSelect).toBeVisible();
 
         const dialog = webviewPage.locator('.configuration-dialog');
         await dialog.screenshot({ path: 'docs/public/screenshots/spec-model-dialog-empty.png' });

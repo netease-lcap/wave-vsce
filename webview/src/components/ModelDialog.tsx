@@ -1,8 +1,8 @@
 /**
  * ModelDialog - Model selection dialog
  *
- * Opened via the /model slash command. Shows current model and fast model,
- * allows switching models for the current session.
+ * Opened via the /model slash command. Shows dropdown selects for model and fast model,
+ * populated with configured models from the SDK.
  */
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -11,6 +11,7 @@ import '../styles/ConfigurationDialog.css';
 
 const ModelDialog: React.FC<ModelDialogProps & { vscode: any }> = ({
   configurationData,
+  configuredModels,
   onSave,
   onClose,
   vscode
@@ -60,28 +61,40 @@ const ModelDialog: React.FC<ModelDialogProps & { vscode: any }> = ({
 
         <form onSubmit={handleSubmit} className="configuration-form">
           <div className="configuration-fields-scroll-area">
-            <div className="configuration-field">
-              <label htmlFor="model-select">Model:</label>
-              <input
-                id="model-select"
-                type="text"
-                value={model}
-                onChange={(e) => setModel(e.target.value)}
-                placeholder={configurationData?.envModel || '请输入模型名称 (或设置 WAVE_MODEL)'}
-                autoFocus
-              />
-            </div>
+            {configuredModels.length > 0 ? (
+              <>
+                <div className="configuration-field">
+                  <label htmlFor="model-select">Model:</label>
+                  <select
+                    id="model-select"
+                    value={model}
+                    onChange={(e) => setModel(e.target.value)}
+                    autoFocus
+                  >
+                    {configuredModels.map((m) => (
+                      <option key={m} value={m}>{m}</option>
+                    ))}
+                  </select>
+                </div>
 
-            <div className="configuration-field">
-              <label htmlFor="fast-model-select">Fast Model:</label>
-              <input
-                id="fast-model-select"
-                type="text"
-                value={fastModel}
-                onChange={(e) => setFastModel(e.target.value)}
-                placeholder={configurationData?.envFastModel || '请输入快速模型名称 (或设置 WAVE_FAST_MODEL)'}
-              />
-            </div>
+                <div className="configuration-field">
+                  <label htmlFor="fast-model-select">Fast Model:</label>
+                  <select
+                    id="fast-model-select"
+                    value={fastModel}
+                    onChange={(e) => setFastModel(e.target.value)}
+                  >
+                    {configuredModels.map((m) => (
+                      <option key={m} value={m}>{m}</option>
+                    ))}
+                  </select>
+                </div>
+              </>
+            ) : (
+              <div className="model-empty-hint">
+                没有可用的模型，请检查配置。
+              </div>
+            )}
           </div>
 
           <div className="configuration-actions">
@@ -95,7 +108,7 @@ const ModelDialog: React.FC<ModelDialogProps & { vscode: any }> = ({
             </button>
             <button
               type="submit"
-              disabled={saving}
+              disabled={saving || configuredModels.length === 0}
               className="configuration-save-btn"
             >
               {saving ? '保存中...' : '保存'}
