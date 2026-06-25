@@ -100,8 +100,9 @@ test.describe('Model/Status/Login Slash Commands', () => {
     // Verify login dialog is visible
     await expect(webviewPage.getByText('SSO 认证', { exact: true })).toBeVisible();
 
-    // Verify server URL is displayed
-    await expect(webviewPage.getByText('https://wave.example.com')).toBeVisible();
+    // Verify server URL input is pre-filled
+    const serverUrlInput = webviewPage.locator('#login-serverUrl');
+    await expect(serverUrlInput).toHaveValue('https://wave.example.com');
 
     // Verify getAuthStatus message was sent to extension
     const messages = await webviewPage.evaluate(() => (window as any).getTestMessages());
@@ -220,5 +221,56 @@ test.describe('Model/Status/Login Slash Commands', () => {
     // Verify user email and logout button are visible
     await expect(webviewPage.getByText('test@example.com')).toBeVisible();
     await expect(webviewPage.getByText('登出', { exact: true })).toBeVisible();
+  });
+
+  test('should save serverUrl from login dialog via updateConfiguration', async ({ webviewPage }) => {
+    const input = webviewPage.getByTestId('message-input');
+    await input.focus();
+
+    // Simulate extension sending configuration data with empty serverUrl
+    await webviewPage.evaluate(() => {
+      (window as any).simulateExtensionMessage({
+        command: 'configurationResponse',
+        configurationData: {
+          serverUrl: ''
+        }
+      });
+    });
+
+    // Open login dialog
+    await input.type('/login');
+    await webviewPage.keyboard.press('Enter');
+
+    // Verify login dialog is visible
+    await expect(webviewPage.getByText('SSO 认证', { exact: true })).toBeVisible();
+
+    // Type serverUrl into the input
+    const serverUrlInput = webviewPage.locator('#login-serverUrl');
+    await serverUrlInput.fill('https://wave.example.com');
+
+    // Click save button for serverUrl
+    await webviewPage.locator('#login-save-serverUrl').click();
+
+    // Verify updateConfiguration message was sent with serverUrl
+    const messages = await webviewPage.evaluate(() => (window as any).getTestMessages());
+    const updateConfigMsg = messages.find((m: any) => m.command === 'updateConfiguration');
+    expect(updateConfigMsg).toBeDefined();
+    expect(updateConfigMsg.configurationData.serverUrl).toBe('https://wave.example.com');
+  });
+
+  test('should not have serverUrl field in config dialog', async ({ webviewPage }) => {
+    const input = webviewPage.getByTestId('message-input');
+    await input.focus();
+
+    // Open config dialog
+    await input.type('/config');
+    await webviewPage.keyboard.press('Enter');
+
+    // Verify config dialog is visible
+    await expect(webviewPage.getByText('配置设置', { exact: true })).toBeVisible();
+
+    // Verify serverUrl input is NOT present in config dialog
+    const serverUrlInput = webviewPage.locator('#serverUrl');
+    await expect(serverUrlInput).not.toBeVisible();
   });
 });

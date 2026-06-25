@@ -32,8 +32,9 @@ test.describe('Login Dialog Demo', () => {
         // Verify dialog title
         await expect(webviewPage.getByText('SSO 认证', { exact: true })).toBeVisible();
 
-        // Verify server URL is displayed
-        await expect(webviewPage.getByText('https://wave-ai.example.com')).toBeVisible();
+        // Verify server URL input is pre-filled
+        const serverUrlInput = webviewPage.locator('#login-serverUrl');
+        await expect(serverUrlInput).toHaveValue('https://wave-ai.example.com');
 
         // Verify login button is visible
         await expect(webviewPage.getByText('SSO 登录', { exact: true })).toBeVisible();
@@ -77,7 +78,7 @@ test.describe('Login Dialog Demo', () => {
         await dialog.screenshot({ path: 'docs/public/screenshots/spec-login-dialog-authenticated.png' });
     });
 
-    test('should show warning when no server URL configured', async ({ webviewPage }) => {
+    test('should show editable serverUrl input when no server URL configured', async ({ webviewPage }) => {
         await webviewPage.evaluate(() => {
             (window as any).simulateExtensionMessage({
                 command: 'showDialog',
@@ -102,9 +103,13 @@ test.describe('Login Dialog Demo', () => {
         });
 
         await expect(webviewPage.getByText('SSO 认证', { exact: true })).toBeVisible();
-        await expect(webviewPage.getByText('请先在 /config 中配置服务端链接')).toBeVisible();
 
-        // Login button should be disabled
+        // ServerUrl input should be visible and empty
+        const serverUrlInput = webviewPage.locator('#login-serverUrl');
+        await expect(serverUrlInput).toBeVisible();
+        await expect(serverUrlInput).toHaveValue('');
+
+        // Login button should be disabled when serverUrl is empty
         const loginBtn = webviewPage.getByText('SSO 登录', { exact: true });
         await expect(loginBtn).toBeDisabled();
 

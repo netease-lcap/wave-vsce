@@ -18,7 +18,15 @@ const LoginDialog: React.FC<LoginDialogProps & { vscode: any }> = ({
   const [authUser, setAuthUser] = useState<{ id: string; email?: string } | null>(null);
   const [authLoading, setAuthLoading] = useState(false);
   const [authMessage, setAuthMessage] = useState('');
+  const [serverUrlInput, setServerUrlInput] = useState('');
+  const [serverUrlSaved, setServerUrlSaved] = useState(false);
   const dialogRef = useRef<HTMLDivElement>(null);
+
+  // Initialize serverUrl input from configuration
+  useEffect(() => {
+    setServerUrlInput(configurationData?.serverUrl || '');
+    setServerUrlSaved(!!configurationData?.serverUrl);
+  }, [configurationData?.serverUrl]);
 
   // Fetch auth status on mount
   useEffect(() => {
@@ -66,6 +74,17 @@ const LoginDialog: React.FC<LoginDialogProps & { vscode: any }> = ({
     vscode?.postMessage({ command: 'logout' });
   };
 
+  const handleSaveServerUrl = () => {
+    vscode?.postMessage({
+      command: 'updateConfiguration',
+      configurationData: {
+        ...configurationData,
+        serverUrl: serverUrlInput
+      }
+    });
+    setServerUrlSaved(true);
+  };
+
   // Click outside / Escape to close
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -86,7 +105,7 @@ const LoginDialog: React.FC<LoginDialogProps & { vscode: any }> = ({
     };
   }, [onClose]);
 
-  const serverUrl = configurationData?.serverUrl || configurationData?.envServerUrl;
+  const serverUrl = serverUrlSaved ? serverUrlInput : (configurationData?.serverUrl || configurationData?.envServerUrl || '');
 
   return (
     <div className="configuration-dialog-overlay">
@@ -98,8 +117,25 @@ const LoginDialog: React.FC<LoginDialogProps & { vscode: any }> = ({
         <div className="configuration-form">
           <div className="configuration-fields-scroll-area">
             <div className="configuration-field">
-              <label>服务端链接:</label>
-              <div className="status-info-value">{serverUrl || '未配置'}</div>
+              <label htmlFor="login-serverUrl">服务端链接:</label>
+              <div className="login-serverUrl-row">
+                <input
+                  id="login-serverUrl"
+                  type="url"
+                  value={serverUrlInput}
+                  onChange={(e) => { setServerUrlInput(e.target.value); setServerUrlSaved(false); }}
+                  placeholder={configurationData?.envServerUrl || 'WAVE_SERVER_URL'}
+                />
+                <button
+                  type="button"
+                  id="login-save-serverUrl"
+                  className="login-save-serverUrl-btn"
+                  onClick={handleSaveServerUrl}
+                  disabled={!serverUrlInput || serverUrlSaved}
+                >
+                  {serverUrlSaved ? '已保存' : '保存'}
+                </button>
+              </div>
             </div>
 
             <div className="configuration-field sso-auth-section">
@@ -136,9 +172,6 @@ const LoginDialog: React.FC<LoginDialogProps & { vscode: any }> = ({
                 <div className={`sso-message ${authMessage.includes('成功') ? 'success' : authMessage.includes('失败') ? 'error' : ''}`}>
                   {authMessage}
                 </div>
-              )}
-              {!serverUrl && !isAuthenticated && (
-                <div className="sso-message error">请先在 /config 中配置服务端链接</div>
               )}
             </div>
           </div>

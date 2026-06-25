@@ -83,18 +83,6 @@ const ConfigDialog: React.FC<ConfigDialogProps & { vscode: any }> = ({
         <form onSubmit={handleSubmit} className="configuration-form">
           <div className="configuration-fields-scroll-area">
             <div className="configuration-field">
-              <label htmlFor="serverUrl">服务端链接 (SSO):</label>
-              <input
-                id="serverUrl"
-                type="url"
-                value={formData.serverUrl || ''}
-                onChange={(e) => handleInputChange('serverUrl', e.target.value)}
-                placeholder={configurationData?.envServerUrl || 'WAVE_SERVER_URL'}
-                disabled={isLoading}
-              />
-            </div>
-
-            <div className="configuration-field">
               <label htmlFor="baseURL">Base URL:</label>
               <input
                 id="baseURL"

@@ -316,7 +316,10 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
           dispatch({ type: 'SHOW_DIALOG', payload: { type: message.dialogType } });
           break;
         case 'configurationUpdated':
-          dispatch({ type: 'HIDE_DIALOG' });
+          // Only close config dialog; keep login dialog open for continued SSO flow
+          if (stateRef.current.activeDialog !== 'login') {
+            dispatch({ type: 'HIDE_DIALOG' });
+          }
           break;
         case 'statusResponse':
           if (message.configurationData) {
