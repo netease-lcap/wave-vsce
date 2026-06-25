@@ -720,7 +720,7 @@ export class MessageHandler {
     private async handleGetStatus(viewType?: 'sidebar' | 'tab' | 'window', windowId?: string) {
         const session = this.context.getChatSession(viewType || 'tab', windowId);
         const config = await this.configService.loadConfiguration();
-        const version = vscode.extensions.getExtension('wave-code.wave-code')?.packageJSON?.version || '';
+        const version = vscode.extensions.getExtension('wave-code.wave-vscode-chat')?.packageJSON?.version || '';
 
         this.context.postMessage({
             command: 'statusResponse',
