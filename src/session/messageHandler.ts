@@ -608,7 +608,8 @@ export class MessageHandler {
                 { id: 'mcp', name: 'mcp', description: '打开 MCP 服务器管理' },
                 { id: 'model', name: 'model', description: '切换 AI 模型' },
                 { id: 'status', name: 'status', description: '查看当前状态' },
-                { id: 'login', name: 'login', description: 'SSO 登录/登出' }
+                { id: 'login', name: 'login', description: 'SSO 登录/登出' },
+                { id: 'clear', name: 'clear', description: '清除对话历史并重置会话' }
             ];
 
             const allCommands = [...sdkCommands, ...localCommands];

@@ -348,11 +348,23 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
     return () => window.removeEventListener('message', handleMessage);
   }, []);
 
+  const handleClearChat = useCallback(() => {
+    if (stateRef.current.isStreaming) return;
+
+    vscode.postMessage({
+      command: 'clearChat'
+    });
+  }, [vscode]);
+
   const handleSendMessage = useCallback((text: string, images?: Array<{ data: string; mediaType: string; }>, force: boolean = false) => {
     const trimmedText = text.trim();
     if (!trimmedText && (!images || images.length === 0)) return;
 
     // Intercept local slash commands — open dialogs instead of sending to agent
+    if (trimmedText === '/clear') {
+      handleClearChat();
+      return;
+    }
     if (trimmedText === '/config') {
       dispatch({ type: 'SHOW_DIALOG', payload: { type: 'config', data: stateRef.current.configurationData || {} } });
       vscode.postMessage({ command: 'getConfiguration' });
@@ -387,15 +399,7 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
       images: images,
       force: force
     });
-  }, [vscode]);
-
-  const handleClearChat = useCallback(() => {
-    if (state.isStreaming) return;
-    
-    vscode.postMessage({
-      command: 'clearChat'
-    });
-  }, [state.isStreaming, vscode]);
+  }, [vscode, handleClearChat]);
 
   const handleAbortMessage = useCallback(() => {
     if (!state.isStreaming) return;
