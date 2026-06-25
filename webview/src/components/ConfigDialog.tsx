@@ -124,7 +124,7 @@ const ConfigDialog: React.FC<ConfigDialogProps & { vscode: any }> = ({
                 id="headers"
                 value={formData.headers || ''}
                 onChange={(e) => handleInputChange('headers', e.target.value)}
-                placeholder={configurationData?.envHeaders || `Authorization: Bearer ...\nX-AIGW-APP: your_app_code\n(或设置 WAVE_CUSTOM_HEADERS)`}
+                placeholder={configurationData?.envHeaders || `Authorization: Bearer ...\n(或设置 WAVE_CUSTOM_HEADERS)`}
                 disabled={isLoading}
                 className="configuration-textarea"
                 rows={3}
