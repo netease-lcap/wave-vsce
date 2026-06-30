@@ -23,9 +23,6 @@ test.describe('Plan Mode Initialization', () => {
             permissionMode: 'plan'
         });
 
-        // Wait for state update
-        await webviewPage.waitForTimeout(500);
-
         // Verify the permission mode select shows "计划模式"
         const select = webviewPage.locator('.permission-mode-select');
         await expect(select).toBeVisible();

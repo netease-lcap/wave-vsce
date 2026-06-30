@@ -186,8 +186,33 @@ export class MessageInjector {
                 window.vscode.postMessage({ command: 'webviewReady' });
             }
         });
-        
-        // Small delay to allow message processing
-        await this.page.waitForTimeout(50);
+    }
+
+    /**
+     * Wait for a requestFileSuggestions message and return its requestId.
+     * Replaces fixed waitForTimeout for debounce-based file suggestion triggers.
+     */
+    async waitForFileSuggestionRequest(timeout = 2000, afterMessageCount?: number): Promise<string> {
+        return await this.page.waitForFunction(
+            (startIndex) => {
+                const messages = (window as any).getTestMessages?.() || [];
+                const start = startIndex || 0;
+                for (let i = messages.length - 1; i >= start; i--) {
+                    if (messages[i].command === 'requestFileSuggestions' && messages[i].requestId) {
+                        return messages[i].requestId;
+                    }
+                }
+                return false;
+            },
+            afterMessageCount || 0,
+            { timeout }
+        ).then(r => r as unknown as string);
+    }
+
+    async getMessageCount(): Promise<number> {
+        return await this.page.evaluate(() => {
+            const messages = (window as any).getTestMessages?.() || [];
+            return messages.length;
+        });
     }
 }

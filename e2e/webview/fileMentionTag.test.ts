@@ -30,9 +30,9 @@ test.describe('File Mention Tag Insertion', () => {
     // Type @ to trigger suggestions
     await messageInput.focus();
     await webviewPage.keyboard.type('@');
-    
-    // Wait for the request to be sent and captured
-    await webviewPage.waitForTimeout(500);
+
+    // Wait for the debounced requestFileSuggestions request
+    const reqId1 = await injector.waitForFileSuggestionRequest();
 
     // Use the captured requestId in our response
     await injector.simulateExtensionMessage('fileSuggestionsResponse', {
@@ -47,16 +47,17 @@ test.describe('File Mention Tag Insertion', () => {
         }
       ],
       filterText: '',
-      requestId: capturedRequestId || Date.now().toString()
+      requestId: reqId1
     });
 
     // Wait for suggestions to render
     await webviewPage.waitForSelector('.file-suggestion-dropdown', { state: 'visible' });
 
     // Type something to filter and select the first file suggestion
+    const countBeforeMess = await injector.getMessageCount();
     await webviewPage.keyboard.type('Mess');
-    await webviewPage.waitForTimeout(500);
-    
+    const reqId2 = await injector.waitForFileSuggestionRequest(2000, countBeforeMess);
+
     await injector.simulateExtensionMessage('fileSuggestionsResponse', {
       suggestions: [
         {
@@ -69,7 +70,7 @@ test.describe('File Mention Tag Insertion', () => {
         }
       ],
       filterText: 'Mess',
-      requestId: capturedRequestId || Date.now().toString()
+      requestId: reqId2
     });
     
     await webviewPage.waitForSelector('.suggestion-item:not(.upload-option)', { state: 'visible' });
@@ -112,11 +113,12 @@ test.describe('File Mention Tag Insertion', () => {
     // Type @ to trigger suggestions
     await messageInput.focus();
     await webviewPage.keyboard.type('@');
-    await webviewPage.waitForTimeout(500);
+    const reqId1 = await injector.waitForFileSuggestionRequest();
 
     // Type img to filter
+    const countBeforeImg = await injector.getMessageCount();
     await webviewPage.keyboard.type('img');
-    await webviewPage.waitForTimeout(500);
+    const reqId2 = await injector.waitForFileSuggestionRequest(2000, countBeforeImg);
 
     // Mock image file suggestion
     await injector.simulateExtensionMessage('fileSuggestionsResponse', {
@@ -131,7 +133,7 @@ test.describe('File Mention Tag Insertion', () => {
         }
       ],
       filterText: 'img',
-      requestId: capturedRequestId || Date.now().toString()
+      requestId: reqId2
     });
 
     await webviewPage.waitForSelector('.suggestion-item:not(.upload-option)', { state: 'visible' });
@@ -158,10 +160,11 @@ test.describe('File Mention Tag Insertion', () => {
     });
 
     await tag.click();
-    
-    // Wait a bit for the message to be sent
-    await webviewPage.waitForTimeout(200);
-    expect(previewMessageSent).toBe(true);
+
+    // Wait for the preview message to be sent
+    await expect(async () => {
+      expect(previewMessageSent).toBe(true);
+    }).toPass();
   });
 
   test('should insert a tag for pasted image and show preview modal', async ({ webviewPage }) => {

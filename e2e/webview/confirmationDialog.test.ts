@@ -472,14 +472,13 @@ test.describe('Confirmation Dialog', () => {
         }));
         await injector.updateMessages(manyMessages);
 
-        // Wait for initial render and scroll to bottom to complete
-        await webviewPage.waitForTimeout(500);
-
         const container = webviewPage.locator('.messages-container');
 
-        // Verify content is scrollable
-        const dimsBefore = await container.evaluate(el => el.scrollHeight - el.clientHeight);
-        expect(dimsBefore).toBeGreaterThan(0);
+        // Wait for messages to render and verify content is scrollable
+        await expect(async () => {
+            const dimsBefore = await container.evaluate(el => el.scrollHeight - el.clientHeight);
+            expect(dimsBefore).toBeGreaterThan(0);
+        }).toPass();
 
         // Scroll away from bottom to simulate user reading history
         await container.evaluate(el => {

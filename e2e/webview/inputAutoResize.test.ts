@@ -10,7 +10,6 @@ test.describe('Input Auto Resize', () => {
 
     // Type a single line
     await input.type('first line');
-    await webviewPage.waitForTimeout(50);
     const afterFirstLineHeight = await input.evaluate(el => el.clientHeight);
 
     // Height should not change significantly for single line (within padding tolerance)
@@ -19,7 +18,6 @@ test.describe('Input Auto Resize', () => {
     // Press Shift+Enter to add a new line
     await input.press('Shift+Enter');
     await input.type('second line');
-    await webviewPage.waitForTimeout(50);
     const afterSecondLineHeight = await input.evaluate(el => el.clientHeight);
 
     // Height should have increased
@@ -28,7 +26,6 @@ test.describe('Input Auto Resize', () => {
     // Add another line
     await input.press('Shift+Enter');
     await input.type('third line');
-    await webviewPage.waitForTimeout(50);
     const afterThirdLineHeight = await input.evaluate(el => el.clientHeight);
 
     // Height should have increased again
@@ -49,7 +46,6 @@ test.describe('Input Auto Resize', () => {
       el.dispatchEvent(inputEvent);
     }, 'line1\nline2\nline3\nline4\nline5');
 
-    await webviewPage.waitForTimeout(50);
     const afterPasteHeight = await input.evaluate(el => el.clientHeight);
 
     // Height should have increased
@@ -71,7 +67,6 @@ test.describe('Input Auto Resize', () => {
     await input.type('line2');
     await input.press('Shift+Enter');
     await input.type('line3');
-    await webviewPage.waitForTimeout(50);
 
     const expandedHeight = await input.evaluate(el => el.clientHeight);
 
@@ -82,7 +77,6 @@ test.describe('Input Auto Resize', () => {
       el.dispatchEvent(inputEvent);
     });
 
-    await webviewPage.waitForTimeout(50);
     const clearedHeight = await input.evaluate(el => el.clientHeight);
 
     // Height should have decreased
@@ -103,19 +97,19 @@ test.describe('Input Auto Resize', () => {
     await input.type('line2');
     await input.press('Shift+Enter');
     await input.type('line3');
-    await webviewPage.waitForTimeout(50);
 
     const expandedHeight = await input.evaluate(el => el.clientHeight);
     expect(expandedHeight).toBeGreaterThan(initialHeight);
 
     // Send the message
     await sendBtn.click();
-    await webviewPage.waitForTimeout(100);
 
     // Height should reset back to initial
-    const afterSendHeight = await input.evaluate(el => el.clientHeight);
-    expect(afterSendHeight).toBeLessThan(expandedHeight);
-    expect(afterSendHeight).toBe(initialHeight);
+    await expect(async () => {
+      const afterSendHeight = await input.evaluate(el => el.clientHeight);
+      expect(afterSendHeight).toBeLessThan(expandedHeight);
+      expect(afterSendHeight).toBe(initialHeight);
+    }).toPass();
   });
 
   test('should shrink height after deleting content that exceeded max-height', async ({ webviewPage }) => {
@@ -133,8 +127,6 @@ test.describe('Input Auto Resize', () => {
       el.dispatchEvent(inputEvent);
     }, manyLines);
 
-    await webviewPage.waitForTimeout(100);
-
     // Height should be capped at max-height (200px CSS → ~198 clientHeight due to padding/border)
     const maxHeightHeight = await input.evaluate(el => el.clientHeight);
     expect(maxHeightHeight).toBeGreaterThanOrEqual(195); // near max-height
@@ -145,8 +137,6 @@ test.describe('Input Auto Resize', () => {
       const inputEvent = new Event('input', { bubbles: true });
       el.dispatchEvent(inputEvent);
     });
-
-    await webviewPage.waitForTimeout(100);
 
     // Height should have shrunk back below max-height
     const afterShrinkHeight = await input.evaluate(el => el.clientHeight);

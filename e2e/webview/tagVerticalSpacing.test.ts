@@ -26,14 +26,9 @@ test.describe('Tag Vertical Spacing', () => {
       });
 
       await webviewPage.keyboard.type('@f');
-      
-      // Wait for the request to be sent and captured
-      let requestId;
-      for (let i = 0; i < 20; i++) {
-        requestId = await webviewPage.evaluate(() => (window as any).lastRequestId);
-        if (requestId) break;
-        await webviewPage.waitForTimeout(100);
-      }
+
+      // Wait for the requestFileSuggestions request
+      const requestId = await injector.waitForFileSuggestionRequest();
 
       await injector.simulateExtensionMessage('fileSuggestionsResponse', {
         suggestions: [
@@ -59,7 +54,6 @@ test.describe('Tag Vertical Spacing', () => {
       
       // Wait for dropdown to disappear
       await webviewPage.waitForSelector('.file-suggestion-dropdown', { state: 'hidden' });
-      await webviewPage.waitForTimeout(200);
     };
 
     // Insert first tag
@@ -69,8 +63,7 @@ test.describe('Tag Vertical Spacing', () => {
     await webviewPage.keyboard.down('Shift');
     await webviewPage.keyboard.press('Enter');
     await webviewPage.keyboard.up('Shift');
-    await webviewPage.waitForTimeout(200);
-    
+
     // Insert second tag
     await insertTag('file2.ts', 'file2.ts');
 

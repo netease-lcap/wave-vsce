@@ -26,9 +26,6 @@ test.describe('Tool Result While Running', () => {
 
         await messageInjector.updateMessages([bashRunningMessage as any]);
 
-        // Wait for rendering
-        await webviewPage.waitForTimeout(500);
-
         // Verify bash-command-unified is present (it contains both input and output)
         const unifiedBlock = webviewPage.locator('.bash-command-unified');
         await expect(unifiedBlock).toBeVisible();
@@ -64,9 +61,6 @@ test.describe('Tool Result While Running', () => {
 
         await messageInjector.updateMessages([lspRunningMessage as any]);
 
-        // Wait for rendering
-        await webviewPage.waitForTimeout(500);
-
         // Verify lsp-output is present
         const lspOutput = webviewPage.locator('.lsp-output');
         await expect(lspOutput).toBeVisible();
@@ -91,9 +85,6 @@ test.describe('Tool Result While Running', () => {
         };
 
         await messageInjector.updateMessages([toolMessage as any]);
-
-        // Wait for rendering
-        await webviewPage.waitForTimeout(500);
 
         // Verify result-raw is present and contains shortResult
         const resultRaw = webviewPage.locator('.result-raw');

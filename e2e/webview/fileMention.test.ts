@@ -33,13 +33,8 @@ test.describe('File Mention Feature (@)', () => {
     await messageInput.fill('@');
     await messageInput.press('End');
 
-    // Wait for the request to be sent and captured
-    await webviewPage.waitForTimeout(200);
-
-
-
-    // Wait a bit more to ensure the debounced request is sent
-    await webviewPage.waitForTimeout(200);
+    // Wait for the debounced requestFileSuggestions request
+    const reqId = await injector.waitForFileSuggestionRequest();
 
     // Use the captured requestId in our response
     await injector.simulateExtensionMessage('fileSuggestionsResponse', {
@@ -70,13 +65,11 @@ test.describe('File Mention Feature (@)', () => {
         }
       ],
       filterText: '',
-      requestId: capturedRequestId || Date.now().toString() // Fallback if capture failed
+      requestId: reqId
     });
 
     // Wait for suggestions to render
-    await webviewPage.waitForTimeout(500);
-
-
+    await webviewPage.waitForSelector('.suggestion-item', { state: 'visible' });
 
     // Check if file suggestion dropdown is present
     const dropdown = webviewPage.locator('.file-suggestion-dropdown');
@@ -138,8 +131,8 @@ test.describe('File Mention Feature (@)', () => {
     await messageInput.fill('@src');
     await messageInput.press('End');
 
-    // Wait for the debounced request (100ms selectionChange + 150ms file suggestion)
-    await webviewPage.waitForTimeout(300);
+    // Wait for the debounced requestFileSuggestions request
+    const reqId = await injector.waitForFileSuggestionRequest();
 
     // Mock filtered response with captured requestId
     await injector.simulateExtensionMessage('fileSuggestionsResponse', {
@@ -153,15 +146,12 @@ test.describe('File Mention Feature (@)', () => {
         }
       ],
       filterText: 'src',
-      requestId: capturedRequestId || Date.now().toString()
+      requestId: reqId
     });
-
-    await webviewPage.waitForTimeout(500);
-
-
 
     // Should only show filtered results (no upload option when there's filter text)
     const suggestionItems = webviewPage.locator('.suggestion-item');
+    await expect(suggestionItems.first()).toBeVisible();
     const itemCount = await suggestionItems.count();
     expect(itemCount).toBe(1);
 
