@@ -26,7 +26,7 @@ test.describe('Rich Input Features', () => {
     });
 
     await webviewPage.keyboard.type('@file1');
-    await webviewPage.waitForTimeout(500);
+    const reqId1 = await injector.waitForFileSuggestionRequest();
     await injector.simulateExtensionMessage('fileSuggestionsResponse', {
       suggestions: [{
         path: '/workspace/file1.ts',
@@ -37,7 +37,7 @@ test.describe('Rich Input Features', () => {
         isDirectory: false
       }],
       filterText: 'file1',
-      requestId: capturedRequestId
+      requestId: reqId1
     });
     await webviewPage.waitForSelector('.suggestion-item', { state: 'visible' });
     await webviewPage.keyboard.press('Enter');
@@ -46,8 +46,9 @@ test.describe('Rich Input Features', () => {
     await webviewPage.keyboard.type('and also ');
 
     // 4. Insert second file tag
+    const countBeforeFile2 = await injector.getMessageCount();
     await webviewPage.keyboard.type('@file2');
-    await webviewPage.waitForTimeout(500);
+    const reqId2 = await injector.waitForFileSuggestionRequest(2000, countBeforeFile2);
     await injector.simulateExtensionMessage('fileSuggestionsResponse', {
       suggestions: [{
         path: '/workspace/file2.ts',
@@ -58,7 +59,7 @@ test.describe('Rich Input Features', () => {
         isDirectory: false
       }],
       filterText: 'file2',
-      requestId: capturedRequestId // Reusing or wait for new one? Better wait for new one.
+      requestId: reqId2
     });
     await webviewPage.waitForSelector('.suggestion-item', { state: 'visible' });
     await webviewPage.keyboard.press('Enter');
@@ -111,7 +112,7 @@ test.describe('Rich Input Features', () => {
     });
 
     await webviewPage.keyboard.type('@test.ts');
-    await webviewPage.waitForTimeout(500);
+    const reqId = await injector.waitForFileSuggestionRequest();
     await injector.simulateExtensionMessage('fileSuggestionsResponse', {
       suggestions: [{
         path: '/workspace/test.ts',
@@ -122,7 +123,7 @@ test.describe('Rich Input Features', () => {
         isDirectory: false
       }],
       filterText: 'test.ts',
-      requestId: capturedRequestId
+      requestId: reqId
     });
     await webviewPage.waitForSelector('.suggestion-item', { state: 'visible' });
     await webviewPage.keyboard.press('Enter');

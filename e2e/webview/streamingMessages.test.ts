@@ -63,9 +63,6 @@ test.describe('Streaming Messages', () => {
             
             // Verify progressive content updates
             await ui.verifyLatestMessageContent(scenario.chunks[0]); // Should contain first chunk
-            
-            // Small delay to simulate real streaming
-            await webviewPage.waitForTimeout(10);
         }
 
         // End streaming

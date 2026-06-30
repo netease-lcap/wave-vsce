@@ -287,8 +287,6 @@ test.describe('Slash Commands', () => {
       await webviewPage.keyboard.press('ArrowDown');
     }
 
-    await webviewPage.waitForTimeout(100);
-
     // Verify scroll position has changed (scrolled down)
     const scrolledDown = await list.evaluate(el => el.scrollTop);
     expect(scrolledDown).toBeGreaterThan(initialScrollTop);
@@ -311,8 +309,6 @@ test.describe('Slash Commands', () => {
     for (let i = 0; i < 15; i++) {
       await webviewPage.keyboard.press('ArrowUp');
     }
-
-    await webviewPage.waitForTimeout(100);
 
     const scrolledUp = await list.evaluate(el => el.scrollTop);
     expect(scrolledUp).toBeLessThan(scrolledDown);

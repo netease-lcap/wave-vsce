@@ -39,8 +39,11 @@ test.describe('Message List Scrolling', () => {
 
         // 3. Manually scroll up
         await container.evaluate(el => el.scrollTop = 0);
-        // Wait a bit for the scroll event to be processed
-        await webviewPage.waitForTimeout(100);
+        // Wait for scroll event to be processed
+        await expect(async () => {
+            const scrollTop = await container.evaluate(el => el.scrollTop);
+            expect(scrollTop).toBe(0);
+        }).toPass();
 
         // 4. Continue streaming and verify it DOES NOT scroll to bottom
         accumulated += 'Streaming line 2\n'.repeat(10);
@@ -50,7 +53,6 @@ test.describe('Message List Scrolling', () => {
             blocks: [{ type: 'text', content: accumulated }]
         }]);
 
-        await webviewPage.waitForTimeout(200);
         const scrollTopAfterUpdate = await container.evaluate(el => el.scrollTop);
         expect(scrollTopAfterUpdate).toBe(0);
 
@@ -58,8 +60,6 @@ test.describe('Message List Scrolling', () => {
         await container.evaluate(el => {
             el.scrollTop = el.scrollHeight - el.clientHeight;
         });
-        // Wait for scroll event
-        await webviewPage.waitForTimeout(100);
 
         // 6. Continue streaming and verify it DOES scroll to bottom again
         accumulated += 'Streaming line 3\n'.repeat(10);
@@ -78,7 +78,11 @@ test.describe('Message List Scrolling', () => {
 
         // 7. Send a NEW message and verify it FORCES scroll to bottom even if user scrolled up
         await container.evaluate(el => el.scrollTop = 0);
-        await webviewPage.waitForTimeout(100);
+        // Wait for scroll event to be processed
+        await expect(async () => {
+            const scrollTop = await container.evaluate(el => el.scrollTop);
+            expect(scrollTop).toBe(0);
+        }).toPass();
 
         await injector.updateMessages([...messages, {
             id: 'streaming_msg',
@@ -99,7 +103,11 @@ test.describe('Message List Scrolling', () => {
 
         // 8. Add a NEW assistant message and verify it DOES NOT force scroll to bottom if user scrolled up
         await container.evaluate(el => el.scrollTop = 0);
-        await webviewPage.waitForTimeout(100);
+        // Wait for scroll event to be processed before updating messages
+        await expect(async () => {
+            const scrollTop = await container.evaluate(el => el.scrollTop);
+            expect(scrollTop).toBe(0);
+        }).toPass();
 
         await injector.updateMessages([...messages, {
             id: 'streaming_msg',
@@ -115,8 +123,7 @@ test.describe('Message List Scrolling', () => {
             blocks: [{ type: 'text', content: 'New assistant message' }]
         }]);
 
-        // Wait a bit and verify we are still at the top
-        await webviewPage.waitForTimeout(200);
+        // Verify we are still at the top
         const scrollTopAfterAssistantMsg = await container.evaluate(el => el.scrollTop);
         expect(scrollTopAfterAssistantMsg).toBe(0);
 

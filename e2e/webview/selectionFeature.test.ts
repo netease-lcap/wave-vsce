@@ -80,10 +80,8 @@ test.describe('Selection Feature (Inline Tags)', () => {
 
         // 7. Test clicking the tag
         await injector.clearMessageLog();
-        // Wait for any potential re-renders
-        await webviewPage.waitForTimeout(500);
         await renderedTag.click();
-        
+
         // Wait for message to be sent
         await webviewPage.waitForFunction(() => {
             const messages = (window as any).getTestMessages ? (window as any).getTestMessages() : [];
@@ -123,8 +121,6 @@ test.describe('Selection Feature (Inline Tags)', () => {
         
         // Test clicking old format (path will be fileName)
         await injector.clearMessageLog();
-        // Wait for any potential re-renders
-        await webviewPage.waitForTimeout(500);
         await renderedTag.click();
         
         // Wait for message to be sent

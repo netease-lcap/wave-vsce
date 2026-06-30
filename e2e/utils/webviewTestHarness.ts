@@ -30,26 +30,51 @@ export const test = base.extend<WebviewTestContext>({
             vscodeStyles = fs.readFileSync(vscodeStylesPath, 'utf8');
         }
 
+        // Resolve codicons paths for local serving (avoid CDN)
+        const codiconsCssPath = path.join(process.cwd(), 'node_modules', '@vscode', 'codicons', 'dist', 'codicon.css');
+        const codiconsTtfPath = path.join(process.cwd(), 'node_modules', '@vscode', 'codicons', 'dist', 'codicon.ttf');
+
         // Serve the webview files through a mock server that simulates vscode-webview:// protocol
         await page.route('vscode-webview://**', (route, request) => {
             const url = new URL(request.url());
             const pathname = url.pathname;
-            
+
             // Remove leading slash and map to actual file
             const filename = pathname.substring(1);
+
+            // Serve codicons from local node_modules instead of CDN
+            if (filename === 'codicons/codicon.css' && fs.existsSync(codiconsCssPath)) {
+                route.fulfill({
+                    status: 200,
+                    contentType: 'text/css',
+                    headers: { 'Access-Control-Allow-Origin': '*' },
+                    body: fs.readFileSync(codiconsCssPath)
+                });
+                return;
+            }
+            if (filename === 'codicons/codicon.ttf' && fs.existsSync(codiconsTtfPath)) {
+                route.fulfill({
+                    status: 200,
+                    contentType: 'font/ttf',
+                    headers: { 'Access-Control-Allow-Origin': '*' },
+                    body: fs.readFileSync(codiconsTtfPath)
+                });
+                return;
+            }
+
             const filePath = path.join(webviewDistPath, filename);
-            
+
             if (fs.existsSync(filePath)) {
                 const content = fs.readFileSync(filePath);
                 const ext = path.extname(filename);
-                
+
                 let contentType = 'application/octet-stream';
                 if (ext === '.js') contentType = 'application/javascript';
                 else if (ext === '.css') contentType = 'text/css';
                 else if (ext === '.ttf') contentType = 'font/ttf';
                 else if (ext === '.woff') contentType = 'font/woff';
                 else if (ext === '.woff2') contentType = 'font/woff2';
-                
+
                 route.fulfill({
                     status: 200,
                     contentType,
@@ -74,7 +99,7 @@ export const test = base.extend<WebviewTestContext>({
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Wave AI Chat</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@vscode/codicons@latest/dist/codicon.css">
+    <link rel="stylesheet" href="vscode-webview://mock-extension-id/codicons/codicon.css">
     <link rel="stylesheet" href="vscode-webview://mock-extension-id/chat.css">
     <style>
         /* Global VS Code CSS Variables for Testing */

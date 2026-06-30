@@ -31,8 +31,8 @@ test.describe('File Upload Feature', () => {
     await messageInput.fill('@');
     await messageInput.press('End');
 
-    // Wait for the request to be sent and captured
-    await webviewPage.waitForTimeout(400);
+    // Wait for the requestFileSuggestions request to be sent
+    const reqId1 = await injector.waitForFileSuggestionRequest();
 
     // Simulate response with no filter text
     await injector.simulateExtensionMessage('fileSuggestionsResponse', {
@@ -47,14 +47,12 @@ test.describe('File Upload Feature', () => {
         }
       ],
       filterText: '', // Empty filter text
-      requestId: capturedRequestId || Date.now().toString()
+      requestId: reqId1
     });
-
-    // Wait for suggestions to render
-    await webviewPage.waitForTimeout(500);
 
     // Check for suggestion items
     const suggestionItems = webviewPage.locator('.suggestion-item');
+    await expect(suggestionItems.first()).toBeVisible();
     const itemCount = await suggestionItems.count();
 
     // Should have upload option + 1 file = 2 items
@@ -99,8 +97,8 @@ test.describe('File Upload Feature', () => {
     await messageInput.fill('@test');
     await messageInput.press('End');
 
-    // Wait for the debounced request
-    await webviewPage.waitForTimeout(400);
+    // Wait for the debounced requestFileSuggestions request
+    const reqId = await injector.waitForFileSuggestionRequest();
 
     // Mock filtered response with filter text
     await injector.simulateExtensionMessage('fileSuggestionsResponse', {
@@ -115,13 +113,12 @@ test.describe('File Upload Feature', () => {
         }
       ],
       filterText: 'test', // Has filter text
-      requestId: capturedRequestId || Date.now().toString()
+      requestId: reqId
     });
-
-    await webviewPage.waitForTimeout(500);
 
     // Should only show filtered results (no upload option when there's filter text)
     const suggestionItems = webviewPage.locator('.suggestion-item');
+    await expect(suggestionItems.first()).toBeVisible();
     const itemCount = await suggestionItems.count();
     expect(itemCount).toBe(1);
 
@@ -163,17 +160,15 @@ test.describe('File Upload Feature', () => {
     await messageInput.fill('@');
     await messageInput.press('End');
 
-    // Wait for the debounced request (100ms selectionChange + 150ms file suggestion)
-    await webviewPage.waitForTimeout(300);
+    // Wait for the debounced requestFileSuggestions request
+    const reqId = await injector.waitForFileSuggestionRequest();
 
     // Simulate response with no filter text to show upload option
     await injector.simulateExtensionMessage('fileSuggestionsResponse', {
       suggestions: [],
       filterText: '', // Empty filter text
-      requestId: Date.now().toString()
+      requestId: reqId
     });
-
-    await webviewPage.waitForTimeout(500);
 
     // Find and click the upload option
     const uploadOption = webviewPage.locator('.suggestion-item.upload-option');
@@ -199,7 +194,8 @@ test.describe('File Upload Feature', () => {
     await messageInput.fill('@');
     await messageInput.press('End');
 
-    await webviewPage.waitForTimeout(300);
+    // Wait for file suggestion request, then simulate upload
+    await injector.waitForFileSuggestionRequest();
 
     // Simulate successful file upload response
     await injector.simulateExtensionMessage('uploadSuccess', {
@@ -210,9 +206,8 @@ test.describe('File Upload Feature', () => {
       message: '成功上传 2 个文件到临时目录'
     });
 
-    await webviewPage.waitForTimeout(300);
-
     // Verify that file paths are inserted into the input as tags
+    await expect(messageInput.locator('.context-tag')).toHaveCount(2);
     const inputValue = (await messageInput.innerText()).replace(/\n/g, ' ').replace(/\s+/g, ' ').trim();
     expect(inputValue).toBe('@ document.pdf @ image.png');
   });
@@ -231,7 +226,7 @@ test.describe('File Upload Feature', () => {
     await messageInput.fill('@');
     await messageInput.press('End');
 
-    await webviewPage.waitForTimeout(300);
+    await injector.waitForFileSuggestionRequest();
 
     // Simulate successful single file upload response
     await injector.simulateExtensionMessage('uploadSuccess', {
@@ -241,9 +236,8 @@ test.describe('File Upload Feature', () => {
       message: '成功上传 1 个文件到临时目录'
     });
 
-    await webviewPage.waitForTimeout(300);
-
     // Verify that single file path is inserted into the input as a tag
+    await expect(messageInput.locator('.context-tag')).toHaveCount(1);
     const inputValue = (await messageInput.innerText()).replace(/\n/g, ' ').replace(/\s+/g, ' ').trim();
     expect(inputValue).toBe('@ single-file.txt');
   });
@@ -261,7 +255,7 @@ test.describe('File Upload Feature', () => {
     // Simple scenario: just type @ and upload
     await messageInput.type('@');
 
-    await webviewPage.waitForTimeout(300);
+    await injector.waitForFileSuggestionRequest();
 
     // Simulate successful file upload response
     await injector.simulateExtensionMessage('uploadSuccess', {
@@ -271,9 +265,8 @@ test.describe('File Upload Feature', () => {
       message: '成功上传 1 个文件到临时目录'
     });
 
-    await webviewPage.waitForTimeout(300);
-
     // Verify that file path replaces the @ symbol correctly as a tag
+    await expect(messageInput.locator('.context-tag')).toHaveCount(1);
     const inputValue = (await messageInput.innerText()).replace(/\n/g, ' ').replace(/\s+/g, ' ').trim();
     expect(inputValue).toBe('@ test.pdf');
   });
@@ -291,7 +284,7 @@ test.describe('File Upload Feature', () => {
     // Type @ and some filter text
     await messageInput.type('@test');
 
-    await webviewPage.waitForTimeout(300);
+    await injector.waitForFileSuggestionRequest();
 
     // Simulate successful file upload response
     await injector.simulateExtensionMessage('uploadSuccess', {
@@ -301,9 +294,8 @@ test.describe('File Upload Feature', () => {
       message: '成功上传 1 个文件到临时目录'
     });
 
-    await webviewPage.waitForTimeout(300);
-
     // Verify that file path replaces filter text correctly and doesn't add extra @
+    await expect(messageInput.locator('.context-tag')).toHaveCount(1);
     const inputValue = (await messageInput.innerText()).replace(/\n/g, ' ').replace(/\s+/g, ' ').trim();
     expect(inputValue).toBe('@ uploaded-file.txt');
   });

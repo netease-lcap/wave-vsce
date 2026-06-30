@@ -37,7 +37,6 @@ test.describe('Product Specification Screenshots - Rich Content', () => {
         
         // 13a. Insert Folder Tag
         await webviewPage.keyboard.type('@');
-        await webviewPage.waitForTimeout(500); // Wait for debounce
 
         // Capture the actual requestId from the message log
         const getLatestRequestId = async () => {
@@ -47,6 +46,9 @@ test.describe('Product Specification Screenshots - Rich Content', () => {
                 return reqs.length > 0 ? reqs[reqs.length - 1].requestId : 'fallback-id';
             });
         };
+
+        // Wait for the debounced requestFileSuggestions request
+        await injector.waitForFileSuggestionRequest();
 
         await injector.simulateExtensionMessage('fileSuggestionsResponse', {
             requestId: await getLatestRequestId(),
@@ -58,12 +60,13 @@ test.describe('Product Specification Screenshots - Rich Content', () => {
         await webviewPage.waitForSelector('.suggestion-item', { state: 'visible' });
         await webviewPage.keyboard.press('ArrowDown');
         await webviewPage.keyboard.press('Enter');
-        
+
         await webviewPage.keyboard.type(' 这是文本 ');
-        
+
         // 13b. Insert File Tag
+        const countBeforeSecondAt = await injector.getMessageCount();
         await webviewPage.keyboard.type('@');
-        await webviewPage.waitForTimeout(500); // Wait for debounce
+        await injector.waitForFileSuggestionRequest(2000, countBeforeSecondAt);
 
         await injector.simulateExtensionMessage('fileSuggestionsResponse', {
             requestId: await getLatestRequestId(),

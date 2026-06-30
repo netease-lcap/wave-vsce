@@ -43,11 +43,6 @@ test.describe('Tool Display Visual Test', () => {
         // Update all messages at once
         await messageInjector.updateMessages(messages);
 
-        // Wait for all content to render
-        await webviewPage.waitForTimeout(500);
-
-
-
         // Verify tool blocks are present and have correct content
         const toolBlocks = webviewPage.locator('.tool-block');
         await expect(toolBlocks).toHaveCount(3);
@@ -102,11 +97,6 @@ test.describe('Tool Display Visual Test', () => {
 
         await messageInjector.updateMessages(messages);
 
-        // Wait for rendering
-        await webviewPage.waitForTimeout(500);
-
-
-
         // Verify messages flow together visually
         const messagesContainer = webviewPage.locator('.messages-container');
         await expect(messagesContainer).toBeVisible();
@@ -130,9 +120,6 @@ test.describe('Tool Display Visual Test', () => {
         ];
 
         await messageInjector.updateMessages(messages);
-        await webviewPage.waitForTimeout(500);
-
-
 
         // Verify user messages have proper styling and alignment
         const userMessages = webviewPage.locator('.message.user');
@@ -182,9 +169,6 @@ test.describe('Tool Display Visual Test', () => {
         ];
 
         await messageInjector.updateMessages(messages);
-        await webviewPage.waitForTimeout(500);
-
-
 
         // Verify tool blocks and compact params styling
         const toolBlocks = webviewPage.locator('.tool-block');
@@ -247,7 +231,6 @@ test.describe('Tool Display Visual Test', () => {
         }
 
         await messageInjector.updateMessages(messages);
-        await webviewPage.waitForTimeout(300);
 
         const toolBlocks = webviewPage.locator('.tool-block');
         await expect(toolBlocks).toHaveCount(1);
