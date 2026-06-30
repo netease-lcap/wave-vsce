@@ -242,21 +242,12 @@ describe('chatReducer', () => {
       expect(newState).toBe(state);
     });
 
-    it('should return original state if tool block not found', () => {
-      const toolBlock: ToolBlock = {
-        type: 'tool',
-        id: 'tool-1',
-        name: 'Bash',
-        stage: 'running',
-        parameters: '{"command":"ls"}',
-        result: '',
-        success: false
-      };
+    it('should add new tool block if not found (incremental callback scenario)', () => {
       const message: Message = {
         id: 'msg-1',
         role: 'assistant',
         timestamp: '0',
-        blocks: [toolBlock]
+        blocks: []
       };
       const state = { ...initialState, messages: [message] };
 
@@ -264,16 +255,53 @@ describe('chatReducer', () => {
         type: 'UPDATE_TOOL_BLOCK',
         payload: {
           messageId: 'msg-1',
-          id: 'non-existent-tool',
+          id: 'tool-new',
           name: 'Bash',
-          stage: 'end',
-          result: '',
-          success: false,
-          parameters: '{}'
+          stage: 'start',
+          parameters: '{"command":"ls"}'
         }
       });
 
-      expect(newState).toBe(state);
+      expect(newState.messages[0].blocks).toHaveLength(1);
+      const newBlock = newState.messages[0].blocks[0] as ToolBlock;
+      expect(newBlock.type).toBe('tool');
+      expect(newBlock.id).toBe('tool-new');
+      expect(newBlock.name).toBe('Bash');
+      expect(newBlock.stage).toBe('start');
+      expect(newBlock.parameters).toBe('{"command":"ls"}');
+    });
+
+    it('should add tool block alongside existing blocks', () => {
+      const textBlock: TextBlock = {
+        type: 'text',
+        content: 'Let me run a command',
+        stage: 'end'
+      };
+      const message: Message = {
+        id: 'msg-1',
+        role: 'assistant',
+        timestamp: '0',
+        blocks: [textBlock]
+      };
+      const state = { ...initialState, messages: [message] };
+
+      const newState = chatReducer(state, {
+        type: 'UPDATE_TOOL_BLOCK',
+        payload: {
+          messageId: 'msg-1',
+          id: 'tool-1',
+          name: 'Bash',
+          stage: 'running',
+          parameters: '{"command":"ls"}'
+        }
+      });
+
+      expect(newState.messages[0].blocks).toHaveLength(2);
+      expect(newState.messages[0].blocks[0].type).toBe('text');
+      const toolBlock = newState.messages[0].blocks[1] as ToolBlock;
+      expect(toolBlock.type).toBe('tool');
+      expect(toolBlock.id).toBe('tool-1');
+      expect(toolBlock.stage).toBe('running');
     });
   });
 
