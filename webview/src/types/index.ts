@@ -6,10 +6,11 @@
  */
 
 // Import message structures and session types from wave-agent-sdk
-import type { Message, MessageBlock, TextBlock, ErrorBlock, ToolBlock, ImageBlock, BangBlock, CompactBlock, PermissionMode, AskUserQuestion, AskUserQuestionInput, AskUserQuestionOption, Task, TaskStatus, TaskNotificationBlock, McpServerStatus, McpServerConfig } from 'wave-agent-sdk/dist/types/index.js';
+import type { Message, MessageBlock, TextBlock, ErrorBlock, ToolBlock, ImageBlock, BangBlock, CompactBlock, ReasoningBlock, PermissionMode, AskUserQuestion, AskUserQuestionInput, AskUserQuestionOption, Task, TaskStatus, TaskNotificationBlock, McpServerStatus, McpServerConfig } from 'wave-agent-sdk/dist/types/index.js';
 import type { SessionMetadata, SessionData } from 'wave-agent-sdk/dist/services/session.js';
+import type { ToolBlockUpdateCallbackParams } from 'wave-agent-sdk/dist/utils/messageOperations.js';
 
-export type { Message, MessageBlock, TextBlock, ErrorBlock, ToolBlock, ImageBlock, BangBlock, CompactBlock, TaskNotificationBlock, SessionData, SessionMetadata, PermissionMode, AskUserQuestion, AskUserQuestionInput, AskUserQuestionOption, Task, TaskStatus, McpServerStatus, McpServerConfig };
+export type { Message, MessageBlock, TextBlock, ErrorBlock, ToolBlock, ImageBlock, BangBlock, CompactBlock, ReasoningBlock, TaskNotificationBlock, SessionData, SessionMetadata, PermissionMode, AskUserQuestion, AskUserQuestionInput, AskUserQuestionOption, Task, TaskStatus, McpServerStatus, McpServerConfig };
 
 // Slash command types
 export interface SlashCommand {
@@ -423,4 +424,9 @@ export type ChatAction =
       permissionMode?: PermissionMode;
       attachedImages?: AttachedImage[];
       queuedMessages?: QueuedMessage[];
-    } };
+    } }
+  // Incremental update actions for streaming optimization
+  | { type: 'APPEND_MESSAGE'; payload: Message }
+  | { type: 'UPDATE_STREAMING_CONTENT'; payload: { messageId: string; accumulated: string; stage: 'streaming' | 'end' } }
+  | { type: 'UPDATE_STREAMING_REASONING'; payload: { messageId: string; accumulated: string; stage: 'streaming' | 'end' } }
+  | { type: 'UPDATE_TOOL_BLOCK'; payload: ToolBlockUpdateCallbackParams };

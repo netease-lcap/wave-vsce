@@ -1,3 +1,4 @@
+import React from 'react';
 import { ContextTag } from './ContextTag';
 import { parseMentions } from '../utils/messageUtils';
 import { marked } from 'marked';
@@ -100,7 +101,7 @@ const parseMarkdownWithMermaid = (content: string): ParsedMarkdownContent => {
 };
 
 
-export const Message: React.FC<MessageProps> = (props) => {
+export const Message: React.FC<MessageProps> = React.memo((props) => {
   const { message, isStreaming = false, isQueued = false, onRewindToMessage } = props;
   const getMessageClassName = () => {
     const classes = ['message'];
@@ -596,4 +597,9 @@ export const Message: React.FC<MessageProps> = (props) => {
       )}
     </div>
   );
-};
+}, (prev, next) => {
+  // Custom comparison for React.memo
+  return prev.message === next.message &&
+    prev.isStreaming === next.isStreaming &&
+    prev.isQueued === next.isQueued;
+});
