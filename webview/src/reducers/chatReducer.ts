@@ -1,4 +1,4 @@
-import type { ChatState, ChatAction, Message, MessageBlock, TextBlock } from '../types';
+import type { ChatState, ChatAction, Message, MessageBlock, TextBlock, ToolBlock } from '../types';
 
 export const initialState: ChatState = {
   messages: [],
@@ -285,14 +285,30 @@ export function chatReducer(state: ChatState, action: ChatAction): ChatState {
 
       const message = state.messages[messageIndex];
       const toolBlockIndex = message.blocks.findIndex(b => b.type === 'tool' && b.id === toolBlockId);
-      if (toolBlockIndex === -1) return state;
 
-      const newBlocks = message.blocks.map((block, idx) => {
-        if (idx === toolBlockIndex && block.type === 'tool') {
-          return { ...block, ...updates };
-        }
-        return block;
-      });
+      let newBlocks: MessageBlock[];
+      if (toolBlockIndex === -1) {
+        // Tool block doesn't exist yet, add it as a new block
+        const newToolBlock: ToolBlock = {
+          type: 'tool',
+          id: toolBlockId,
+          name: updates.name || '',
+          stage: updates.stage || 'start',
+          parameters: updates.parameters || '',
+          result: updates.result || '',
+          success: updates.success ?? false,
+          ...updates
+        };
+        newBlocks = [...message.blocks, newToolBlock];
+      } else {
+        // Update existing tool block
+        newBlocks = message.blocks.map((block, idx) => {
+          if (idx === toolBlockIndex && block.type === 'tool') {
+            return { ...block, ...updates };
+          }
+          return block;
+        });
+      }
 
       const newMessages = state.messages.map((m, idx) => {
         if (idx === messageIndex) {
