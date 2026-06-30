@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { Agent, Message, PermissionDecision, ToolPermissionContext, AgentCallbacks, PermissionMode, Task, PromptHistoryManager, TextBlock, QueuedMessage, McpServerStatus } from 'wave-agent-sdk';
+import { Agent, Message, PermissionDecision, ToolPermissionContext, AgentCallbacks, PermissionMode, Task, PromptHistoryManager, TextBlock, QueuedMessage, McpServerStatus, ToolBlockUpdateCallbackParams } from 'wave-agent-sdk';
 import { ConfigurationData } from '../services/configurationService';
 import { VscodeLspAdapter } from '../services/lspAdapter';
 
@@ -14,6 +14,11 @@ export interface ChatSessionCallbacks {
     onToolPermissionRequest: (context: ToolPermissionContext) => Promise<PermissionDecision>;
     onError: (error: any) => void;
     onMcpServersChange?: (servers: McpServerStatus[]) => void;
+    // Incremental update callbacks for streaming optimization
+    onAssistantMessageAdded?: (message: Message) => void;
+    onStreamingContentUpdate?: (params: { messageId: string; accumulated: string; stage: 'streaming' | 'end' }) => void;
+    onStreamingReasoningUpdate?: (params: { messageId: string; accumulated: string; stage: 'streaming' | 'end' }) => void;
+    onToolBlockUpdate?: (params: ToolBlockUpdateCallbackParams) => void;
 }
 
 export class ChatSession {
@@ -39,6 +44,12 @@ export class ChatSession {
     private updateTimer: NodeJS.Timeout | undefined;
     private pendingUpdate: boolean = false;
     private forceNextUpdateImmediate: boolean = false;
+
+    // Throttled incremental update fields
+    private streamingContentUpdateTimer: NodeJS.Timeout | undefined;
+    private pendingStreamingContentUpdate: { messageId: string; accumulated: string; stage: 'streaming' | 'end' } | undefined;
+    private streamingReasoningUpdateTimer: NodeJS.Timeout | undefined;
+    private pendingStreamingReasoningUpdate: { messageId: string; accumulated: string; stage: 'streaming' | 'end' } | undefined;
 
     constructor(
         public readonly viewType: 'sidebar' | 'tab' | 'window',
@@ -68,8 +79,35 @@ export class ChatSession {
             const isBaseURLValid = !!config.baseURL || !!process.env.WAVE_BASE_URL || !!config.serverUrl || !!process.env.WAVE_SERVER_URL;
 
             const agentCallbacks: AgentCallbacks = {
+                // Keep onMessagesChange for clear/restore/rewind, but not triggered by SDK callbacks during streaming
                 onMessagesChange: (messages: Message[]) => {
-                    this.throttledUpdateChatMessages(messages);
+                    this.messages = messages;
+                    // Only trigger full update for non-streaming scenarios (clear/restore/rewind)
+                    // During streaming, incremental callbacks handle updates
+                },
+                onUserMessageAdded: () => {
+                    // Find the newly added user message from agent.messages (last user message)
+                    const userMessages = this.agent?.messages.filter(m => m.role === 'user') || [];
+                    const newUserMessage = userMessages[userMessages.length - 1];
+                    if (newUserMessage) {
+                        this.callbacks.onAssistantMessageAdded?.(newUserMessage);
+                    }
+                },
+                onAssistantMessageAdded: (messageId: string) => {
+                    // Find the newly added message from agent.messages
+                    const newMessage = this.agent?.messages.find(m => m.id === messageId);
+                    if (newMessage) {
+                        this.callbacks.onAssistantMessageAdded?.(newMessage);
+                    }
+                },
+                onAssistantContentUpdated: (params) => {
+                    this.throttledStreamingContentUpdate(params.messageId, params.accumulated, params.stage);
+                },
+                onAssistantReasoningUpdated: (params) => {
+                    this.throttledStreamingReasoningUpdate(params.messageId, params.accumulated, params.stage);
+                },
+                onToolBlockUpdated: (params) => {
+                    this.callbacks.onToolBlockUpdate?.(params);
                 },
                 onTasksChange: (tasks: Task[]) => {
                     this.tasks = tasks;
@@ -327,6 +365,62 @@ export class ChatSession {
         }
     }
 
+    private throttledStreamingContentUpdate(messageId: string, accumulated: string, stage: 'streaming' | 'end') {
+        // If stage is 'end', fire immediately to ensure finalization is not delayed
+        if (stage === 'end') {
+            if (this.streamingContentUpdateTimer) {
+                clearTimeout(this.streamingContentUpdateTimer);
+                this.streamingContentUpdateTimer = undefined;
+            }
+            this.pendingStreamingContentUpdate = undefined;
+            this.callbacks.onStreamingContentUpdate?.({ messageId, accumulated, stage });
+            return;
+        }
+
+        this.pendingStreamingContentUpdate = { messageId, accumulated, stage };
+
+        // leading edge: first call fires immediately
+        if (!this.streamingContentUpdateTimer) {
+            this.callbacks.onStreamingContentUpdate?.(this.pendingStreamingContentUpdate);
+            // trailing edge: fire the last update after 16ms cooldown (~60fps)
+            this.streamingContentUpdateTimer = setTimeout(() => {
+                if (this.pendingStreamingContentUpdate) {
+                    this.callbacks.onStreamingContentUpdate?.(this.pendingStreamingContentUpdate);
+                    this.pendingStreamingContentUpdate = undefined;
+                }
+                this.streamingContentUpdateTimer = undefined;
+            }, 16);
+        }
+    }
+
+    private throttledStreamingReasoningUpdate(messageId: string, accumulated: string, stage: 'streaming' | 'end') {
+        // If stage is 'end', fire immediately to ensure finalization is not delayed
+        if (stage === 'end') {
+            if (this.streamingReasoningUpdateTimer) {
+                clearTimeout(this.streamingReasoningUpdateTimer);
+                this.streamingReasoningUpdateTimer = undefined;
+            }
+            this.pendingStreamingReasoningUpdate = undefined;
+            this.callbacks.onStreamingReasoningUpdate?.({ messageId, accumulated, stage });
+            return;
+        }
+
+        this.pendingStreamingReasoningUpdate = { messageId, accumulated, stage };
+
+        // leading edge: first call fires immediately
+        if (!this.streamingReasoningUpdateTimer) {
+            this.callbacks.onStreamingReasoningUpdate?.(this.pendingStreamingReasoningUpdate);
+            // trailing edge: fire the last update after 16ms cooldown (~60fps)
+            this.streamingReasoningUpdateTimer = setTimeout(() => {
+                if (this.pendingStreamingReasoningUpdate) {
+                    this.callbacks.onStreamingReasoningUpdate?.(this.pendingStreamingReasoningUpdate);
+                    this.pendingStreamingReasoningUpdate = undefined;
+                }
+                this.streamingReasoningUpdateTimer = undefined;
+            }, 16);
+        }
+    }
+
     public async setPermissionMode(mode: PermissionMode) {
         if (this.agent) {
             await this.agent.setPermissionMode(mode);
@@ -362,6 +456,14 @@ export class ChatSession {
             clearTimeout(this.updateTimer);
             this.updateTimer = undefined;
         }
+        if (this.streamingContentUpdateTimer) {
+            clearTimeout(this.streamingContentUpdateTimer);
+            this.streamingContentUpdateTimer = undefined;
+        }
+        if (this.streamingReasoningUpdateTimer) {
+            clearTimeout(this.streamingReasoningUpdateTimer);
+            this.streamingReasoningUpdateTimer = undefined;
+        }
 
         if (this.agent) {
             try {
@@ -380,6 +482,8 @@ export class ChatSession {
         this.isStreaming = false;
         this.isCommandRunning = false;
         this.pendingUpdate = false;
+        this.pendingStreamingContentUpdate = undefined;
+        this.pendingStreamingReasoningUpdate = undefined;
         this.messageQueue = [];
     }
 

@@ -150,7 +150,7 @@ export class ChatProvider implements vscode.WebviewViewProvider {
                 this.webviewManager.postMessage({ command: 'updateTasks', tasks }, viewType, windowId);
             },
             onSessionIdChange: (sessionId) => {
-                this.handleSessionIdChange(sessionId, viewType, windowId).catch(err => 
+                this.handleSessionIdChange(sessionId, viewType, windowId).catch(err =>
                     console.error(`Error handling session ID change for ${viewType}:`, err)
                 );
             },
@@ -179,6 +179,19 @@ export class ChatProvider implements vscode.WebviewViewProvider {
             },
             onMcpServersChange: (servers) => {
                 this.webviewManager.postMessage({ command: 'mcpServersUpdate', servers }, viewType, windowId);
+            },
+            // Incremental update callbacks for streaming optimization
+            onAssistantMessageAdded: (message) => {
+                this.webviewManager.postMessage({ command: 'appendMessage', message }, viewType, windowId);
+            },
+            onStreamingContentUpdate: (params) => {
+                this.webviewManager.postMessage({ command: 'updateStreamingContent', ...params }, viewType, windowId);
+            },
+            onStreamingReasoningUpdate: (params) => {
+                this.webviewManager.postMessage({ command: 'updateStreamingReasoning', ...params }, viewType, windowId);
+            },
+            onToolBlockUpdate: (params) => {
+                this.webviewManager.postMessage({ command: 'updateToolBlock', params }, viewType, windowId);
             }
         });
     }

@@ -122,7 +122,7 @@ export const MessageList = forwardRef<{ scrollToBottom: (behavior?: ScrollBehavi
 
           return (
             <Message
-              key={`${message.role}-${originalIndexMap[idx]}`}
+              key={message.id}
               message={message}
               isStreaming={isStreaming}
               vscode={vscode}

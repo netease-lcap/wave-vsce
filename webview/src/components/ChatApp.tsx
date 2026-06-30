@@ -13,212 +13,10 @@ import StatusDialog from './StatusDialog';
 import LoginDialog from './LoginDialog';
 import type {
   ChatAppProps,
-  ChatState,
-  ChatAction,
   WebviewMessage,
-  Message,
-  Task
 } from '../types';
+import { chatReducer, initialState } from '../reducers/chatReducer';
 import '../styles/ChatApp.css';
-
-const initialState: ChatState = {
-  messages: [],
-  tasks: [],
-  isTaskListVisible: false,
-  isTaskListCollapsed: false,
-  isQueueCollapsed: false,
-  isStreaming: false,
-  isCommandRunning: false,
-  inputDisabled: false,
-  shouldClearInput: false,
-  sessions: [],
-  currentSession: undefined,
-  sessionsLoading: false,
-  pendingConfirmations: [],
-  queuedMessages: [],
-  // Dialog state
-  activeDialog: null,
-  configurationData: undefined,
-  configurationLoading: false,
-  configurationError: undefined,
-  configuredModels: [],
-  currentModel: '',
-  currentFastModel: '',
-  // Permission mode state
-  permissionMode: 'default',
-  // Attached images state
-  attachedImages: []
-};
-
-function chatReducer(state: ChatState, action: ChatAction): ChatState {
-  switch (action.type) {
-    case 'SET_MESSAGES':
-      return {
-        ...state,
-        messages: action.payload
-      };
-    case 'SET_TASKS':
-      return {
-        ...state,
-        tasks: action.payload,
-        // Show task list if there are tasks
-        isTaskListVisible: action.payload.length > 0,
-        // Auto-expand task list when tasks are first created
-        isTaskListCollapsed: state.tasks.length === 0 && action.payload.length > 0 ? false : state.isTaskListCollapsed
-      };
-    case 'TOGGLE_TASK_LIST_COLLAPSE':
-      return {
-        ...state,
-        isTaskListCollapsed: !state.isTaskListCollapsed
-      };
-    case 'SET_TASK_LIST_COLLAPSED':
-      return {
-        ...state,
-        isTaskListCollapsed: action.payload
-      };
-    case 'TOGGLE_QUEUE_COLLAPSE':
-      return {
-        ...state,
-        isQueueCollapsed: !state.isQueueCollapsed
-      };
-    case 'START_STREAMING':
-      return {
-        ...state,
-        isStreaming: true
-      };
-    case 'END_STREAMING':
-      return {
-        ...state,
-        isStreaming: false
-      };
-    case 'SET_INPUT_DISABLED':
-      return {
-        ...state,
-        inputDisabled: action.payload
-      };
-    case 'INPUT_CLEARED':
-      return {
-        ...state,
-        shouldClearInput: false
-      };
-    case 'SET_SESSIONS':
-      return {
-        ...state,
-        sessions: action.payload,
-        sessionsLoading: false
-      };
-    case 'SET_CURRENT_SESSION':
-      return {
-        ...state,
-        currentSession: action.payload
-      };
-    case 'SET_SESSIONS_LOADING':
-      return {
-        ...state,
-        sessionsLoading: action.payload
-      };
-    case 'SHOW_CONFIRMATION':
-      return {
-        ...state,
-        pendingConfirmations: [...state.pendingConfirmations, action.payload]
-      };
-    case 'HIDE_CONFIRMATION':
-      return {
-        ...state,
-        pendingConfirmations: state.pendingConfirmations.filter(c => c.confirmationId !== action.payload)
-      };
-    case 'SHOW_DIALOG':
-      return {
-        ...state,
-        activeDialog: action.payload.type,
-        configurationData: action.payload.data ?? state.configurationData,
-        configurationLoading: false,
-        configurationError: action.payload.error
-      };
-    case 'HIDE_DIALOG':
-      return {
-        ...state,
-        activeDialog: null,
-        configurationError: undefined
-      };
-    case 'SET_CONFIGURATION_LOADING':
-      return {
-        ...state,
-        configurationLoading: action.payload
-      };
-    case 'SET_CONFIGURATION_ERROR':
-      return {
-        ...state,
-        configurationError: action.payload,
-        configurationLoading: false
-      };
-    case 'SET_CONFIGURATION_DATA':
-      return {
-        ...state,
-        configurationData: action.payload,
-        configurationLoading: false
-      };
-    case 'SET_CONFIGURED_MODELS':
-      return {
-        ...state,
-        configuredModels: action.payload
-      };
-    case 'SET_CURRENT_MODELS':
-      return {
-        ...state,
-        currentModel: action.payload.model,
-        currentFastModel: action.payload.fastModel,
-        configurationData: {
-          ...state.configurationData,
-          model: action.payload.model || state.configurationData?.model,
-          fastModel: action.payload.fastModel || state.configurationData?.fastModel
-        }
-      };
-    case 'SET_INITIAL_STATE':
-      return {
-        ...state,
-        messages: action.payload.messages,
-        tasks: action.payload.tasks || [],
-        isTaskListVisible: (action.payload.tasks && action.payload.tasks.length > 0) ? true : false,
-        isTaskListCollapsed: action.payload.isTaskListCollapsed !== undefined ? action.payload.isTaskListCollapsed : state.isTaskListCollapsed,
-        isStreaming: action.payload.isStreaming !== undefined ? action.payload.isStreaming : state.isStreaming,
-        isCommandRunning: action.payload.isCommandRunning !== undefined ? action.payload.isCommandRunning : state.isCommandRunning,
-        sessions: action.payload.sessions || state.sessions || [],
-        currentSession: action.payload.currentSession || state.currentSession,
-        configurationData: action.payload.configurationData || state.configurationData,
-        pendingConfirmations: action.payload.pendingConfirmations || [],
-        queuedMessages: action.payload.queuedMessages || [],
-        inputContent: action.payload.inputContent,
-        selection: action.payload.selection,
-        permissionMode: action.payload.permissionMode || state.permissionMode,
-        attachedImages: action.payload.attachedImages || [],
-        sessionsLoading: false,
-        configurationLoading: false
-      };
-    case 'UPDATE_SELECTION':
-      return {
-        ...state,
-        selection: action.payload
-      };
-    case 'SET_QUEUED_MESSAGES':
-      return {
-        ...state,
-        queuedMessages: action.payload
-      };
-    case 'SET_COMMAND_RUNNING':
-      return {
-        ...state,
-        isCommandRunning: action.payload
-      };
-    case 'SET_PERMISSION_MODE':
-      return {
-        ...state,
-        permissionMode: action.payload
-      };
-    default:
-      return state;
-  }
-}
 
 export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
   const [state, dispatch] = useReducer(chatReducer, initialState);
@@ -375,6 +173,25 @@ export const ChatApp: React.FC<ChatAppProps> = ({ vscode }) => {
           if (messageListRef.current && typeof messageListRef.current.scrollToBottom === 'function') {
             messageListRef.current.scrollToBottom('smooth');
           }
+          break;
+        // Incremental update commands for streaming optimization
+        case 'appendMessage':
+          dispatch({ type: 'APPEND_MESSAGE', payload: message.message });
+          break;
+        case 'updateStreamingContent':
+          dispatch({
+            type: 'UPDATE_STREAMING_CONTENT',
+            payload: { messageId: message.messageId, accumulated: message.accumulated, stage: message.stage }
+          });
+          break;
+        case 'updateStreamingReasoning':
+          dispatch({
+            type: 'UPDATE_STREAMING_REASONING',
+            payload: { messageId: message.messageId, accumulated: message.accumulated, stage: message.stage }
+          });
+          break;
+        case 'updateToolBlock':
+          dispatch({ type: 'UPDATE_TOOL_BLOCK', payload: message.params });
           break;
       }
     };
